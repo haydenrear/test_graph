@@ -1,35 +1,68 @@
 package com.hayden.test_graph.meta.ctx;
 
+import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
-import com.hayden.test_graph.graph.TestGraphNode;
-import com.hayden.test_graph.meta.exec.prog_bubble.ProgCtxConverterComposite;
+import com.hayden.test_graph.graph.GraphNode;
+import com.hayden.test_graph.graph.HyperGraphNode;
+import com.hayden.test_graph.meta.exec.prog_bubble.MetaProgNode;
+import com.hayden.test_graph.thread.ThreadScope;
+import lombok.experimental.Delegate;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Stack;
 
+@Component
+@ThreadScope
 public class MetaProgCtx implements MetaCtx {
+
+    @Delegate
+    Stack<MetaCtx> delegates = new Stack<>();
+
     @Override
-    public List<TestGraphContext> ctx() {
+    public MetaCtx bubble() {
+        return this;
+    }
+
+    @Override
+    public boolean executableFor(GraphNode n) {
+        return n instanceof HyperGraphNode<?, ?>
+                && !(n instanceof MetaProgNode<?>);
+    }
+
+    @Override
+    public List<Class<? extends TestGraphContext<MetaCtx>>> dependsOn() {
         return List.of();
     }
 
     @Override
-    public List<CompositeNodeMap> compositeNodes() {
-        return List.of();
+    public boolean toSet(TestGraphContext context) {
+        return false;
     }
 
     @Override
-    public ProgCtxConverterComposite compositeConverter() {
+    public void doSet(TestGraphContext context) {
+
+    }
+
+    @Override
+    public boolean isExecutable() {
+        return false;
+    }
+
+    @Override
+    public ContextValue<TestGraphContext> child() {
         return null;
     }
 
     @Override
-    public void put(TestGraphNode node, TestGraphContext ctx) {
-
+    public ContextValue<TestGraphContext> parent() {
+        return null;
     }
 
     @Override
-    public MetaCtx bubble() {
+    public Stack<? extends HyperGraphContext> prev() {
         return null;
     }
 }

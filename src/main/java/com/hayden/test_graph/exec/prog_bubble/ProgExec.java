@@ -2,31 +2,30 @@ package com.hayden.test_graph.exec.prog_bubble;
 
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.HyperGraph;
-import com.hayden.test_graph.graph.TestGraph;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
-import com.hayden.test_graph.meta.exec.single.MetaNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.function.Predicate;
+import java.util.Optional;
 
-public interface ProgExec<N extends MetaNode<HyperGraphContext>> extends GraphExec<MetaCtx, MetaCtx> {
+public interface ProgExec  {
 
-    interface ProgExecNode<CTX extends HyperGraphContext> extends GraphExec.GraphExecNode<CTX> { }
+    Logger log = LoggerFactory.getLogger(ProgExec.class);
 
-    interface ProgExecReducer<N extends MetaNode<HyperGraphContext>> extends GraphExec.GraphExecReducer<TestGraphContext<MetaCtx>, MetaCtx> {
-        ProgExec<N> reduce(ProgExecNode<MetaCtx> first, ProgExecNode<MetaCtx> second);
+    interface ProgExecNode<CTX extends HyperGraphContext<CTX>> extends GraphExec.GraphExecNode<CTX, CTX> { }
+
+    interface ProgExecReducer extends GraphExec.GraphExecReducer<MetaCtx, MetaCtx> {
     }
 
+    MetaCtx collectCtx();
 
-    ProgExec<N> map(ProgExecNode<MetaCtx> toExec);
+    default MetaCtx exec(Class<? extends TestGraphContext> ctx) {
+        return this.exec(ctx, null) ;
+    }
 
-    ProgExec<N> filter(Predicate<GraphExecNode<MetaCtx>> toExec);
-
-    ProgExec<N> collect();
-
-    ProgExec<N> reduce(ProgExecReducer<N> reducer);
-
-    void exec(MetaCtx ctx);
+    MetaCtx exec(Class<? extends TestGraphContext> ctx, MetaCtx prev);
 
 }

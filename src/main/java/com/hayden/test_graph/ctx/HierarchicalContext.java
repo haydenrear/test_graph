@@ -2,10 +2,10 @@ package com.hayden.test_graph.ctx;
 
 public sealed interface HierarchicalContext permits
         HierarchicalContext.HasParentContext,
-        HierarchicalContext.HasChildContext {
+        HierarchicalContext.HasChildContext,
+        TestGraphContext {
 
     non-sealed interface HasParentContext extends HierarchicalContext, TestGraphContext {
-        ContextValue<TestGraphContext> parent();
 
         default void doSet(HasChildContext toSet) {
             if (toSet(toSet))
@@ -16,7 +16,6 @@ public sealed interface HierarchicalContext permits
     }
 
     non-sealed interface HasChildContext extends HierarchicalContext, TestGraphContext{
-        ContextValue<TestGraphContext> child();
 
         default void doSet(HasParentContext toSet) {
             if (toSet(toSet))
@@ -29,5 +28,12 @@ public sealed interface HierarchicalContext permits
     boolean toSet(TestGraphContext context);
 
     void doSet(TestGraphContext context);
+
+    boolean isExecutable();
+
+    ContextValue<TestGraphContext> child();
+
+    ContextValue<TestGraphContext> parent();
+
 
 }

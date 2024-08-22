@@ -1,14 +1,14 @@
 package com.hayden.test_graph.init.exec.bubble;
 
-import com.hayden.test_graph.graph.HyperGraphNode;
+import com.hayden.test_graph.graph.HyperGraphTestNode;
 import com.hayden.test_graph.init.ctx.InitBubble;
-
-import java.util.List;
+import com.hayden.test_graph.meta.ctx.MetaCtx;
 
 /**
  * Bubble initialization logic.
  * @param <T>
  */
-public interface InitBubbleNode<T extends InitBubble> extends HyperGraphNode<T> {
+public interface InitBubbleNode extends HyperGraphTestNode<InitBubble, MetaCtx> {
+
 
 }

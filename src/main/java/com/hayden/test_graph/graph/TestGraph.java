@@ -2,20 +2,18 @@ package com.hayden.test_graph.graph;
 
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.init.ctx.InitBubble;
+import com.hayden.test_graph.init.ctx.InitCtx;
 
 import java.util.List;
+import java.util.Map;
 
-public interface TestGraph<T extends TestGraphContext<H>, H extends HyperGraphContext, TN extends TestGraphNode<T>> extends Graph<T, H, TN> {
+public interface TestGraph<T extends TestGraphContext<H>, H extends HyperGraphContext> extends Graph<H> {
 
-    /**
-     * Bubble the hypergraph context.
-     * @return bubbled hypergraph context - this is the context that is shared between contexts in the MetaContext.
-     */
-    H bubble();
+    List<? extends T> sortedCtx(Class<? extends T> clzz);
 
-    T ctx();
+    Map<Class<? extends T>, List<? extends GraphNode<T, H>>> sortedNodes();
 
-    void initialize(HyperGraph hg, H hyperGraphContext,
-                    HyperGraphNode hgn);
+    List<SubGraph<InitCtx, InitBubble>> subGraphs();
 
 }

@@ -9,4 +9,6 @@ version = "1.0.0"
 
 dependencies {
     implementation(project(":utilitymodule"))
+    implementation("io.cucumber:cucumber-spring:7.18.1")
+    implementation("io.cucumber:cucumber-java:7.18.1")
 }

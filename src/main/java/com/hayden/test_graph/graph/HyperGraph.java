@@ -2,15 +2,13 @@ package com.hayden.test_graph.graph;
 
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
-import com.hayden.test_graph.meta.ctx.MetaCtx;
-import com.hayden.test_graph.meta.graph.MetaGraph;
 
-import java.util.List;
-
-public interface HyperGraph<C extends TestGraphContext<T>, T extends HyperGraphContext, H extends HyperGraphNode> extends Graph<C, T, H> {
-
-    List<C> forBubbling();
-
+/**
+ * A hypergraph is a graph made up of other graphs. In this case it facilitates the bubbling of the various sorts of computations.
+ * @param <C>
+ * @param <T>
+ */
+public interface HyperGraph<C extends TestGraphContext<T>, T extends HyperGraphContext> extends Graph<T> {
 
 
 }

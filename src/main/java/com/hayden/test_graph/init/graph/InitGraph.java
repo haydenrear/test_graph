@@ -6,75 +6,91 @@ import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.init.exec.single.InitNode;
 import com.hayden.test_graph.thread.ThreadScope;
-import jakarta.annotation.PostConstruct;
+import com.hayden.utilitymodule.MapFunctions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @ThreadScope
-public class InitGraph<I extends InitCtx> implements TestGraph<I, InitBubble, InitNode<I>> {
+public class InitGraph implements TestGraph<InitCtx, InitBubble> {
 
     @Autowired
-    GraphAutoDetect nodesProvider;
+    @Lazy
+    LazyGraphAutoDetect nodesProvider;
+    @Autowired
+    TestGraphSort graphSort;
 
-    List<? extends InitCtx> ctx;
+    Map<Class<? extends InitCtx>, List<? extends GraphNode<InitCtx, InitBubble>>> nodes;
 
-    @PostConstruct
+    @Autowired
+    @ThreadScope
+    List<SubGraph<InitCtx, InitBubble>> subGraphs;
+
     public void initialize() {
-        this.ctx = nodesProvider.retrieveCtx(t -> t instanceof InitCtx c ? c : null);
+//        this.setParentChildren();
     }
 
-    public void setParentChildren() {
-        for (var i : ctx) {
-            for (var j : ctx) {
-                if (i != j) {
-                    if (i instanceof HierarchicalContext.HasChildContext c
-                            && j instanceof HierarchicalContext.HasParentContext p) {
-                        if (p.toSet(c)) {
-                            p.doSet(c);
-                        }
-                    } else if (j instanceof HierarchicalContext.HasChildContext c
-                            && i instanceof HierarchicalContext.HasParentContext p) {
-                        if (p.toSet(c)) {
-                            p.doSet(c);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-
-    @Override
-    public InitGraph<I> fromSorted(List<InitNode<I>> nodes) {
-        return null;
+    @Autowired(required = false)
+    @ThreadScope
+    public void setNodes(List<InitNode<InitCtx>> nodes) {
+        this.nodes = MapFunctions.CollectMap(
+                nodes.stream().collect(Collectors.groupingBy(TestGraphNode::clzz))
+                        .entrySet().stream().map(e -> Map.entry(e.getKey(), graphSort.sort(e.getValue())))
+        );
     }
 
     @Override
-    public List<? extends TestGraphNode> sortedNodes() {
-        return List.of();
+    public TestGraphSort sortingAlgorithm() {
+        return graphSort;
     }
 
     @Override
-    public InitBubble bubble() {
-        return null;
+    public List<? extends InitCtx> sortedCtx(Class<? extends InitCtx> init) {
+        return graphSort.sortContext(
+                subGraphs.stream()
+                        .filter(s -> s.clazz().equals(init))
+                        .flatMap(s -> s.parseContextTree().stream())
+                        .toList()
+        );
     }
 
     @Override
-    public I ctx() {
-        return null;
+    public Map<Class<? extends InitCtx>, List<? extends GraphNode<InitCtx, InitBubble>>> sortedNodes() {
+        return this.nodes;
     }
 
     @Override
-    public void initialize(HyperGraph hg,
-                           InitBubble hyperGraphContext,
-                           HyperGraphNode hgn) {
+    public List<SubGraph<InitCtx, InitBubble>> subGraphs() {
+        return subGraphs;
     }
 
     @Override
     public GraphAutoDetect allNodes() {
-        return nodesProvider;
+        return nodesProvider.getAutoDetect();
     }
+
+//    public void setParentChildren() {
+//        for (var i : ctx) {
+//            for (var j : ctx) {
+//                if (i != j) {
+//                    if (i instanceof HierarchicalContext.HasChildContext c
+//                            && j instanceof HierarchicalContext.HasParentContext p) {
+//                        if (p.toSet(c)) {
+//                            p.doSet(c);
+//                        }
+//                    } else if (j instanceof HierarchicalContext.HasChildContext c
+//                            && i instanceof HierarchicalContext.HasParentContext p) {
+//                        if (p.toSet(c)) {
+//                            p.doSet(c);
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 }

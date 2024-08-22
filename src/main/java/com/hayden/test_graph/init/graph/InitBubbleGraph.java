@@ -1,52 +1,51 @@
 package com.hayden.test_graph.init.graph;
 
+import com.hayden.test_graph.ctx.HyperGraphContext;
+import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.*;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
+import com.hayden.test_graph.init.exec.InitExec;
 import com.hayden.test_graph.init.exec.bubble.InitBubbleNode;
+import com.hayden.test_graph.init.exec.single.InitNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ThreadScope;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
 @ThreadScope
-public class InitBubbleGraph implements HyperGraph<InitBubble, MetaCtx, InitBubbleNode<InitBubble>> {
+public class InitBubbleGraph implements HyperTestGraph<InitBubble, MetaCtx> {
+
+    @Autowired @Lazy
+    LazyGraphAutoDetect nodesProvider;
 
     @Autowired
-    GraphAutoDetect nodesProvider;
+    TestGraphSort graphSort;
 
+    @Autowired
     @ThreadScope
-    @Autowired
-    InitBubble bubble;
+    List<InitBubbleNode> sortedNodes;
 
-    List<InitCtx> ctx;
-
-    @PostConstruct
-    public void initialize() {
-        this.ctx = nodesProvider.retrieveCtx(t -> t instanceof InitCtx c ? c : null);
+    @Override
+    public List<? extends InitBubbleNode> sortedNodes() {
+        return sortedNodes;
     }
 
     @Override
-    public InitBubbleGraph fromSorted(List<InitBubbleNode<InitBubble>> nodes) {
-        return null;
+    public TestGraphSort sortingAlgorithm() {
+        return graphSort;
     }
 
-    @Override
-    public List<? extends TestGraphNode<InitBubble>> sortedNodes() {
-        return List.of();
-    }
 
     @Override
     public GraphAutoDetect allNodes() {
-        return nodesProvider;
+        return nodesProvider.getAutoDetect();
     }
 
-    @Override
-    public List<InitBubble> forBubbling() {
-        return List.of();
-    }
 }

@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -32,18 +33,25 @@ public class GraphAutoDetect {
 
     @Autowired
     @ThreadScope
+    @Lazy
     public void setGraphs(List<Graph> graphNodes) {
         initializeMapNotProxy(graphNodes, c -> this.graphs = c);
+
+        for (var g : graphs.values()) {
+
+        }
     }
 
     @Autowired
     @ThreadScope
+    @Lazy
     public void setNodes(List<TestGraphNode> graphNodes) {
         initializeMapNotProxy(graphNodes, c -> this.graphNodes = c);
     }
 
     @Autowired
     @ThreadScope
+    @Lazy
     public void setGraphContext(List<TestGraphContext> graphCtx) {
         initializeMapNotProxy(graphCtx, c -> this.graphCtxt = c);
     }
