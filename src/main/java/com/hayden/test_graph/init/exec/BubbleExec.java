@@ -108,7 +108,8 @@ public class BubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaCtx> 
 
     private InitBubble execInner(InitBubble c, MetaCtx metaCtx) {
         for (var b : bubbleGraph.sortedNodes()) {
-            c = b.exec(c, metaCtx);
+            if (c.executableFor(b))
+                c = b.exec(c, metaCtx);
         }
         return c;
     }

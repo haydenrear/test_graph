@@ -36,10 +36,6 @@ public class GraphAutoDetect {
     @Lazy
     public void setGraphs(List<Graph> graphNodes) {
         initializeMapNotProxy(graphNodes, c -> this.graphs = c);
-
-        for (var g : graphs.values()) {
-
-        }
     }
 
     @Autowired

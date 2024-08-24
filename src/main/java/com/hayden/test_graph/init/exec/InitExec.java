@@ -121,7 +121,7 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
     public InitCtx exec(InitCtx initCtx,
                         MetaCtx metaCtx,
                         List<? extends GraphNode<InitCtx, InitBubble>> nodes) {
-        return perform(nodes, (c, i) -> i.exec(c, metaCtx), initCtx);
+        return perform(nodes, (c, i) ->  c.executableFor(i) ? i.exec(c, metaCtx) : c, initCtx);
     }
 
     private InitBubble doExec(MetaCtx metaCtx, InitCtx p, AtomicReference<InitBubble> prev) {

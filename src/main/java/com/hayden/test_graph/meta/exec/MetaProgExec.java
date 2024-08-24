@@ -62,7 +62,7 @@ public class MetaProgExec implements ProgExec {
     @Override
     public MetaCtx exec(Class<? extends TestGraphContext> ctx) {
         if (!metaProgCtx.isEmpty()) {
-            var prev = metaProgCtx.pop();
+            var prev = metaProgCtx.peek();
             var metaCtx = exec(ctx, prev);
             metaProgCtx.push(metaCtx);
             return metaCtx;

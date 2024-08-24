@@ -100,7 +100,7 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
                     if (ctx.size() > 1) {
                         log.warn("Did not find any reducers. Returning first reducer as measured by sort.");
                     }
-                    return ctx.stream().sorted().findAny().map(extract);
+                    return ctx.stream().findAny().map(extract);
                 });
     }
 
