@@ -8,9 +8,11 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Scope;
 
+import static com.hayden.test_graph.config.ScopeConfig.THREAD_SCOPE;
+
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Scope("thread")
+@Scope(THREAD_SCOPE)
 public @interface ThreadScope {
 }
