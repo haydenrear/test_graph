@@ -1,8 +1,8 @@
 package com.hayden.test_graph.init.exec;
 
-import com.hayden.test_graph.edge.GraphEdges;
+import com.hayden.test_graph.graph.edge.GraphEdges;
 import com.hayden.test_graph.exec.single.GraphExec;
-import com.hayden.test_graph.graph.GraphNode;
+import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.init.graph.InitGraph;
@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 @Component
 @RequiredArgsConstructor

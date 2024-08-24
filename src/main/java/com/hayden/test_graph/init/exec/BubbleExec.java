@@ -1,8 +1,8 @@
 package com.hayden.test_graph.init.exec;
 
-import com.hayden.test_graph.edge.GraphEdges;
+import com.hayden.test_graph.graph.edge.GraphEdges;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
-import com.hayden.test_graph.graph.TestGraphNode;
+import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.init.graph.InitBubbleGraph;

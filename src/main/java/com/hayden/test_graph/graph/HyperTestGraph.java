@@ -1,7 +1,7 @@
 package com.hayden.test_graph.graph;
 
 import com.hayden.test_graph.ctx.HyperGraphContext;
-import com.hayden.test_graph.exec.single.GraphExec;
+import com.hayden.test_graph.graph.node.HyperGraphNode;
 
 import java.util.List;
 

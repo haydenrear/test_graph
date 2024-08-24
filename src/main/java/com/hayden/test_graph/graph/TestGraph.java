@@ -1,8 +1,10 @@
 package com.hayden.test_graph.graph;
 
+import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.ctx.HierarchicalContext;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.graph.node.GraphNode;
 
 import java.util.List;
 import java.util.Map;
@@ -17,6 +19,8 @@ public interface TestGraph<T extends TestGraphContext<H>, H extends HyperGraphCo
         sortedNodes().keySet().forEach(ctx -> setChildren(sortedCtx(ctx)));
     }
 
+
+    @Idempotent
     default void setChildren(List<? extends T> ts) {
         ts.stream().flatMap(i -> ts.stream().map(j -> Map.entry(i, j)))
                 .filter(e -> e.getKey() != e.getValue())

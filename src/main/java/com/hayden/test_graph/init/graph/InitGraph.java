@@ -1,13 +1,16 @@
 package com.hayden.test_graph.init.graph;
 
-import com.hayden.test_graph.ctx.HierarchicalContext;
 import com.hayden.test_graph.graph.*;
+import com.hayden.test_graph.graph.node.GraphNode;
+import com.hayden.test_graph.graph.node.TestGraphNode;
+import com.hayden.test_graph.graph.service.GraphAutoDetect;
+import com.hayden.test_graph.graph.service.LazyGraphAutoDetect;
+import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.init.exec.single.InitNode;
 import com.hayden.test_graph.thread.ThreadScope;
 import com.hayden.utilitymodule.MapFunctions;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;

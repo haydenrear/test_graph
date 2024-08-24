@@ -1,4 +1,4 @@
-package com.hayden.test_graph.edge;
+package com.hayden.test_graph.graph.edge;
 
 public interface GraphEdge<T, U> {
 

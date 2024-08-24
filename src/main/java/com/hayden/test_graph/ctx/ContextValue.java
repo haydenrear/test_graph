@@ -1,13 +1,8 @@
 package com.hayden.test_graph.ctx;
 
-import com.hayden.test_graph.graph.HyperGraphNode;
 import com.hayden.utilitymodule.result.Result;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Stack;
 
 public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {

@@ -1,9 +1,8 @@
 package com.hayden.test_graph.data_dep.exec.bubble;
 
 import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
-import com.hayden.test_graph.graph.HyperGraphNode;
-import com.hayden.test_graph.graph.HyperGraphTestNode;
-import com.hayden.test_graph.graph.TestGraphNode;
+import com.hayden.test_graph.graph.node.HyperGraphNode;
+import com.hayden.test_graph.graph.node.HyperGraphTestNode;
 import com.hayden.test_graph.init.exec.bubble.InitBubbleNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 

@@ -1,6 +1,9 @@
 package com.hayden.test_graph.init.graph;
 
 import com.hayden.test_graph.graph.*;
+import com.hayden.test_graph.graph.service.GraphAutoDetect;
+import com.hayden.test_graph.graph.service.LazyGraphAutoDetect;
+import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.exec.bubble.InitBubbleNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;

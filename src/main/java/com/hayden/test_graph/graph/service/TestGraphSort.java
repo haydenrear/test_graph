@@ -1,8 +1,9 @@
-package com.hayden.test_graph.graph;
+package com.hayden.test_graph.graph.service;
 
 
 import com.google.common.collect.Lists;
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.utilitymodule.MapFunctions;
 import com.hayden.utilitymodule.sort.GraphSort;
 import lombok.RequiredArgsConstructor;

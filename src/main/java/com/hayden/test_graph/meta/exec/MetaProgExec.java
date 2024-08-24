@@ -1,7 +1,7 @@
 package com.hayden.test_graph.meta.exec;
 
 import com.hayden.test_graph.ctx.TestGraphContext;
-import com.hayden.test_graph.edge.GraphEdges;
+import com.hayden.test_graph.graph.edge.GraphEdges;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.exec.prog_bubble.ProgExec;
 import com.hayden.test_graph.meta.ctx.MetaCtx;

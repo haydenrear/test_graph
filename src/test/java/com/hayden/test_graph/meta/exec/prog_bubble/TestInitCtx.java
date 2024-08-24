@@ -1,8 +1,11 @@
-package com.hayden.test_graph.init.ctx;
+package com.hayden.test_graph.meta.exec.prog_bubble;
 
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.TestGraphContext;
-import com.hayden.test_graph.graph.GraphNode;
+import com.hayden.test_graph.graph.node.GraphNode;
+import com.hayden.test_graph.init.ctx.InitBubble;
+import com.hayden.test_graph.init.ctx.InitCtx;
+import com.hayden.test_graph.init.ctx.InitMeta;
 import com.hayden.test_graph.init.exec.single.InitNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ThreadScope;
@@ -12,7 +15,7 @@ import java.util.List;
 
 @Component
 @ThreadScope
-public class DefaultInitCtx implements InitCtx {
+public class TestInitCtx implements InitCtx {
     @Override
     public InitBubble bubble() {
         return new InitBubble() {

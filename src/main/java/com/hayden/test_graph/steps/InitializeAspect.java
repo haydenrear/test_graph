@@ -16,7 +16,7 @@ public class InitializeAspect {
     @Autowired
     private MetaProgExec metaGraph;
 
-    @Around("@annotation(InitStep) && args(initStep)")
+    @Around("@annotation(initStep)")
     public Object around(ProceedingJoinPoint joinPoint, InitStep initStep) throws Throwable {
         var proceeded =  joinPoint.proceed();
 

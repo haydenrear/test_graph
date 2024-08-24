@@ -1,6 +1,6 @@
 package com.hayden.test_graph.ctx;
 
-import com.hayden.test_graph.graph.GraphNode;
+import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.utilitymodule.sort.GraphSort;
 
 public non-sealed interface TestGraphContext<H extends HyperGraphContext>

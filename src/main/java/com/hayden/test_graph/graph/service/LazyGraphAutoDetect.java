@@ -1,4 +1,4 @@
-package com.hayden.test_graph.graph;
+package com.hayden.test_graph.graph.service;
 
 import com.hayden.test_graph.thread.ThreadScope;
 import lombok.Getter;

@@ -1,12 +1,12 @@
-package com.hayden.test_graph.graph;
+package com.hayden.test_graph.graph.service;
 
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.graph.Graph;
+import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.thread.ThreadScope;
 import com.hayden.utilitymodule.MapFunctions;
 import com.hayden.utilitymodule.proxies.ProxyUtil;
-import jakarta.validation.constraints.Null;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
