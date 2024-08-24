@@ -18,7 +18,6 @@ public class GraphEdges {
 
     }
 
-    public void addEdge(GraphExec ctx, TestGraphContext tgc,  HyperGraphContext hgContext, MetaCtx prev) {
-
+    public void addEdge(GraphExec exec, TestGraphContext tgc,  HyperGraphContext hgContext, MetaCtx prev) {
     }
 }

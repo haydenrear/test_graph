@@ -2,6 +2,7 @@ package com.hayden.test_graph.init.exec;
 
 import com.hayden.test_graph.edge.GraphEdges;
 import com.hayden.test_graph.exec.single.GraphExec;
+import com.hayden.test_graph.graph.GraphNode;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.init.graph.InitGraph;
@@ -22,37 +23,54 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
 
     public interface InitReducer extends GraphExecReducer<InitCtx, InitBubble> {}
 
-    public interface InitMapper extends GraphExecMapper<InitCtx, InitBubble> {}
+    public interface InitPreMapper extends GraphExecMapper<InitCtx, InitBubble> {}
+
+    public interface InitPostMapper extends GraphExecMapper<InitCtx, InitBubble> {}
 
     @Autowired(required = false)
     List<InitReducer> reducers;
     @Autowired(required = false)
-    List<InitMapper> mappers;
-    @Autowired
-    @ThreadScope
-    InitGraph initGraph;
+    List<InitPreMapper> preMappers;
+    @Autowired(required = false)
+    List<InitPostMapper> postMappers;
+
     @Autowired
     GraphEdges graphEdges;
 
-    public InitBubble exec(InitCtx initCtx, MetaCtx metaCtx) {
-        return Optional.ofNullable(
-                        this.initGraph.sortedNodes()
-                                .get(initCtx.getClass())
-                                .stream()
-                                .filter(initCtx::executableFor)
-                                .map(i -> i.exec(initCtx))
-                                .toList()
-                                .getLast()
-                )
-                .map(ic -> {
-                    for (var m : mappers())
-                        ic = m.apply(ic);
+    @Autowired
+    @ThreadScope
+    InitGraph initGraph;
 
-                    return ic;
-                })
+    public InitCtx preMap(InitCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<InitCtx, InitBubble>> nodes) {
+        return nodes.stream()
+                .map(gn -> gn.preMap(initCtx, metaCtx))
+                .toList()
+                .getLast();
+    }
+
+    public InitCtx postMap(InitCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<InitCtx, InitBubble>> nodes) {
+        return nodes.stream()
+                .map(gn -> gn.postMap(initCtx, metaCtx))
+                .toList()
+                .getLast();
+    }
+
+    public InitCtx exec(InitCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<InitCtx, InitBubble>> nodes) {
+        return nodes.stream()
+                .map(gn -> gn.exec(initCtx, metaCtx))
+                .toList()
+                .getLast();
+    }
+
+    public InitBubble exec(InitCtx initCtx, MetaCtx metaCtx) {
+        var nodes = this.initGraph.sortedNodes().get(initCtx.getClass());
+        initCtx = preMap(initCtx, metaCtx, nodes);
+        initCtx = exec(initCtx, metaCtx, nodes);
+        final InitCtx initCtxExec = postMap(initCtx, metaCtx, nodes);
+        return Optional.ofNullable(initCtx)
                 .map(InitCtx::bubble)
                 .stream()
-                .peek(i -> graphEdges.addEdge(this, initCtx, i, metaCtx))
+                .peek(i -> graphEdges.addEdge(this, initCtxExec, i, metaCtx))
                 .findAny()
                 .orElse(null);
     }
@@ -63,8 +81,13 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
     }
 
     @Override
-    public List<InitMapper> mappers() {
-        return Optional.ofNullable(mappers).orElse(new ArrayList<>());
+    public List<InitPreMapper> preMappers() {
+        return Optional.ofNullable(preMappers).orElse(new ArrayList<>());
+    }
+
+    @Override
+    public List<? extends GraphExecMapper<InitCtx, InitBubble>> postMappers() {
+        return Optional.ofNullable(postMappers).orElse(new ArrayList<>());
     }
 
     @Override

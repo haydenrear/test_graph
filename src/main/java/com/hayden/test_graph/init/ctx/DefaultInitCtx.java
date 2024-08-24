@@ -70,7 +70,6 @@ public class DefaultInitCtx implements InitCtx {
 
     @Override
     public void doSet(TestGraphContext context) {
-
     }
 
     @Override

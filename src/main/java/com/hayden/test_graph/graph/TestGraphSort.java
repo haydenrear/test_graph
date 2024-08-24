@@ -54,20 +54,18 @@ public class TestGraphSort {
     }
 
     private <G extends GraphSort.GraphSortable> @NotNull List<G> doSort(List<G> toSort, BiFunction<List<G>, Set<Class<?>>, List<G>> fn) {
-        var d = getVals(toSort);
-        List<G> toSortWithDeps = toSort.stream()
+        var vals = getVals(toSort);
+        return toSort.stream()
                 .flatMap(t -> {
                     List<G> outList = Lists.newArrayList(t) ;
-                    List<G> list = (List<G>) t.dependsOn().stream().map(l -> d.get(l.getClass())).collect(Collectors.toCollection(() -> outList));
+                    List<G> list = (List<G>) t.dependsOn().stream().map(l -> vals.get(l.getClass())).collect(Collectors.toCollection(() -> outList));
                     return fn.apply(list, new HashSet<>()).stream();
                 })
                 .toList();
-        return toSortWithDeps;
     }
 
     private static <G extends GraphSort.GraphSortable> Map<? extends Class<? extends GraphSort.GraphSortable>, G> getVals(List<G> toSort) {
-        var d = MapFunctions.CollectMap(toSort.stream().map(e -> Map.entry(e.getClass(), e)));
-        return d;
+        return MapFunctions.CollectMap(toSort.stream().map(e -> Map.entry(e.getClass(), e)));
     }
 
 }

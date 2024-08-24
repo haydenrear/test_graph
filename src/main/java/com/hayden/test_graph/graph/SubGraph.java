@@ -17,14 +17,16 @@ public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext
     }
 
     public List<? extends T> parseContextTree() {
-        List<T> l = new ArrayList<>();
-        var n = t;
-        l.add(t);
-        while (n != null && n.parent().res().isPresent()) {
-            n = (T) n.parent().res().r().get();
-            l.add(n);
+        var arrList = new ArrayList<T>();
+        var nextValue = t;
+        arrList.add(t);
+
+        while (nextValue != null && nextValue.parent().res().isPresent()) {
+            nextValue = (T) nextValue.parent().res().r().get();
+            arrList.add(nextValue);
         }
-        return l;
+
+        return arrList;
     }
 
     @Override

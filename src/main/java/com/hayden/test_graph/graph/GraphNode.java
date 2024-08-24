@@ -11,6 +11,4 @@ public interface GraphNode<T extends TestGraphContext<H>, H extends HyperGraphCo
         extends GraphSort.GraphSortable,
                 GraphExec.GraphExecNode<T, H> {
 
-    List<Class<? extends TestGraphNode<T, H>>> dependsOn();
-
 }

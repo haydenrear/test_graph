@@ -12,6 +12,14 @@ import java.util.Stack;
 
 public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
 
+    public boolean isEmpty() {
+        return !res.res.isPresent();
+    }
+
+    public boolean isPresent() {
+        return res.res.isPresent();
+    }
+
     public static <T> ContextValue<T> empty() {
         return new ContextValue<>(MutableContextValue.empty());
     }

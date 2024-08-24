@@ -11,24 +11,14 @@ import com.hayden.test_graph.meta.exec.single.MetaNode;
 import java.util.List;
 
 public record MetaProgNode<T extends HyperGraphContext<MetaCtx>>(
-        ContextValue<HyperGraphTestNode<T, MetaCtx>> t,
-        ContextValue<MetaCtx> m
-)
-        implements MetaNode<T> {
+            ContextValue<HyperGraphTestNode<T, MetaCtx>> t,
+            ContextValue<MetaCtx> m
+        )
+        implements MetaNode {
 
     @Override
     public List<Class<? extends HyperGraphNode>> dependsOnHyperNodes() {
         return List.of();
-    }
-
-    @Override
-    public MetaCtx mapCtx(MetaCtx ctx) {
-        return ctx;
-    }
-
-    @Override
-    public MetaCtx exec(MetaCtx exec) {
-        return exec;
     }
 
     @Override

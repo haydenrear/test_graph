@@ -53,16 +53,16 @@ public class MetaProgCtx implements MetaCtx {
 
     @Override
     public ContextValue<TestGraphContext> child() {
-        return null;
+        return ContextValue.empty();
     }
 
     @Override
     public ContextValue<TestGraphContext> parent() {
-        return null;
+        return ContextValue.empty();
     }
 
     @Override
     public Stack<? extends HyperGraphContext> prev() {
-        return null;
+        return delegates;
     }
 }

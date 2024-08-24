@@ -32,7 +32,15 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
 
     interface GraphExecNode<CTX extends TestGraphContext<H>, H extends HyperGraphContext> extends GraphExec<CTX, H> {
 
-        default CTX exec(CTX c) {
+        default CTX preMap(CTX c, MetaCtx h) {
+            return c;
+        }
+
+        default CTX postMap(CTX c, MetaCtx h) {
+            return c;
+        }
+
+        default CTX exec(CTX c, MetaCtx h) {
             return c;
         }
 
@@ -44,6 +52,7 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
      * @param <H>
      */
     interface GraphExecReducer<CTX extends TestGraphContext<H>, H extends HyperGraphContext> extends BiFunction<CTX, H, H> {
+
         H reduce(CTX first, H second);
 
         @Override
@@ -52,12 +61,13 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
         }
     }
 
-    interface GraphExecMapper<CTX extends TestGraphContext<H>, H extends HyperGraphContext> extends Function<CTX, CTX> {
-        CTX reduce(CTX first);
+    interface GraphExecMapper<CTX extends TestGraphContext<H>, H extends HyperGraphContext> extends BiFunction<CTX, MetaCtx, CTX> {
+
+        CTX reduce(CTX first, MetaCtx h);
 
         @Override
-        default CTX apply(CTX ctx) {
-            return reduce(ctx);
+        default CTX apply(CTX ctx, MetaCtx h) {
+            return reduce(ctx, h);
         }
     }
 
@@ -65,10 +75,13 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
         return new ArrayList<>() ;
     }
 
-    default List<? extends GraphExecMapper<CTX, H>> mappers() {
+    default List<? extends GraphExecMapper<CTX, H>> preMappers() {
         return new ArrayList<>();
     }
 
+    default List<? extends GraphExecMapper<CTX, H>> postMappers() {
+        return new ArrayList<>();
+    }
 
     static <T, U> Optional<T> chainCtx(List<? extends BiFunction<U, T, T>> reducers,
                                        List<? extends U> ctx, Function<U, T> extract) {
@@ -81,7 +94,6 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
                     return ctx.stream().sorted().findAny().map(extract);
                 });
     }
-
 
     private static <T, U> @NotNull Optional<T> doReducer(List<? extends U> ctx, Function<U, T> extract, BiFunction<U, T, T> red) {
         return ctx.stream()

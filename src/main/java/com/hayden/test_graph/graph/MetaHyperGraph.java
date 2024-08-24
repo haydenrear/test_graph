@@ -15,5 +15,5 @@ public interface MetaHyperGraph<C extends HyperGraphContext<MetaCtx>, T extends 
 
     List<MetaCtx> bubble();
 
-    List<? extends MetaNode<C>> sortedNodes();
+    List<? extends MetaNode> sortedNodes();
 }

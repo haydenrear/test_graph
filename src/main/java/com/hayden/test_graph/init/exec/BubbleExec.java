@@ -34,7 +34,7 @@ public class BubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaCtx> 
     GraphEdges graphEdges;
 
     @Override
-    public List<? extends GraphExecMapper<InitBubble, MetaCtx>> mappers() {
+    public List<? extends GraphExecMapper<InitBubble, MetaCtx>> preMappers() {
         return mappers;
     }
 
@@ -45,26 +45,23 @@ public class BubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaCtx> 
 
     @Override
     public MetaCtx exec(Class<? extends InitCtx> ctx, MetaCtx prev) {
-        var collected = this.initExec.collectCtx(ctx);
+        var collected = this.initExec.collectCtx(ctx, prev);
+        collected = preMap(collected, prev);
+        collected = exec(collected, prev);
         graphEdges.addEdge(this, collected, prev);
-        collected = mapCtx(collected);
-        collected = exec(collected);
         return collectCtx(collected);
     }
 
     @Override
     public MetaCtx exec(Class<? extends InitCtx> ctx) {
-        var collected = this.initExec.collectCtx(ctx);
-        collected = mapCtx(collected);
-        collected = exec(collected);
-        return collectCtx(collected);
+        return this.exec(ctx, null);
     }
 
     @Override
-    public InitBubble mapCtx(InitBubble ctx) {
+    public InitBubble preMap(InitBubble ctx, MetaCtx metaCtx) {
         if (mappers != null) {
             for (var r : mappers) {
-                ctx = r.apply(ctx);
+                ctx = r.apply(ctx, metaCtx);
             }
         }
         return ctx;
@@ -82,9 +79,15 @@ public class BubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaCtx> 
 
 
     @Override
-    public InitBubble exec(InitBubble c) {
+    public InitBubble exec(InitBubble c, MetaCtx metaCtx) {
         for (var b : bubbleGraph.sortedNodes()) {
-            c = b.exec(c);
+            c = b.preMap(c, metaCtx);
+        }
+        for (var b : bubbleGraph.sortedNodes()) {
+            c = b.exec(c, metaCtx);
+        }
+        for (var b : bubbleGraph.sortedNodes()) {
+            c = b.postMap(c, metaCtx);
         }
         return c;
     }

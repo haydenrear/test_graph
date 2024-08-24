@@ -2,7 +2,6 @@ package com.hayden.test_graph.meta.graph;
 
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.HyperGraphContext;
-import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.graph.*;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.exec.prog_bubble.MetaProgNode;
@@ -13,7 +12,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Stack;
 
 @Slf4j
 @Component
@@ -21,16 +19,15 @@ import java.util.Stack;
 public class MetaGraph implements MetaHyperGraph<HyperGraphContext<MetaCtx>, MetaCtx> {
 
     @Autowired
-    @ThreadScope
-    MetaCtx ctx;
-
-
-    @Autowired
     TestGraphSort graphSort;
     @Autowired @Lazy
     LazyGraphAutoDetect graphAutoDetect;
 
     private List<MetaProgNode<HyperGraphContext<MetaCtx>>> hyperGraphNodes;
+
+    @Autowired
+    @ThreadScope
+    MetaCtx ctx;
 
     @Autowired
     @ThreadScope
