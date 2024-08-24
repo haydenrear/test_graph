@@ -94,7 +94,7 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
     static <T, U> Optional<T> chainCtx(List<? extends BiFunction<U, T, T>> reducers,
                                        List<? extends U> ctx,
                                        Function<U, T> extract) {
-        return Reducer.chainReducers(reducers.subList(1, reducers.size()))
+        return Reducer.chainReducers(reducers.subList(0, reducers.size()))
                 .flatMap(red -> doReducer(ctx, extract, red))
                 .or(() -> {
                     if (ctx.size() > 1) {

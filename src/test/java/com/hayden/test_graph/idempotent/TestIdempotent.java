@@ -1,10 +1,10 @@
-package com.hayden.test_graph.meta.exec.prog_bubble;
+package com.hayden.test_graph.idempotent;
 
 
+import com.hayden.test_graph.meta.exec.prog_bubble.TestMetaGraph;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,5 +36,14 @@ public class TestIdempotent {
         v.doI();
 
         Mockito.verify(v, times(1)).did();
+    }
+
+    @Test
+    public void testNull() {
+        v.doIAgain();
+        v.doIAgain();
+        v.doIAgain();
+
+        Mockito.verify(v, times(1)).didAgain();
     }
 }

@@ -45,7 +45,8 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
 
     @Override
     public InitBubble exec(InitCtx initCtx, InitBubble prev, MetaCtx metaCtx) {
-        var nodes = this.initGraph.sortedNodes().get(initCtx.getClass());
+        var nodes = Optional.ofNullable(this.initGraph.sortedNodes().get(initCtx.getClass()))
+                .orElse(new ArrayList<>());
         var toExec = retrieveToExec(initCtx, prev, metaCtx);
         initCtx = toExec.preMap(initCtx, metaCtx, nodes);
         initCtx = toExec.exec(initCtx, metaCtx, nodes);
