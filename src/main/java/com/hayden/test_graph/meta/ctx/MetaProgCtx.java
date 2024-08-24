@@ -47,7 +47,7 @@ public class MetaProgCtx implements MetaCtx {
     }
 
     @Override
-    public boolean isExecutable() {
+    public boolean isLeafNode() {
         return false;
     }
 

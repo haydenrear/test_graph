@@ -1,8 +1,7 @@
 package com.hayden.test_graph.meta.exec.prog_bubble;
 
-import com.hayden.test_graph.meta.exec.MetaProgExec;
-import com.hayden.test_graph.meta.graph.MetaGraph;
-import com.hayden.test_graph.test_init.TestInitCtx;
+import com.hayden.test_graph.graph.SubGraph;
+import com.hayden.test_graph.test_init.TestInitChildCtx;
 import com.hayden.test_graph.thread.ThreadScope;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -14,9 +13,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.List;
+
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-public class TestMetaGraph {
+public class TestSubGraph {
 
     @SpringBootApplication
     @ComponentScan("com.hayden.test_graph")
@@ -28,15 +29,15 @@ public class TestMetaGraph {
 
     @Autowired
     @ThreadScope
-    MetaGraph metaGraph;
-    @Autowired
-    @ThreadScope
-    MetaProgExec exec;
+    List<SubGraph> subGraph;
 
     @Test
-    public void test() {
-        var e = exec.exec(TestInitCtx.class);
-        Assertions.assertNotNull(e);
+    public void testSubGraphAutoConfigure() {
+        Assertions.assertFalse(subGraph.isEmpty());
+        var tic = subGraph.stream().filter(s -> s.clazz().equals(TestInitChildCtx.class)).findAny();
+        Assertions.assertTrue(tic.isPresent());
+        var parsed = tic.get().parseContextTree();
+        Assertions.assertEquals(3, parsed.size());
     }
 
 }

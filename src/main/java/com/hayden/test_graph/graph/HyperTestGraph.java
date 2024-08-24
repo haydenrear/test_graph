@@ -10,7 +10,7 @@ import java.util.List;
  * @param <C>
  * @param <T>
  */
-public interface HyperTestGraph<C extends HyperGraphContext<T>, T extends HyperGraphContext<T>> extends Graph<T> {
+public interface HyperTestGraph<C extends HyperGraphContext<T>, T extends HyperGraphContext<T>> extends Graph {
 
     List<? extends HyperGraphNode<C, T>> sortedNodes();
 

@@ -11,7 +11,7 @@ import java.util.List;
  * @param <C>
  * @param <T>
  */
-public interface MetaHyperGraph<C extends HyperGraphContext<MetaCtx>, T extends HyperGraphContext<T>> extends Graph<T>{
+public interface MetaHyperGraph<C extends HyperGraphContext<MetaCtx>, T extends HyperGraphContext<T>> extends Graph {
 
     List<MetaCtx> bubble();
 

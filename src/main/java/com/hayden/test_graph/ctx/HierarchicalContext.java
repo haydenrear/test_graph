@@ -29,7 +29,11 @@ public sealed interface HierarchicalContext permits
 
     void doSet(TestGraphContext context);
 
-    boolean isExecutable();
+    /**
+     * Required to set is leaf node to true for the leaf to auto-detect the context subgraph.
+     * @return if is leaf node. If it is, then it will have a SubGraph created from it, with all parents automatically set.
+     */
+    boolean isLeafNode();
 
     ContextValue<TestGraphContext> child();
 

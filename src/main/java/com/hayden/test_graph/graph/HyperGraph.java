@@ -8,7 +8,7 @@ import com.hayden.test_graph.ctx.TestGraphContext;
  * @param <C>
  * @param <T>
  */
-public interface HyperGraph<C extends TestGraphContext<T>, T extends HyperGraphContext> extends Graph<T> {
+public interface HyperGraph<C extends TestGraphContext<T>, T extends HyperGraphContext> extends Graph {
 
 
 }

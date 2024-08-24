@@ -16,7 +16,7 @@ public interface MetaCtx extends HyperGraphContext<MetaCtx> {
 
     default void doSet(TestGraphContext context) {}
 
-    default boolean isExecutable() {
+    default boolean isLeafNode() {
         return false;
     }
 

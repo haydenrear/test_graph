@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.annotation.Bean;
@@ -31,7 +32,7 @@ public class GraphConfig {
                 } else {
                     initContexts.stream()
                             // we can only do for leaf as can retrieve parent
-                            .filter(HierarchicalContext::isExecutable)
+                            .filter(HierarchicalContext::isLeafNode)
                             .forEach(i -> {
                                 BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SubGraph.class);
                                 builder.addConstructorArgValue(i);
@@ -44,6 +45,8 @@ public class GraphConfig {
             }
         };
     }
+
+
 
     private static @NotNull String subGraphBeanName(TestGraphContext i) {
         return "%sSubGraph".formatted(StringUtils.uncapitalize(i.getClass().getSimpleName()));

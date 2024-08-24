@@ -60,7 +60,6 @@ public class InitGraph implements TestGraph<InitCtx, InitBubble> {
                         .flatMap(s -> s.parseContextTree().stream())
                         .toList()
         );
-        this.setChildren(i);
         return i;
     }
 

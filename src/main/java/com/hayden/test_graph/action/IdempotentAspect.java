@@ -4,6 +4,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -86,6 +87,10 @@ public class IdempotentAspect {
             }
         }
 
+        return callIfNotExpiredOrNotCached(joinPoint, cv);
+    }
+
+    private @Nullable Object callIfNotExpiredOrNotCached(ProceedingJoinPoint joinPoint, CacheValue cv) throws Throwable {
         if (did.get(cv) == voidObj && !delays.containsKey(cv)) {
             return null;
         } else if (!delays.containsKey(cv)) {
