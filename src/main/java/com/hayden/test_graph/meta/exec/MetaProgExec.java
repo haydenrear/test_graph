@@ -39,17 +39,16 @@ public class MetaProgExec implements ProgExec {
 
     @Override
     public MetaCtx exec(Class<? extends TestGraphContext> ctx, MetaCtx metaCtx) {
-        // TODO: here is where it will find converter/merger between contexts.
-        //      previous contexts will be merged with current context as a way
-        //      to add edges between the hypergraphs.
         for (var s : metaGraph.sortedNodes()) {
             return s.t().res()
                     .optional()
                     .flatMap(h -> {
                         if (h instanceof HyperGraphExec execNode) {
                             // note: MetaCtx can contain a history of the previous MetaCtx for arbitrary edge creation.
-                            Optional.ofNullable(metaCtx).ifPresent(m -> graphEdges.addEdge(execNode, m));
-                            return Optional.of((MetaCtx) execNode.exec(ctx, metaCtx));
+                            return Optional.ofNullable(metaCtx)
+                                    .map(m -> graphEdges.addEdge(execNode, m))
+                                    .or(() -> Optional.of(execNode))
+                                    .map(exec -> (MetaCtx) exec.exec(ctx, metaCtx));
                         }
 
                         return Optional.empty();

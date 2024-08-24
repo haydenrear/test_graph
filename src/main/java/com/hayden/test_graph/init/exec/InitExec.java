@@ -15,6 +15,9 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 @Component
 @RequiredArgsConstructor
@@ -41,38 +44,29 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
     @ThreadScope
     InitGraph initGraph;
 
-    public InitCtx preMap(InitCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<InitCtx, InitBubble>> nodes) {
-        return nodes.stream()
-                .map(gn -> gn.preMap(initCtx, metaCtx))
-                .toList()
-                .getLast();
-    }
-
-    public InitCtx postMap(InitCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<InitCtx, InitBubble>> nodes) {
-        return nodes.stream()
-                .map(gn -> gn.postMap(initCtx, metaCtx))
-                .toList()
-                .getLast();
-    }
-
-    public InitCtx exec(InitCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<InitCtx, InitBubble>> nodes) {
-        return nodes.stream()
-                .map(gn -> gn.exec(initCtx, metaCtx))
-                .toList()
-                .getLast();
-    }
-
-    public InitBubble exec(InitCtx initCtx, MetaCtx metaCtx) {
+    @Override
+    public InitBubble exec(InitCtx initCtx, InitBubble prev, MetaCtx metaCtx) {
         var nodes = this.initGraph.sortedNodes().get(initCtx.getClass());
-        initCtx = preMap(initCtx, metaCtx, nodes);
-        initCtx = exec(initCtx, metaCtx, nodes);
-        final InitCtx initCtxExec = postMap(initCtx, metaCtx, nodes);
-        return Optional.ofNullable(initCtx)
+        var toExec = retrieveToExec(initCtx, prev, metaCtx);
+        initCtx = toExec.preMap(initCtx, metaCtx, nodes);
+        initCtx = toExec.exec(initCtx, metaCtx, nodes);
+        final InitCtx initCtxExec = toExec.postMap(initCtx, metaCtx, nodes);
+        return Optional.ofNullable(initCtxExec)
                 .map(InitCtx::bubble)
                 .stream()
-                .peek(i -> graphEdges.addEdge(this, initCtxExec, i, metaCtx))
                 .findAny()
                 .orElse(null);
+    }
+
+    private InitExec retrieveToExec(InitCtx initCtx, InitBubble prev, MetaCtx metaCtx) {
+        return Optional.ofNullable(prev)
+                .map(ib -> graphEdges.addEdge(this, initCtx, ib, metaCtx))
+                .orElseGet(() -> graphEdges.addEdge(this, initCtx, metaCtx));
+    }
+
+    @Override
+    public InitBubble exec(InitCtx initCtx, MetaCtx metaCtx) {
+        return exec(initCtx, null, metaCtx);
     }
 
     @Override
@@ -99,12 +93,56 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
         } else if (intCtx.size() == 1) {
             return intCtx.getFirst().bubble();
         } else {
-            return GraphExec.chainCtx(this.reducers(), intCtx, p -> this.exec(p, metaCtx))
+            AtomicReference<InitBubble> prev = new AtomicReference<>();
+            return GraphExec.chainCtx(this.reducers(), intCtx, p -> doExec(metaCtx, p, prev))
                     .orElseGet(() -> {
                         logBubbleError();
                         return null;
                     });
         }
+    }
+
+    public InitCtx preMap(InitCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<InitCtx, InitBubble>> nodes) {
+        for (var p : preMappers()) {
+            initCtx = p.apply(initCtx, metaCtx);
+        }
+        final InitCtx initCtxExec = initCtx;
+        return perform(nodes, (c, i) -> i.preMap(c, metaCtx), initCtxExec);
+    }
+
+    public InitCtx postMap(InitCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<InitCtx, InitBubble>> nodes) {
+        for (var p : preMappers()) {
+            initCtx = p.apply(initCtx, metaCtx);
+        }
+        final InitCtx initCtxExec = initCtx;
+        return perform(nodes, (c, i) -> i.postMap(c, metaCtx), initCtxExec);
+    }
+
+    public InitCtx exec(InitCtx initCtx,
+                        MetaCtx metaCtx,
+                        List<? extends GraphNode<InitCtx, InitBubble>> nodes) {
+        return perform(nodes, (c, i) -> i.exec(c, metaCtx), initCtx);
+    }
+
+    private InitBubble doExec(MetaCtx metaCtx, InitCtx p, AtomicReference<InitBubble> prev) {
+        return Optional.ofNullable(prev.get())
+                .map(i -> this.exec(p, i, metaCtx))
+                .or(() -> Optional.ofNullable(this.exec(p, metaCtx)))
+                .map(i -> {
+                    prev.set(i);
+                    return i;
+                })
+                .orElse(null);
+    }
+
+    public static InitCtx perform(List<? extends GraphNode<InitCtx, InitBubble>> nodes,
+                                  BiFunction<InitCtx, GraphNode<InitCtx, InitBubble>, InitCtx> initCtxFunction,
+                                  InitCtx initCtx) {
+        for (var n : nodes) {
+            initCtx = initCtxFunction.apply(initCtx, n);
+        }
+
+        return initCtx;
     }
 
 }

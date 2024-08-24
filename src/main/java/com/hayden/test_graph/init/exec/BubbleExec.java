@@ -12,17 +12,22 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 @ThreadScope
 public class BubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaCtx> {
 
-    public interface BubbleMapper extends GraphExecMapper<InitBubble, MetaCtx> {}
+    public interface BubblePreMapper extends GraphExecMapper<InitBubble, MetaCtx> {}
+    public interface BubblePostMapper extends GraphExecMapper<InitBubble, MetaCtx> {}
 
     @Autowired(required = false)
-    List<BubbleMapper> mappers;
+    List<BubblePreMapper> preMappers;
+    @Autowired(required = false)
+    List<BubblePostMapper> postMappers;
     @Autowired
     @ThreadScope
     InitExec initExec;
@@ -34,9 +39,15 @@ public class BubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaCtx> 
     GraphEdges graphEdges;
 
     @Override
-    public List<? extends GraphExecMapper<InitBubble, MetaCtx>> preMappers() {
-        return mappers;
+    public List<BubblePreMapper> preMappers() {
+        return Optional.ofNullable(preMappers).orElse(new ArrayList<>());
     }
+
+    @Override
+    public List<BubblePostMapper> postMappers() {
+        return Optional.ofNullable(postMappers).orElse(new ArrayList<>());
+    }
+
 
     @Override
     public MetaCtx collectCtx(InitBubble toCollect) {
@@ -59,10 +70,19 @@ public class BubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaCtx> 
 
     @Override
     public InitBubble preMap(InitBubble ctx, MetaCtx metaCtx) {
-        if (mappers != null) {
-            for (var r : mappers) {
-                ctx = r.apply(ctx, metaCtx);
-            }
+        for (var r : preMappers()) {
+            ctx = r.apply(ctx, metaCtx);
+        }
+        return ctx;
+    }
+
+    @Override
+    public InitBubble postMap(InitBubble ctx, MetaCtx metaCtx) {
+        for (var r : postMappers()) {
+            ctx = r.apply(ctx, metaCtx);
+        }
+        for (var b : bubbleGraph.sortedNodes()) {
+            ctx = b.preMap(ctx, metaCtx);
         }
         return ctx;
     }
@@ -80,14 +100,15 @@ public class BubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaCtx> 
 
     @Override
     public InitBubble exec(InitBubble c, MetaCtx metaCtx) {
-        for (var b : bubbleGraph.sortedNodes()) {
-            c = b.preMap(c, metaCtx);
-        }
+        c = preMap(c, metaCtx);
+        c = execInner(c, metaCtx);
+        c = postMap(c, metaCtx);
+        return c;
+    }
+
+    private InitBubble execInner(InitBubble c, MetaCtx metaCtx) {
         for (var b : bubbleGraph.sortedNodes()) {
             c = b.exec(c, metaCtx);
-        }
-        for (var b : bubbleGraph.sortedNodes()) {
-            c = b.postMap(c, metaCtx);
         }
         return c;
     }

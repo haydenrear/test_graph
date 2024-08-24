@@ -10,14 +10,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class GraphEdges {
 
-    public void addEdge(HyperGraphExec ctx, MetaCtx prev) {
-
+    public <T extends HyperGraphExec> T addEdge(T ctx, MetaCtx prev) {
+        return ctx;
     }
 
-    public void addEdge(HyperGraphExec ctx, HyperGraphContext hgContext, MetaCtx prev) {
-
+    public <T extends HyperGraphExec> T addEdge(T ctx, HyperGraphContext hgContext, MetaCtx prev) {
+        return ctx;
     }
 
-    public void addEdge(GraphExec exec, TestGraphContext tgc,  HyperGraphContext hgContext, MetaCtx prev) {
+    public <T extends GraphExec> T addEdge(T exec, TestGraphContext tgc,  HyperGraphContext hgContext, MetaCtx prev) {
+        return exec;
+    }
+
+    public <T extends GraphExec.ExecNode> T addEdge(T exec, TestGraphContext tgc,  MetaCtx prev) {
+        return exec;
     }
 }

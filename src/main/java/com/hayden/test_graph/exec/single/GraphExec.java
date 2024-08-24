@@ -28,6 +28,10 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
             return collectCtx(toCollect, null);
         }
 
+        H exec(CTX c, MetaCtx metaCtx);
+
+        H exec(CTX c, H prev, MetaCtx metaCtx);
+
     }
 
     interface GraphExecNode<CTX extends TestGraphContext<H>, H extends HyperGraphContext> extends GraphExec<CTX, H> {
@@ -42,6 +46,10 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
 
         default CTX exec(CTX c, MetaCtx h) {
             return c;
+        }
+
+        default CTX exec(CTX c, H hgCtx, MetaCtx h) {
+            return exec(c, h);
         }
 
     }
@@ -84,7 +92,8 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
     }
 
     static <T, U> Optional<T> chainCtx(List<? extends BiFunction<U, T, T>> reducers,
-                                       List<? extends U> ctx, Function<U, T> extract) {
+                                       List<? extends U> ctx,
+                                       Function<U, T> extract) {
         return Reducer.chainReducers(reducers.subList(1, reducers.size()))
                 .flatMap(red -> doReducer(ctx, extract, red))
                 .or(() -> {
@@ -95,7 +104,9 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
                 });
     }
 
-    private static <T, U> @NotNull Optional<T> doReducer(List<? extends U> ctx, Function<U, T> extract, BiFunction<U, T, T> red) {
+    private static <T, U> @NotNull Optional<T> doReducer(List<? extends U> ctx,
+                                                         Function<U, T> extract,
+                                                         BiFunction<U, T, T> red) {
         return ctx.stream()
                 .map(i -> Map.entry(extract.apply(i), i))
                 .reduce((k1, k2) -> {
