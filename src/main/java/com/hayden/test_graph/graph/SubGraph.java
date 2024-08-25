@@ -40,7 +40,7 @@ public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext
     }
 
     public Class<? extends TestGraphContext> dependsOn(HyperGraphExec graphExec) {
-        if(graphExec.clzz().isAssignableFrom(t.bubble().getClass())){
+        if(graphExec.clzz().isAssignableFrom(t.bubbleClazz())){
             return this.clazz();
         }
 

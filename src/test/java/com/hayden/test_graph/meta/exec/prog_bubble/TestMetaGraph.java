@@ -2,6 +2,7 @@ package com.hayden.test_graph.meta.exec.prog_bubble;
 
 import com.hayden.test_graph.meta.exec.MetaProgExec;
 import com.hayden.test_graph.meta.graph.MetaGraph;
+import com.hayden.test_graph.test_init.TestInitChildCtx;
 import com.hayden.test_graph.test_init.TestInitCtx;
 import com.hayden.test_graph.thread.ThreadScope;
 import org.junit.jupiter.api.Assertions;
@@ -35,7 +36,7 @@ public class TestMetaGraph {
 
     @Test
     public void test() {
-        var e = exec.exec(TestInitCtx.class);
+        var e = exec.exec(TestInitChildCtx.class);
         Assertions.assertNotNull(e);
     }
 

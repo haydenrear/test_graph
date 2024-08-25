@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component
+@ThreadScope
 public class MetaProgExec implements ProgExec {
 
     @Autowired
@@ -36,13 +37,18 @@ public class MetaProgExec implements ProgExec {
 
     @Override
     public MetaCtx collectCtx() {
-        MetaCtx metaCtx = null;
+//        MetaCtx metaCtx = null;
 
-        for (var s : subGraphs) {
-            metaCtx = exec(s.clazz(), metaCtx);
-        }
 
-        return metaCtx;
+//        for (var s : subGraphs) {
+//            metaCtx = exec(s.clazz(), metaCtx);
+//        }
+
+//        return metaCtx;
+        throw new RuntimeException("""
+                Subgraphs need to be sorted and then iterated from beginning if collectCtx() is implemented, which if idempotent then it just finishes the
+                ones not completed for this thread.
+                """);
     }
 
     @Override

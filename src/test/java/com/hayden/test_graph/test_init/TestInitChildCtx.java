@@ -31,6 +31,11 @@ public class TestInitChildCtx implements InitCtx {
     }
 
     @Override
+    public Class<InitBubble> bubbleClazz() {
+        return InitBubble.class;
+    }
+
+    @Override
     public boolean executableFor(GraphNode n) {
         return n instanceof InitNode<?>;
     }

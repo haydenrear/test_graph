@@ -32,14 +32,20 @@ public class TestStepDef {
     @Then("it runs")
     public void it_runs() {
 
-        Stream<Class<?>> classStream = Stream.of(InitReducer.class, InitReducer2.class,
-                TestInitBubbleNode.class, TestInitChildCtx.class,
-                TestInitChildDepNode.class, TestInitChildNode.class,
-                TestInitCtx.class, TestInitCtxDepNode.class,
-                TestInitCtxNode.class, TestInitParentCtx.class,
-                TestInitParentDepNode.class, TestInitParentNode.class);
-        var not = classStream.filter(Predicate.not(mockRegister.getMocks()::contains))
+        var classStream = Stream.of(
+                        InitReducer.class, InitReducer2.class,
+                        InitReducer.class, InitReducer2.class,
+                        TestInitBubbleNode.class, TestInitChildCtx.class,
+                        TestInitChildDepNode.class, TestInitChildNode.class,
+                        TestInitCtx.class, TestInitCtxDepNode.class,
+                        TestInitCtxNode.class, TestInitParentCtx.class,
+                        TestInitParentDepNode.class, TestInitParentNode.class
+                )
+                .toList();
+        var not = classStream.stream().filter(Predicate.not(mockRegister.getMocks()::contains))
                         .toList();
+
+        Assertions.assertEquals(mockRegister.getMocks().size(), classStream.size());
         Assertions.assertEquals(0, not.size(), "Following did not exist: %s".formatted(not));
     }
 

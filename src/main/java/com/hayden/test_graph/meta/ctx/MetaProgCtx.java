@@ -26,6 +26,11 @@ public class MetaProgCtx implements MetaCtx {
     }
 
     @Override
+    public Class<? extends MetaCtx> bubbleClazz() {
+        return MetaProgCtx.class;
+    }
+
+    @Override
     public boolean executableFor(GraphNode n) {
         return n instanceof HyperGraphNode<?, ?>
                 && !(n instanceof MetaProgNode<?>);

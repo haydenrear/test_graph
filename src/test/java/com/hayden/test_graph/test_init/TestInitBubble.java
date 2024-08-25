@@ -19,6 +19,11 @@ public class TestInitBubble implements InitBubble {
     }
 
     @Override
+    public Class<? extends MetaCtx> bubbleClazz() {
+        return InitMeta.class;
+    }
+
+    @Override
     public boolean executableFor(GraphNode n) {
         return true;
     }

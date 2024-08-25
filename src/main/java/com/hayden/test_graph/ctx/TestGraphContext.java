@@ -15,6 +15,8 @@ public non-sealed interface TestGraphContext<H extends HyperGraphContext>
 
     H bubble();
 
+    Class<? extends H> bubbleClazz();
+
     boolean executableFor(GraphNode n);
 
     default Optional<Class<? extends TestGraphContext>> parentTy() {

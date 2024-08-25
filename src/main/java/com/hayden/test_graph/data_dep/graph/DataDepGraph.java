@@ -43,11 +43,12 @@ public class DataDepGraph implements TestGraph<DataDepCtx, DataDepBubble> {
     @Override
     public List<? extends DataDepCtx> sortedCtx(Class<? extends DataDepCtx> init) {
         return graphSort.sortContext(
-                subGraphs.stream()
-                        .filter(s -> s.clazz().equals(init))
-                        .flatMap(s -> s.parseContextTree().stream())
-                        .toList()
-        );
+                        subGraphs.stream()
+                                .filter(s -> s.clazz().equals(init))
+                                .flatMap(s -> s.parseContextTree().stream())
+                                .toList()
+                )
+                .reversed();
     }
 
     @Override

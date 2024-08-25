@@ -108,9 +108,12 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
                                                          Function<U, T> extract,
                                                          BiFunction<U, T, T> red) {
         return ctx.stream()
-                .map(i -> Map.entry(extract.apply(i), i))
+                .map(i -> {
+                    T apply = extract.apply(i);
+                    return Map.entry(apply, i);
+                })
                 .reduce((k1, k2) -> {
-                    var re = red.apply(k1.getValue(), extract.apply(k2.getValue()));
+                    var re = red.apply(k1.getValue(), k1.getKey());
                     return Map.entry(re, k1.getValue());
                 })
                 .map(Map.Entry::getKey);
