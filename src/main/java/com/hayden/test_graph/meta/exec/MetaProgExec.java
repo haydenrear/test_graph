@@ -1,6 +1,7 @@
 package com.hayden.test_graph.meta.exec;
 
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.graph.SubGraph;
 import com.hayden.test_graph.graph.edge.GraphEdges;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.exec.prog_bubble.ProgExec;
@@ -31,10 +32,18 @@ public class MetaProgExec implements ProgExec {
     @Autowired
     private GraphEdges graphEdges;
 
+    @Autowired
+    private List<SubGraph>  subGraphs;
+
     @Override
     public MetaCtx collectCtx() {
-        // TODO: reduce with hypergraph edges.
-        return null;
+        MetaCtx metaCtx = null;
+
+        for (var s : subGraphs) {
+            metaCtx = exec(s.clazz(), metaCtx);
+        }
+
+        return metaCtx;
     }
 
     @Override
