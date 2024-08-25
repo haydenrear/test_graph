@@ -1,4 +1,4 @@
-package com.hayden.test_graph.graph.service;
+package com.hayden.test_graph.meta;
 
 import com.hayden.test_graph.thread.ThreadScope;
 import lombok.Getter;
@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component;
 
 @Getter
 @Component
-public class MetaGraphDelegate {
+public class LazyMetaGraphDelegate {
 
     @Lazy
     @ThreadScope
     @Autowired
     @Delegate
-    GraphAutoDetect autoDetect;
+    MetaGraphDelegate autoDetect;
 
 }

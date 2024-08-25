@@ -7,7 +7,7 @@ import com.hayden.test_graph.graph.Graph;
 import com.hayden.test_graph.graph.SubGraph;
 import com.hayden.test_graph.graph.TestGraph;
 import com.hayden.test_graph.graph.node.GraphNode;
-import com.hayden.test_graph.graph.service.MetaGraphDelegate;
+import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.thread.ThreadScope;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ public class DataDepGraph implements TestGraph<DataDepCtx, DataDepBubble> {
 
     @Lazy
     @Autowired
-    MetaGraphDelegate nodesProvider;
+    LazyMetaGraphDelegate nodesProvider;
     @Autowired
     TestGraphSort graphSort;
 

@@ -1,10 +1,11 @@
-package com.hayden.test_graph.graph.service;
+package com.hayden.test_graph.meta;
 
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.graph.Graph;
 import com.hayden.test_graph.graph.SubGraph;
 import com.hayden.test_graph.graph.node.TestGraphNode;
+import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.meta.graph.MetaGraph;
 import com.hayden.test_graph.thread.ThreadScope;
 import com.hayden.utilitymodule.MapFunctions;
@@ -24,7 +25,7 @@ import java.util.stream.Stream;
 @Component
 @Slf4j
 @ThreadScope
-public class GraphAutoDetect {
+public class MetaGraphDelegate {
 
     private Map<Class<? extends TestGraphNode>, TestGraphNode> graphNodes;
 

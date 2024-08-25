@@ -4,7 +4,7 @@ import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.graph.*;
 import com.hayden.test_graph.graph.node.HyperGraphTestNode;
-import com.hayden.test_graph.graph.service.MetaGraphDelegate;
+import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.exec.prog_bubble.MetaProgNode;
@@ -24,7 +24,7 @@ public class MetaGraph implements MetaHyperGraph<HyperGraphContext<MetaCtx>, Met
     @Autowired
     TestGraphSort graphSort;
     @Autowired @Lazy
-    MetaGraphDelegate graphAutoDetect;
+    LazyMetaGraphDelegate graphAutoDetect;
 
     private List<MetaProgNode<HyperGraphContext<MetaCtx>>> hyperGraphNodes;
 

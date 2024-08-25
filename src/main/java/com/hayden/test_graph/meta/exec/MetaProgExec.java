@@ -4,7 +4,7 @@ import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.graph.SubGraph;
 import com.hayden.test_graph.graph.edge.GraphEdges;
 import com.hayden.test_graph.exec.prog_bubble.ProgExec;
-import com.hayden.test_graph.graph.service.MetaGraphDelegate;
+import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.ctx.MetaProgCtx;
@@ -29,7 +29,7 @@ public class MetaProgExec implements ProgExec {
     private List<SubGraph>  subGraphs;
 
     @Autowired @Lazy
-    MetaGraphDelegate metaGraphDelegate;
+    LazyMetaGraphDelegate lazyMetaGraphDelegate;
 
     @Autowired
     private TestGraphSort graphSort;
@@ -47,9 +47,9 @@ public class MetaProgExec implements ProgExec {
 
     @Override
     public MetaCtx exec(Class<? extends TestGraphContext> ctx, MetaCtx metaCtx) {
-        for (var hgNode : metaGraphDelegate.retrieveHyperGraphDependencyGraph(ctx)) {
+        for (var hgNode : lazyMetaGraphDelegate.retrieveHyperGraphDependencyGraph(ctx)) {
             MetaCtx finalMetaCtx = metaCtx;
-            metaCtx = Optional.ofNullable(metaGraphDelegate.getMatchingContext(hgNode))
+            metaCtx = Optional.ofNullable(lazyMetaGraphDelegate.getMatchingContext(hgNode))
                     .map(c -> {
                         var n = graphEdges.addEdge(hgNode, finalMetaCtx);
                         return (MetaCtx) n.exec(c, finalMetaCtx);

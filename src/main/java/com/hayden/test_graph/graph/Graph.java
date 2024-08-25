@@ -2,15 +2,9 @@ package com.hayden.test_graph.graph;
 
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
-import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
-import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
-import com.hayden.test_graph.data_dep.exec.single.DataDepNode;
-import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.graph.node.TestGraphNode;
-import com.hayden.test_graph.graph.service.GraphAutoDetect;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.utilitymodule.MapFunctions;
-import com.hayden.utilitymodule.sort.GraphSort;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

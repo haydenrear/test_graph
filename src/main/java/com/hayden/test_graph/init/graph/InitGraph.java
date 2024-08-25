@@ -2,7 +2,7 @@ package com.hayden.test_graph.init.graph;
 
 import com.hayden.test_graph.graph.*;
 import com.hayden.test_graph.graph.node.GraphNode;
-import com.hayden.test_graph.graph.service.MetaGraphDelegate;
+import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
@@ -22,7 +22,7 @@ public class InitGraph implements TestGraph<InitCtx, InitBubble> {
 
     @Lazy
     @Autowired
-    MetaGraphDelegate nodesProvider;
+    LazyMetaGraphDelegate nodesProvider;
     @Autowired
     TestGraphSort graphSort;
 
