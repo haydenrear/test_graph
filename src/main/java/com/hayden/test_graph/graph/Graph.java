@@ -1,14 +1,56 @@
 package com.hayden.test_graph.graph;
 
+import com.hayden.test_graph.ctx.HyperGraphContext;
+import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
+import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
+import com.hayden.test_graph.data_dep.exec.single.DataDepNode;
+import com.hayden.test_graph.graph.node.GraphNode;
+import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.graph.service.GraphAutoDetect;
 import com.hayden.test_graph.graph.service.TestGraphSort;
+import com.hayden.utilitymodule.MapFunctions;
+import com.hayden.utilitymodule.sort.GraphSort;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public interface Graph {
 
 
-    TestGraphSort sortingAlgorithm();
+     static <T extends TestGraphContext<U>, U extends HyperGraphContext, N extends TestGraphNode<? extends T, ? extends U>> Map<Class<? extends T>, List<N>> collectNodes(
+             List<? extends N> nodes,
+             TestGraphSort graphSort
+     ) {
+         Map<Class<? extends N>, ? extends List<? extends N>> collect = nodes.stream()
+                 .collect(Collectors.groupingBy(t -> (Class<? extends N>) t.clzz()));
+         var classListMap = MapFunctions.CollectMap(
+                 collect
+                         .entrySet()
+                         .stream()
+                         .map(e -> Map.entry(e.getKey(), graphSort.sort(e.getValue())))
+         );
+         return MapFunctions.CollectMap(
+                 classListMap
+                         .entrySet()
+                         .stream()
+                         .map(e -> Map.entry(
+                                 (Class<? extends T>) e.getKey(),
+                                 javaGraphNodes(Map.entry(e.getKey(), e.getValue().stream().map(n -> (N) n).toList()))
+                         ))
+         );
+    }
 
-    GraphAutoDetect allNodes();
-
+    private static <T extends TestGraphContext<U>, U extends HyperGraphContext, N extends TestGraphNode<? extends T, ? extends U>>
+    @NotNull List<N> javaGraphNodes(
+            Map.Entry<Class<? extends N>, List<? extends N>> e
+    ) {
+        return e.getValue()
+                .stream()
+                .map(i -> (N) i)
+                .toList();
+    }
 
 }

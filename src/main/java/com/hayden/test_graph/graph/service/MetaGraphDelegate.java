@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Getter
 @Component
-public class LazyGraphAutoDetect {
+public class MetaGraphDelegate {
 
     @Lazy
     @ThreadScope

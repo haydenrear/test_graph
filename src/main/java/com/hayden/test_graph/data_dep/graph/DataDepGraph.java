@@ -1,12 +1,14 @@
-package com.hayden.test_graph.init.graph;
+package com.hayden.test_graph.data_dep.graph;
 
-import com.hayden.test_graph.graph.*;
+import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
+import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
+import com.hayden.test_graph.data_dep.exec.single.DataDepNode;
+import com.hayden.test_graph.graph.Graph;
+import com.hayden.test_graph.graph.SubGraph;
+import com.hayden.test_graph.graph.TestGraph;
 import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.graph.service.MetaGraphDelegate;
 import com.hayden.test_graph.graph.service.TestGraphSort;
-import com.hayden.test_graph.init.ctx.InitBubble;
-import com.hayden.test_graph.init.ctx.InitCtx;
-import com.hayden.test_graph.init.exec.single.InitNode;
 import com.hayden.test_graph.thread.ThreadScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -18,7 +20,7 @@ import java.util.Map;
 
 @Component
 @ThreadScope
-public class InitGraph implements TestGraph<InitCtx, InitBubble> {
+public class DataDepGraph implements TestGraph<DataDepCtx, DataDepBubble> {
 
     @Lazy
     @Autowired
@@ -28,18 +30,18 @@ public class InitGraph implements TestGraph<InitCtx, InitBubble> {
 
     @Autowired
     @ThreadScope
-    List<SubGraph<InitCtx, InitBubble>> subGraphs;
+    List<SubGraph<DataDepCtx, DataDepBubble>> subGraphs;
 
-    Map<Class<? extends InitCtx>, List<GraphNode<InitCtx, InitBubble>>> nodes = new HashMap<>();
+    Map<Class<? extends DataDepCtx>, List<GraphNode<DataDepCtx, DataDepBubble>>> nodes = new HashMap<>();
 
     @ThreadScope
     @Autowired(required = false)
-    public void setNodes(List<? extends InitNode> nodes) {
+    public void setNodes(List<? extends DataDepNode> nodes) {
         this.nodes = Graph.collectNodes(nodes, graphSort);
     }
 
     @Override
-    public List<? extends InitCtx> sortedCtx(Class<? extends InitCtx> init) {
+    public List<? extends DataDepCtx> sortedCtx(Class<? extends DataDepCtx> init) {
         return graphSort.sortContext(
                 subGraphs.stream()
                         .filter(s -> s.clazz().equals(init))
@@ -49,7 +51,7 @@ public class InitGraph implements TestGraph<InitCtx, InitBubble> {
     }
 
     @Override
-    public Map<Class<? extends InitCtx>, List<GraphNode<InitCtx, InitBubble>>> sortedNodes() {
+    public Map<Class<? extends DataDepCtx>, List<GraphNode<DataDepCtx, DataDepBubble>>> sortedNodes() {
         return this.nodes;
     }
 

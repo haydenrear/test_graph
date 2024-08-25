@@ -3,37 +3,36 @@ package com.hayden.test_graph.meta.exec;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.graph.SubGraph;
 import com.hayden.test_graph.graph.edge.GraphEdges;
-import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.exec.prog_bubble.ProgExec;
+import com.hayden.test_graph.graph.service.MetaGraphDelegate;
+import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.ctx.MetaProgCtx;
-import com.hayden.test_graph.meta.graph.MetaGraph;
 import com.hayden.test_graph.thread.ThreadScope;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 public class MetaProgExec implements ProgExec {
 
     @Autowired
     @ThreadScope
-    private MetaGraph metaGraph;
-
-    @Autowired
-    @ThreadScope
     private MetaProgCtx metaProgCtx;
-
-    @Autowired
-    private List<TestGraphContext> contexts;
 
     @Autowired
     private GraphEdges graphEdges;
 
     @Autowired
     private List<SubGraph>  subGraphs;
+
+    @Autowired @Lazy
+    MetaGraphDelegate metaGraphDelegate;
+
+    @Autowired
+    private TestGraphSort graphSort;
 
     @Override
     public MetaCtx collectCtx() {
@@ -48,27 +47,21 @@ public class MetaProgExec implements ProgExec {
 
     @Override
     public MetaCtx exec(Class<? extends TestGraphContext> ctx, MetaCtx metaCtx) {
-        for (var s : metaGraph.sortedNodes()) {
-            final MetaCtx nextMeta = metaCtx;
-            metaCtx = s.t().res()
-                    .optional()
-                    .flatMap(h -> {
-                        if (h instanceof HyperGraphExec execNode) {
-                            // note: MetaCtx can contain a history of the previous MetaCtx for arbitrary edge creation.
-                            return Optional.ofNullable(nextMeta)
-                                    .map(m -> graphEdges.addEdge(execNode, m))
-                                    .or(() -> Optional.of(execNode))
-                                    .map(exec -> (MetaCtx) exec.exec(ctx, nextMeta));
-                        }
-
-                        return Optional.empty();
+        for (var hgNode : metaGraphDelegate.retrieveHyperGraphDependencyGraph(ctx)) {
+            MetaCtx finalMetaCtx = metaCtx;
+            metaCtx = Optional.ofNullable(metaGraphDelegate.getMatchingContext(hgNode))
+                    .map(c -> {
+                        var n = graphEdges.addEdge(hgNode, finalMetaCtx);
+                        return (MetaCtx) n.exec(c, finalMetaCtx);
                     })
-                    .orElse(null);
+                    .orElseGet(() -> {
+                        log.error("Did not find matching context for {}.", hgNode.getClass().getName());
+                        return finalMetaCtx;
+                    });
         }
 
         return metaCtx;
     }
-
     @Override
     public MetaCtx exec(Class<? extends TestGraphContext> ctx) {
         if (!metaProgCtx.isEmpty()) {

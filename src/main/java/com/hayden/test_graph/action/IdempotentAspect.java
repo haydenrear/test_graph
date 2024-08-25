@@ -11,6 +11,7 @@ import org.springframework.util.Assert;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Delayed;
@@ -67,17 +68,20 @@ public class IdempotentAspect {
     }
 
     private DelayedAction callIfNotExpiredOrNotCached(ProceedingJoinPoint joinPoint, CacheValue cv, Idempotent idempotent, DelayedAction prev) {
-        if (prev == voidObj && isNotTimed(idempotent))
-            return prev;
-        else if (prev == null) {
-            return getProceedToAdd(joinPoint, cv);
-        } else if (isNotTimed(idempotent)) {
-            Assert.notNull(prev, "Assumed not to be null.");
-            return prev;
+        if (isNotTimed(idempotent)) {
+            if (prev == voidObj)
+                return prev;
+            else if (prev == null) {
+                return getProceedToAdd(joinPoint, cv);
+            } else {
+                Assert.notNull(prev, "Assumed not to be null.");
+                return prev;
+            }
         }
+
         long delay = prev.getDelay(TimeUnit.MILLISECONDS);
         if (delay <= 0) {
-            return getProceedToAdd(joinPoint, cv);
+            return getProceedToAddTimed(joinPoint, cv, idempotent);
         } else {
             return prev;
         }
@@ -93,6 +97,14 @@ public class IdempotentAspect {
         return Optional.ofNullable(joinPoint.proceed())
                 .or(() -> Optional.of(voidObj))
                 .map(o -> new DelayedAction(cv, o))
+                .get();
+    }
+
+    @SneakyThrows
+    private DelayedAction getProceedToAddTimed(ProceedingJoinPoint joinPoint, CacheValue cv, Idempotent idempotent) {
+        return Optional.ofNullable(joinPoint.proceed())
+                .or(() -> Optional.of(voidObj))
+                .map(o -> new DelayedAction(LocalDateTime.now().plus(idempotent.timeoutMillis(), ChronoUnit.MILLIS), cv, o))
                 .get();
     }
 }

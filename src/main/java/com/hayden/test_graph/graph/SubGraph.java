@@ -2,20 +2,15 @@ package com.hayden.test_graph.graph;
 
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
-import com.hayden.test_graph.graph.service.GraphAutoDetect;
-import com.hayden.test_graph.graph.service.LazyGraphAutoDetect;
+import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.util.Assert;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,11 +23,8 @@ import java.util.Optional;
 public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext> implements Graph, ApplicationContextAware {
 
     private final T t;
-    private final TestGraphSort graphSort;
 
-    @Autowired
-    @Lazy
-    private LazyGraphAutoDetect lazyGraphAutoDetect;
+    private final TestGraphSort graphSort;
 
     private ApplicationContext ctx;
 
@@ -41,26 +33,18 @@ public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext
     }
 
     public List<? extends T> parseContextTree() {
-        var arrList = new ArrayList<T>();
-        var nextValue = t;
-        arrList.add(t);
+        return t.parseContextTree()
+                .stream()
+                .map(t -> (T) t)
+                .toList();
+    }
 
-        while (nextValue != null && nextValue.parent().res().isPresent()) {
-            nextValue = (T) nextValue.parent().res().r().get();
-            arrList.add(nextValue);
+    public Class<? extends TestGraphContext> dependsOn(HyperGraphExec graphExec) {
+        if(graphExec.clzz().isAssignableFrom(t.bubble().getClass())){
+            return this.clazz();
         }
 
-        return arrList;
-    }
-
-    @Override
-    public TestGraphSort sortingAlgorithm() {
-        return graphSort;
-    }
-
-    @Override
-    public GraphAutoDetect allNodes() {
-        return lazyGraphAutoDetect.getAutoDetect();
+        return null;
     }
 
     private static Optional<TestGraphContext> setParentChild(ApplicationContext beanFactory,
@@ -75,14 +59,15 @@ public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext
                 },
                 () -> Assert.isNull(prev, "Child must be null if doesn't have parent for %s.".formatted(i.getClass()))
         );
-        return i.parentTy().map(p -> {
-            var tgc = beanFactory.getBean((Class<? extends TestGraphContext>) p);
-            beanFactory.getAutowireCapableBeanFactory().autowireBean(tgc);
-            Assert.isTrue(tgc.childTy().isPresent() && tgc.childTy().get().equals(i.getClass()), "Child type and parent type must be compatible for %s."
-                    .formatted(tgc.getClass().getName()));
-            i.parent().set(tgc);
-            return tgc;
-        });
+        return i.parentTy()
+                .map(p -> {
+                    var tgc = beanFactory.getBean((Class<? extends TestGraphContext>) p);
+                    beanFactory.getAutowireCapableBeanFactory().autowireBean(tgc);
+                    Assert.isTrue(tgc.childTy().isPresent() && tgc.childTy().get().equals(i.getClass()),
+                            "Child type and parent type must be compatible for %s.".formatted(tgc.getClass().getName()));
+                    i.parent().set(tgc);
+                    return tgc;
+                });
     }
 
     @PostConstruct

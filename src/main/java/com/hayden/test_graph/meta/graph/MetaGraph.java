@@ -4,8 +4,7 @@ import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.graph.*;
 import com.hayden.test_graph.graph.node.HyperGraphTestNode;
-import com.hayden.test_graph.graph.service.GraphAutoDetect;
-import com.hayden.test_graph.graph.service.LazyGraphAutoDetect;
+import com.hayden.test_graph.graph.service.MetaGraphDelegate;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.exec.prog_bubble.MetaProgNode;
@@ -25,7 +24,7 @@ public class MetaGraph implements MetaHyperGraph<HyperGraphContext<MetaCtx>, Met
     @Autowired
     TestGraphSort graphSort;
     @Autowired @Lazy
-    LazyGraphAutoDetect graphAutoDetect;
+    MetaGraphDelegate graphAutoDetect;
 
     private List<MetaProgNode<HyperGraphContext<MetaCtx>>> hyperGraphNodes;
 
@@ -44,16 +43,6 @@ public class MetaGraph implements MetaHyperGraph<HyperGraphContext<MetaCtx>, Met
     }
 
     @Override
-    public TestGraphSort sortingAlgorithm() {
-        return graphSort;
-    }
-
-    @Override
-    public GraphAutoDetect allNodes() {
-        return graphAutoDetect.getAutoDetect();
-    }
-
-    @Override
     public List<MetaCtx> bubble() {
         return List.of(ctx);
     }
@@ -62,5 +51,6 @@ public class MetaGraph implements MetaHyperGraph<HyperGraphContext<MetaCtx>, Met
     public List<? extends MetaProgNode<HyperGraphContext<MetaCtx>>> sortedNodes() {
         return hyperGraphNodes;
     }
+
 
 }

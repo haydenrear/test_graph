@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface HyperGraphNode<T extends HyperGraphContext<H>, H extends HyperGraphContext> extends GraphNode<T, H> {
 
-    default List<Class<? extends HyperGraphNode>> dependsOnHyperNodes() {
+    default List<Class<? extends HyperGraphNode<? extends HyperGraphContext<H>, H>>> dependsOnHyperNodes() {
         return List.of();
     }
 

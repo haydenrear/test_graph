@@ -1,5 +1,6 @@
 package com.hayden.test_graph.exec.bubble;
 
+import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.graph.edge.HyperGraphEdge;
@@ -19,6 +20,7 @@ public interface HyperGraphExec<SG extends TestGraphContext<CTX>, CTX extends Hy
      * @param ctx
      * @return
      */
+    @Idempotent
     H exec(Class<? extends SG> ctx, MetaCtx prev);
 
     default H exec(Class<? extends SG> ctx) {

@@ -17,7 +17,7 @@ public record MetaProgNode<T extends HyperGraphContext<MetaCtx>>(
         implements MetaNode {
 
     @Override
-    public List<Class<? extends HyperGraphNode>> dependsOnHyperNodes() {
+    public List<Class<? extends HyperGraphNode<? extends HyperGraphContext<MetaCtx>, MetaCtx>>> dependsOnHyperNodes() {
         return List.of();
     }
 

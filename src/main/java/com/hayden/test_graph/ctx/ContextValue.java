@@ -3,12 +3,17 @@ package com.hayden.test_graph.ctx;
 import com.hayden.utilitymodule.result.Result;
 import lombok.experimental.Delegate;
 
+import java.util.Optional;
 import java.util.Stack;
 
 public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
 
     public boolean isEmpty() {
         return !res.res.isPresent();
+    }
+
+    public Optional<T> optional() {
+        return res.optional();
     }
 
     public boolean isPresent() {

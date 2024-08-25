@@ -1,8 +1,7 @@
 package com.hayden.test_graph.init.graph;
 
 import com.hayden.test_graph.graph.*;
-import com.hayden.test_graph.graph.service.GraphAutoDetect;
-import com.hayden.test_graph.graph.service.LazyGraphAutoDetect;
+import com.hayden.test_graph.graph.service.MetaGraphDelegate;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.exec.bubble.InitBubbleNode;
@@ -19,7 +18,7 @@ import java.util.List;
 public class InitBubbleGraph implements HyperTestGraph<InitBubble, MetaCtx> {
 
     @Autowired @Lazy
-    LazyGraphAutoDetect nodesProvider;
+    MetaGraphDelegate nodesProvider;
 
     @Autowired
     TestGraphSort graphSort;
@@ -33,15 +32,5 @@ public class InitBubbleGraph implements HyperTestGraph<InitBubble, MetaCtx> {
         return sortedNodes;
     }
 
-    @Override
-    public TestGraphSort sortingAlgorithm() {
-        return graphSort;
-    }
-
-
-    @Override
-    public GraphAutoDetect allNodes() {
-        return nodesProvider.getAutoDetect();
-    }
 
 }

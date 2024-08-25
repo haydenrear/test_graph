@@ -1,5 +1,6 @@
 package com.hayden.test_graph.init.exec;
 
+import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.graph.edge.GraphEdges;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.graph.node.TestGraphNode;
@@ -19,7 +20,7 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @ThreadScope
-public class BubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaCtx> {
+public class InitBubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaCtx> {
 
     public interface BubblePreMapper extends GraphExecMapper<InitBubble, MetaCtx> {}
     public interface BubblePostMapper extends GraphExecMapper<InitBubble, MetaCtx> {}
@@ -55,6 +56,7 @@ public class BubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaCtx> 
     }
 
     @Override
+    @Idempotent
     public MetaCtx exec(Class<? extends InitCtx> ctx, MetaCtx prev) {
         var collected = this.initExec.collectCtx(ctx, prev);
         var c = graphEdges.addEdge(this, collected, prev);
