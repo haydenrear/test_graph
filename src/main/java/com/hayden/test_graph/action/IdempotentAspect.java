@@ -1,34 +1,34 @@
 package com.hayden.test_graph.action;
 
+import lombok.SneakyThrows;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Aspect
 @Component
 public class IdempotentAspect {
 
-    private final ConcurrentHashMap<CacheValue, Object> did = new ConcurrentHashMap<>();
-
     private final ConcurrentHashMap<CacheValue, DelayedAction> delays = new ConcurrentHashMap<>();
 
     record CacheValue(Object method, Object target) { }
 
-    record DelayedAction(LocalDateTime expireFutureTime, CacheValue cacheValue) implements Delayed {
+    record DelayedAction(LocalDateTime expireFutureTime, CacheValue cacheValue, Object ret) implements Delayed {
 
-        DelayedAction(CacheValue cacheValue) {
-            this(LocalDateTime.now(), cacheValue);
+        DelayedAction(CacheValue cacheValue, Object ret) {
+            this(LocalDateTime.now(), cacheValue, ret);
         }
 
         @Override
@@ -46,66 +46,53 @@ public class IdempotentAspect {
         }
     }
 
-    private static final Object nullObj = new Object();
-
     private static final Object voidObj = new Object();
 
     @Around("@annotation(idempotent)")
-    public Object around(ProceedingJoinPoint joinPoint, Idempotent idempotent) throws Throwable {
+    public Object around(ProceedingJoinPoint joinPoint, Idempotent idempotent) {
 
-        var t = joinPoint.getTarget();
-        var method = t.getClass().getMethod(joinPoint.getSignature().getName(), Arrays.stream(joinPoint.getArgs()).map(Object::getClass).toArray(Class[]::new));
+        var method = joinPoint.getSignature().getName();
+        var targetName = joinPoint.getTarget().getClass().getName();
 
-        CacheValue cv = new CacheValue(method, joinPoint.getTarget());
+        CacheValue cv = new CacheValue("%s.%s".formatted(targetName, method), joinPoint.getTarget());
 
+        var r = delays.compute(
+                cv,
+                (key, prev) -> Optional.ofNullable(prev)
+                        .map(p -> callIfNotExpiredOrNotCached(joinPoint, cv, idempotent, prev))
+                        .orElseGet(() -> getProceedToAdd(joinPoint, cv))
+        );
 
-        if (idempotent.timeoutMillis() > 0L && !delays.containsKey(cv)) {
-            delays.put(cv, new DelayedAction(cv));
-        }
+        return r.ret == voidObj ? null : r.ret;
+    }
 
-        if (did.compute(cv, (key, prev) -> {
-            if (prev == null) {
-                return nullObj;
-            }
-
+    private DelayedAction callIfNotExpiredOrNotCached(ProceedingJoinPoint joinPoint, CacheValue cv, Idempotent idempotent, DelayedAction prev) {
+        if (prev == voidObj && isNotTimed(idempotent))
             return prev;
-        }) == nullObj) {
-            synchronized (joinPoint.getTarget()) {
-                if (did.get(cv) == nullObj) {
-                    return Optional.ofNullable(joinPoint.proceed())
-                            .map(o -> {
-                                did.put(cv, o);
-                                return o;
-                            })
-                            .orElseGet(() -> {
-                                did.put(cv, voidObj);
-                                return null;
-                            });
-                } else {
-                    return did.get(cv);
-                }
-            }
+        else if (prev == null) {
+            return getProceedToAdd(joinPoint, cv);
+        } else if (isNotTimed(idempotent)) {
+            Assert.notNull(prev, "Assumed not to be null.");
+            return prev;
         }
-
-        return callIfNotExpiredOrNotCached(joinPoint, cv);
-    }
-
-    private @Nullable Object callIfNotExpiredOrNotCached(ProceedingJoinPoint joinPoint, CacheValue cv) throws Throwable {
-        if (did.get(cv) == voidObj && !delays.containsKey(cv)) {
-            return null;
-        } else if (!delays.containsKey(cv)) {
-            return did.get(cv);
+        long delay = prev.getDelay(TimeUnit.MILLISECONDS);
+        if (delay <= 0) {
+            return getProceedToAdd(joinPoint, cv);
         } else {
-            var delayed = delays.get(cv);
-            if (delayed.getDelay(TimeUnit.MILLISECONDS) <= 0) {
-                var nextValue = joinPoint.proceed();
-                did.put(cv, nextValue);
-                delays.put(cv, new DelayedAction(cv));
-                return nextValue;
-            } else {
-                return did.get(cv);
-            }
+            return prev;
         }
     }
 
+    private static boolean isNotTimed(Idempotent idempotent) {
+        return idempotent.timeoutMillis() <= 0L;
+    }
+
+
+    @SneakyThrows
+    private DelayedAction getProceedToAdd(ProceedingJoinPoint joinPoint, CacheValue cv) {
+        return Optional.ofNullable(joinPoint.proceed())
+                .or(() -> Optional.of(voidObj))
+                .map(o -> new DelayedAction(cv, o))
+                .get();
+    }
 }
