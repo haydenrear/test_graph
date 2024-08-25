@@ -10,7 +10,6 @@ import com.hayden.test_graph.thread.ThreadScope;
 import com.hayden.utilitymodule.MapFunctions;
 import com.hayden.utilitymodule.proxies.ProxyUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -33,16 +32,29 @@ public class GraphAutoDetect {
 
     private Map<Class<? extends Graph>, Graph> graphs;
 
+    private Map<Class<? extends HyperGraphExec>, HyperGraphExec> hyperGraphExec;
+
     @Autowired
     @ThreadScope
     private List<? extends SubGraph> subGraphs;
 
-    @Autowired
-    @ThreadScope
     private MetaGraph metaGraph;
 
     @Autowired
     private TestGraphSort graphSort;
+
+    @Autowired
+    @ThreadScope
+    public void setMetaGraph(MetaGraph metaGraph) {
+        this.metaGraph = metaGraph;
+        this.hyperGraphExec = MapFunctions.CollectMap(
+                metaGraph.sortedNodes()
+                        .stream()
+                        .map(m -> m.t().optional().stream())
+                        .flatMap(h -> h instanceof HyperGraphExec hyper ? Stream.of(hyper) : Stream.empty())
+                        .map(h -> Map.entry(h.getClass(), h))
+        );
+    }
 
     @Autowired
     @ThreadScope
@@ -70,49 +82,9 @@ public class GraphAutoDetect {
     }
 
     public List<HyperGraphExec> retrieve(HyperGraphExec hyperGraphExec) {
-        return graphSort.sort(retrieve(hyperGraphExec, new HashSet<>(), retrieveHg()));
+        return graphSort.sort(hyperGraphExec.retrieve(new HashSet<>(), this.hyperGraphExec));
     }
 
-    public List<HyperGraphExec> retrieve(HyperGraphExec hyperGraphExec,
-                                  Set<String> prev,
-                                  Map<Class<? extends HyperGraphExec>, HyperGraphExec> r) {
-        List<HyperGraphExec> out = new ArrayList<>();
-        prev.add(hyperGraphExec.getClass().getName());
-        var notSorted = retrieveRecursive(hyperGraphExec, prev, r, out);
-        var newSorted = new ArrayList<>(notSorted);
-        newSorted.add(hyperGraphExec);
-        return newSorted;
-    }
-
-    private @NotNull List<HyperGraphExec> retrieveRecursive(HyperGraphExec hyperGraphExec,
-                                                            Set<String> prev,
-                                                            Map<Class<? extends HyperGraphExec>, HyperGraphExec> r,
-                                                            List<HyperGraphExec> out) {
-        return (List<HyperGraphExec>) hyperGraphExec.dependsOnHyperNodes()
-                .stream()
-                .peek(s -> {
-                    var sec = (Class<? extends HyperGraphExec>) s;
-                    if (prev.contains(sec.getName())) {
-                        throw new RuntimeException("Found cycle.");
-                    }
-                    prev.add(sec.getName());
-                })
-                .map(hg -> r.get((Class<? extends HyperGraphExec>) hg))
-                .flatMap(s -> retrieve((HyperGraphExec) s, prev, r).stream())
-                .collect(Collectors.toCollection(() -> out));
-    }
-
-
-
-    public Map<Class<? extends HyperGraphExec>, HyperGraphExec> retrieveHg() {
-        return MapFunctions.CollectMap(
-                metaGraph.sortedNodes()
-                        .stream()
-                        .map(m -> m.t().optional().stream())
-                        .flatMap(h -> h instanceof HyperGraphExec hyper ? Stream.of(hyper) : Stream.empty())
-                        .map(h -> Map.entry(h.getClass(), h))
-        );
-    }
     public Class<? extends TestGraphContext> getMatchingContext(HyperGraphExec hg) {
         return subGraphs.stream()
                 .filter(sub ->  sub.clazz().equals(sub.dependsOn(hg)))
@@ -154,7 +126,7 @@ public class GraphAutoDetect {
                 .toList();
     }
 
-    private <T> void initializeMapNotProxy(List<T> graphNodes, Consumer<Map> n) {
+    private <T> void initializeMapNotProxy(List<T> graphNodes, Consumer<Map<Class<? extends T>, T>> n) {
         if (graphNodes.stream()
                 .filter(ProxyUtil::isProxy)
                 .peek(t -> log.error("Found proxy: {}", t))
@@ -163,10 +135,10 @@ public class GraphAutoDetect {
             throw new RuntimeException("Cannot accept proxies!");
         }
 
-        var entryStream = graphNodes.stream()
-                .map(t -> Map.entry((Class) t.getClass(), t))
-                .map(m -> (Map.Entry) m)
+        Map<Class<? extends T>, T> entryStream = graphNodes.stream()
+                .map(t -> Map.entry((Class<? extends T>) t.getClass(), t))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
         n.accept(entryStream);
     }
 

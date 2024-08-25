@@ -1,35 +1,40 @@
 package com.hayden.test_graph.action;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Aspect
 @Component
+@Slf4j
 public class IdempotentAspect {
 
     private final ConcurrentHashMap<CacheValue, DelayedAction> delays = new ConcurrentHashMap<>();
 
     record CacheValue(Object method, Object target) { }
 
-    record DelayedAction(LocalDateTime expireFutureTime, CacheValue cacheValue, Object ret) implements Delayed {
+    record DelayedAction(LocalDateTime expireFutureTime, LocalDateTime now, CacheValue cacheValue, Object ret) implements Delayed {
+
+        DelayedAction(LocalDateTime expireFutureTime, CacheValue cacheValue, Object ret) {
+            this(expireFutureTime, LocalDateTime.now(), cacheValue, ret);
+        }
 
         DelayedAction(CacheValue cacheValue, Object ret) {
-            this(LocalDateTime.now(), cacheValue, ret);
+            this(LocalDateTime.MAX, LocalDateTime.now(), cacheValue, ret);
         }
 
         @Override
@@ -39,6 +44,10 @@ public class IdempotentAspect {
             } else {
                 throw new RuntimeException();
             }
+        }
+
+        public boolean isExpired() {
+            return getDelay(TimeUnit.MILLISECONDS) <= 0;
         }
 
         @Override
@@ -51,6 +60,11 @@ public class IdempotentAspect {
 
     @Around("@annotation(idempotent)")
     public Object around(ProceedingJoinPoint joinPoint, Idempotent idempotent) {
+        this.delays.entrySet().stream()
+                .filter(d -> d.getValue().isExpired())
+                .map(Map.Entry::getKey)
+                .toList()
+                .forEach(this.delays::remove);
 
         var method = joinPoint.getSignature().getName();
         var targetName = joinPoint.getTarget().getClass().getName();

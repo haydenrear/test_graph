@@ -9,6 +9,8 @@ import com.hayden.test_graph.graph.node.HyperGraphTestNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 
 public interface HyperGraphExec<SG extends TestGraphContext<CTX>, CTX extends HyperGraphContext<H>, H extends HyperGraphContext<H>> extends GraphExec<CTX, H>, HyperGraphTestNode<CTX, H> {
 
