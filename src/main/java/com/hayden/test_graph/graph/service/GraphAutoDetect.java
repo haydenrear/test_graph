@@ -82,7 +82,7 @@ public class GraphAutoDetect {
     }
 
     public List<HyperGraphExec> retrieve(HyperGraphExec hyperGraphExec) {
-        return graphSort.sort(hyperGraphExec.retrieve(new HashSet<>(), this.hyperGraphExec));
+        return graphSort.sort(hyperGraphExec.parseAllDeps(this.hyperGraphExec));
     }
 
     public Class<? extends TestGraphContext> getMatchingContext(HyperGraphExec hg) {
