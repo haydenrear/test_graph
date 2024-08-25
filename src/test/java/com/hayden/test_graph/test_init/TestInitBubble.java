@@ -6,10 +6,12 @@ import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitMeta;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
 public class TestInitBubble implements InitBubble {
+
 
     @Override
     public MetaCtx bubble() {

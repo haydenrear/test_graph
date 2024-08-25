@@ -49,15 +49,16 @@ public class MetaProgExec implements ProgExec {
     @Override
     public MetaCtx exec(Class<? extends TestGraphContext> ctx, MetaCtx metaCtx) {
         for (var s : metaGraph.sortedNodes()) {
-            return s.t().res()
+            final MetaCtx nextMeta = metaCtx;
+            metaCtx = s.t().res()
                     .optional()
                     .flatMap(h -> {
                         if (h instanceof HyperGraphExec execNode) {
                             // note: MetaCtx can contain a history of the previous MetaCtx for arbitrary edge creation.
-                            return Optional.ofNullable(metaCtx)
+                            return Optional.ofNullable(nextMeta)
                                     .map(m -> graphEdges.addEdge(execNode, m))
                                     .or(() -> Optional.of(execNode))
-                                    .map(exec -> (MetaCtx) exec.exec(ctx, metaCtx));
+                                    .map(exec -> (MetaCtx) exec.exec(ctx, nextMeta));
                         }
 
                         return Optional.empty();
@@ -65,7 +66,7 @@ public class MetaProgExec implements ProgExec {
                     .orElse(null);
         }
 
-        return null;
+        return metaCtx;
     }
 
     @Override

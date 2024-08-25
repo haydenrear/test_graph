@@ -26,7 +26,6 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
     public interface InitReducer extends GraphExecReducer<InitCtx, InitBubble> {}
 
     public interface InitPreMapper extends GraphExecMapper<InitCtx, InitBubble> {}
-
     public interface InitPostMapper extends GraphExecMapper<InitCtx, InitBubble> {}
 
     @Autowired(required = false)
@@ -94,7 +93,11 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
             return intCtx.getFirst().bubble();
         } else {
             AtomicReference<InitBubble> prev = new AtomicReference<>();
-            return GraphExec.chainCtx(this.reducers(), intCtx, p -> doExec(metaCtx, p, prev))
+            return GraphExec.chainCtx(
+                            this.reducers(),
+                            intCtx,
+                            p -> doExec(metaCtx, p, prev)
+                    )
                     .orElseGet(() -> {
                         logBubbleError();
                         return null;

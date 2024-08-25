@@ -57,10 +57,10 @@ public class BubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaCtx> 
     @Override
     public MetaCtx exec(Class<? extends InitCtx> ctx, MetaCtx prev) {
         var collected = this.initExec.collectCtx(ctx, prev);
-        collected = preMap(collected, prev);
-        collected = exec(collected, prev);
-        graphEdges.addEdge(this, collected, prev);
-        return collectCtx(collected);
+        var c = graphEdges.addEdge(this, collected, prev);
+        collected = c.preMap(collected, prev);
+        collected = c.exec(collected, prev);
+        return c.collectCtx(collected);
     }
 
     @Override

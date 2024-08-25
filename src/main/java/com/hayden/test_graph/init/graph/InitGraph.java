@@ -11,6 +11,7 @@ import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.init.exec.single.InitNode;
 import com.hayden.test_graph.thread.ThreadScope;
 import com.hayden.utilitymodule.MapFunctions;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -34,16 +35,23 @@ public class InitGraph implements TestGraph<InitCtx, InitBubble> {
     @ThreadScope
     List<SubGraph<InitCtx, InitBubble>> subGraphs;
 
-    Map<Class<? extends InitCtx>, List<? extends GraphNode<InitCtx, InitBubble>>> nodes = new HashMap<>();
+    Map<Class<? extends InitCtx>, List<GraphNode<InitCtx, InitBubble>>> nodes = new HashMap<>();
 
     @ThreadScope
     @Autowired(required = false)
-    public void setNodes(List<InitNode<InitCtx>> nodes) {
-        this.nodes = MapFunctions.CollectMap(
+    public void setNodes(List<InitNode<? extends InitCtx>> nodes) {
+        var classListMap = MapFunctions.CollectMap(
                 nodes.stream()
                         .collect(Collectors.groupingBy(TestGraphNode::clzz))
-                        .entrySet().stream()
+                        .entrySet()
+                        .stream()
                         .map(e -> Map.entry(e.getKey(), graphSort.sort(e.getValue())))
+        );
+        this.nodes = MapFunctions.CollectMap(
+                classListMap
+                        .entrySet()
+                        .stream()
+                        .map(e -> Map.entry(e.getKey(), javaGraphNodes(e)))
         );
     }
 
@@ -54,23 +62,31 @@ public class InitGraph implements TestGraph<InitCtx, InitBubble> {
 
     @Override
     public List<? extends InitCtx> sortedCtx(Class<? extends InitCtx> init) {
-        var i = graphSort.sortContext(
+        return graphSort.sortContext(
                 subGraphs.stream()
                         .filter(s -> s.clazz().equals(init))
                         .flatMap(s -> s.parseContextTree().stream())
                         .toList()
         );
-        return i;
     }
 
     @Override
-    public Map<Class<? extends InitCtx>, List<? extends GraphNode<InitCtx, InitBubble>>> sortedNodes() {
+    public Map<Class<? extends InitCtx>, List<GraphNode<InitCtx, InitBubble>>> sortedNodes() {
         return this.nodes;
     }
 
     @Override
     public GraphAutoDetect allNodes() {
         return nodesProvider.getAutoDetect();
+    }
+
+    private static @NotNull List<GraphNode<InitCtx, InitBubble>> javaGraphNodes(
+            Map.Entry<? extends Class<? extends InitCtx>, List<InitNode<? extends InitCtx>>> e
+    ) {
+        return e.getValue()
+                .stream()
+                .map(i -> (GraphNode<InitCtx, InitBubble>) i)
+                .toList();
     }
 
 }

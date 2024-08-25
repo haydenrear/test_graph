@@ -15,7 +15,7 @@ public interface TestGraph<T extends TestGraphContext<H>, H extends HyperGraphCo
 
     List<? extends T> sortedCtx(Class<? extends T> clzz);
 
-    Map<Class<? extends T>, List<? extends GraphNode<T, H>>> sortedNodes();
+    Map<Class<? extends T>, List<GraphNode<T, H>>> sortedNodes();
 
     default void setChildren() {
         sortedNodes().keySet().forEach(ctx -> setChildren(() -> sortedCtx(ctx)));

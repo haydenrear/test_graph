@@ -2,14 +2,20 @@ package com.hayden.test_graph.step_def;
 
 import com.hayden.test_graph.steps.InitStep;
 import com.hayden.test_graph.steps.InitializeAspect;
-import com.hayden.test_graph.test_init.TestInitChildCtx;
-import com.hayden.test_graph.test_init.TestInitCtx;
+import com.hayden.test_graph.test_init.*;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
 public class TestStepDef {
+
+    @Autowired
+    MockRegister mockRegister;
 
 
     @When("I attempt to run")
@@ -25,7 +31,16 @@ public class TestStepDef {
 
     @Then("it runs")
     public void it_runs() {
-        // Write code here that turns the phrase above into concrete actions
+
+        Stream<Class<?>> classStream = Stream.of(InitReducer.class, InitReducer2.class,
+                TestInitBubbleNode.class, TestInitChildCtx.class,
+                TestInitChildDepNode.class, TestInitChildNode.class,
+                TestInitCtx.class, TestInitCtxDepNode.class,
+                TestInitCtxNode.class, TestInitParentCtx.class,
+                TestInitParentDepNode.class, TestInitParentNode.class);
+        var not = classStream.filter(Predicate.not(mockRegister.getMocks()::contains))
+                        .toList();
+        Assertions.assertEquals(0, not.size(), "Following did not exist: %s".formatted(not));
     }
 
 

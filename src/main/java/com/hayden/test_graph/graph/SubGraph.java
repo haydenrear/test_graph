@@ -66,6 +66,7 @@ public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext
     private static Optional<TestGraphContext> setParentChild(ApplicationContext beanFactory,
                                                              TestGraphContext i,
                                                              TestGraphContext prev) {
+        beanFactory.getAutowireCapableBeanFactory().autowireBean(i);
         i.childTy().ifPresentOrElse(
                 p -> {
                     Assert.isTrue(p == prev.getClass(), "Previous parent must be equal to child for %s, %s."
@@ -76,6 +77,7 @@ public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext
         );
         return i.parentTy().map(p -> {
             var tgc = beanFactory.getBean((Class<? extends TestGraphContext>) p);
+            beanFactory.getAutowireCapableBeanFactory().autowireBean(tgc);
             Assert.isTrue(tgc.childTy().isPresent() && tgc.childTy().get().equals(i.getClass()), "Child type and parent type must be compatible for %s."
                     .formatted(tgc.getClass().getName()));
             i.parent().set(tgc);

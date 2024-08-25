@@ -9,6 +9,7 @@ import com.hayden.test_graph.init.ctx.InitMeta;
 import com.hayden.test_graph.init.exec.single.InitNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ThreadScope;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -18,10 +19,14 @@ import java.util.Optional;
 @ThreadScope
 public class TestInitChildCtx implements InitCtx {
 
+    @Autowired
+    MockRegister mockRegister;
+
     ContextValue<TestGraphContext> parent = ContextValue.empty();
 
     @Override
     public TestInitBubble bubble() {
+        mockRegister.mocks.add(this.getClass());
         return new TestInitBubble();
     }
 

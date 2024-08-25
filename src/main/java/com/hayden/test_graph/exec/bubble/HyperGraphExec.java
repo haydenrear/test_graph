@@ -11,8 +11,6 @@ import org.slf4j.LoggerFactory;
 
 public interface HyperGraphExec<SG extends TestGraphContext<CTX>, CTX extends HyperGraphContext<H>, H extends HyperGraphContext<H>> extends GraphExec<CTX, H>, HyperGraphTestNode<CTX, H> {
 
-    Logger log = LoggerFactory.getLogger(HyperGraphExec.class);
-
     /**
      * There exists some number of contexts that need to be collected into the bubble context. For example there could exist hierarchies
      * of contexts from HierarchicalContext - in this case all of these contexts needs to be then bubbled into a single hypergraph context.
@@ -28,9 +26,5 @@ public interface HyperGraphExec<SG extends TestGraphContext<CTX>, CTX extends Hy
     }
 
     H collectCtx(CTX toCollect);
-
-    default void visit(HyperGraphEdge<HyperGraphContext<MetaCtx>, MetaCtx> edge) {
-
-    }
 
 }
