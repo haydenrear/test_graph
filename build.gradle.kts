@@ -3,6 +3,7 @@ plugins {
     id("com.hayden.spring")
     id("com.hayden.no-main-class")
     id("com.hayden.git")
+    id("com.hayden.graphql")
 }
 
 group = "com.hayden"

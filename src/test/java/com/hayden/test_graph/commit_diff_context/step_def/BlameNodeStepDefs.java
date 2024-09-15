@@ -39,7 +39,7 @@ public class BlameNodeStepDefs {
 
     @When("the user requests to get the next commit")
     public void user_requests_next_commit() {
-        commitDiffContext.requestNextCommit();
+        commitDiffContext.requestCommit(commitDiffInit.toCommitRequestArgs());
     }
 
     @Then("the model responds with valid commit that is committed to the repository successfully")

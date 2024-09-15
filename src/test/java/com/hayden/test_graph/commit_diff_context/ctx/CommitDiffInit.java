@@ -1,6 +1,7 @@
 package com.hayden.test_graph.commit_diff_context.ctx;
 
 import com.hayden.test_graph.commit_diff_context.init.CommitDiffInitNode;
+import com.hayden.test_graph.commit_diff_context.service.CommitDiffContext;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.graph.node.GraphNode;
@@ -19,6 +20,25 @@ public record CommitDiffInit(
         ContextValue<UserCodeData> userCodeData,
         ContextValue<BubbleData> bubbleDataContextValue
 ) implements InitCtx {
+
+    public CommitDiffContext.CommitRequestArgs toCommitRequestArgs() {
+        RepositoryData repoArgs = repoDataOrThrow();
+        return CommitDiffContext.CommitRequestArgs.builder()
+                .commitMessage(userCodeDataOrThrow().commitMessage)
+                .gitRepoPath(repoArgs.url)
+                .branchName(repoArgs.branchName)
+                .build();
+    }
+
+    public UserCodeData userCodeDataOrThrow() {
+        var userCodeDataFound = userCodeData.res().orElseThrow();
+        return userCodeDataFound;
+    }
+
+    public RepositoryData repoDataOrThrow() {
+        RepositoryData repoArgs = repoData.res().orElseThrow();
+        return repoArgs;
+    }
 
     @Builder
     public record RepositoryData(String url, String branchName) {}

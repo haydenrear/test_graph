@@ -1,6 +1,7 @@
 package com.hayden.test_graph.cucumber;
 
 import io.cucumber.spring.CucumberContextConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 

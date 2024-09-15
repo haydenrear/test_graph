@@ -5,6 +5,7 @@ import lombok.experimental.Delegate;
 
 import java.util.Optional;
 import java.util.Stack;
+import java.util.function.Supplier;
 
 public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
 
@@ -70,6 +71,16 @@ public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
             return this.res;
         }
 
+        public T orElseThrow(Supplier<RuntimeException> throwable) {
+            if (!this.res.isPresent()) {
+                throw throwable.get();
+            }
+            return this.res.get();
+        }
+
+        public T orElseThrow() {
+            return orElseThrow(() -> new RuntimeException("Failed to retrieve value."));
+        }
     }
 
 }
