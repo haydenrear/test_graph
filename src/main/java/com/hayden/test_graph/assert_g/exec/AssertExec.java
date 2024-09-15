@@ -1,11 +1,14 @@
-package com.hayden.test_graph.data_dep.exec;
+package com.hayden.test_graph.assert_g.exec;
 
-import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
-import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
-import com.hayden.test_graph.data_dep.graph.DataDepGraph;
+import com.hayden.test_graph.assert_g.ctx.AssertBubble;
+import com.hayden.test_graph.assert_g.ctx.AssertCtx;
+import com.hayden.test_graph.assert_g.graph.AssertGraph;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.edge.GraphEdges;
 import com.hayden.test_graph.graph.node.GraphNode;
+import com.hayden.test_graph.init.ctx.InitBubble;
+import com.hayden.test_graph.init.ctx.InitCtx;
+import com.hayden.test_graph.init.graph.InitGraph;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ThreadScope;
 import lombok.RequiredArgsConstructor;
@@ -21,96 +24,78 @@ import java.util.function.BiFunction;
 @Component
 @RequiredArgsConstructor
 @ThreadScope
-public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble> {
+public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
 
-    public interface DataDepReducer extends GraphExecReducer<DataDepCtx, DataDepBubble> {}
+    public interface InitReducer extends GraphExecReducer<AssertCtx, AssertBubble> {}
 
-    public interface DataDepPreMapper extends GraphExecMapper<DataDepCtx, DataDepBubble> {
-
-        interface PreClean extends DataDepPreMapper {
-
-            boolean preCleanData(DataDepCtx dataDepCtx, MetaCtx metaCtx);
-
-            @Override
-            default DataDepCtx apply(DataDepCtx dataDepCtx, MetaCtx h) {
-                if (!preCleanData(dataDepCtx, h))  {
-                    // log
-                }
-
-                return dataDepCtx;
-            }
-        }
-
-    }
-
-    public interface DataDepPostMapper extends GraphExecMapper<DataDepCtx, DataDepBubble> {
-    }
+    public interface InitPreMapper extends GraphExecMapper<AssertCtx, AssertBubble> {}
+    public interface InitPostMapper extends GraphExecMapper<AssertCtx, AssertBubble> {}
 
     @Autowired(required = false)
-    List<DataDepExec.DataDepReducer> reducers;
+    List<InitReducer> reducers;
     @Autowired(required = false)
-    List<DataDepExec.DataDepPreMapper> preMappers;
+    List<InitPreMapper> preMappers;
     @Autowired(required = false)
-    List<DataDepExec.DataDepPostMapper> postMappers;
+    List<InitPostMapper> postMappers;
 
     @Autowired
     GraphEdges graphEdges;
 
     @Autowired
     @ThreadScope
-    DataDepGraph dataDepGraph;
+    AssertGraph initGraph;
 
     @Override
-    public DataDepBubble exec(DataDepCtx initCtx, DataDepBubble prev, MetaCtx metaCtx) {
-        var nodes = Optional.ofNullable(this.dataDepGraph.sortedNodes().get(initCtx.getClass()))
+    public AssertBubble exec(AssertCtx initCtx, AssertBubble prev, MetaCtx metaCtx) {
+        var nodes = Optional.ofNullable(this.initGraph.sortedNodes().get(initCtx.getClass()))
                 .orElse(new ArrayList<>());
         var toExec = retrieveToExec(initCtx, prev, metaCtx);
         initCtx = toExec.preMap(initCtx, metaCtx, nodes);
         initCtx = toExec.exec(initCtx, metaCtx, nodes);
-        final DataDepCtx initCtxExec = toExec.postMap(initCtx, metaCtx, nodes);
+        final AssertCtx initCtxExec = toExec.postMap(initCtx, metaCtx, nodes);
         return Optional.ofNullable(initCtxExec)
-                .map(DataDepCtx::bubble)
+                .map(AssertCtx::bubble)
                 .stream()
                 .findAny()
                 .orElse(null);
     }
 
-    private DataDepExec retrieveToExec(DataDepCtx initCtx, DataDepBubble prev, MetaCtx metaCtx) {
+    private AssertExec retrieveToExec(AssertCtx initCtx, AssertBubble prev, MetaCtx metaCtx) {
         return Optional.ofNullable(prev)
                 .map(ib -> graphEdges.addEdge(this, initCtx, ib, metaCtx))
                 .orElseGet(() -> graphEdges.addEdge(this, initCtx, metaCtx));
     }
 
     @Override
-    public DataDepBubble exec(DataDepCtx initCtx, MetaCtx metaCtx) {
+    public AssertBubble exec(AssertCtx initCtx, MetaCtx metaCtx) {
         return exec(initCtx, null, metaCtx);
     }
 
     @Override
-    public List<DataDepExec.DataDepReducer> reducers() {
+    public List<InitReducer> reducers() {
         return Optional.ofNullable(reducers).orElse(new ArrayList<>());
     }
 
     @Override
-    public List<DataDepExec.DataDepPreMapper> preMappers() {
+    public List<InitPreMapper> preMappers() {
         return Optional.ofNullable(preMappers).orElse(new ArrayList<>());
     }
 
     @Override
-    public List<? extends GraphExecMapper<DataDepCtx, DataDepBubble>> postMappers() {
+    public List<? extends GraphExecMapper<AssertCtx, AssertBubble>> postMappers() {
         return Optional.ofNullable(postMappers).orElse(new ArrayList<>());
     }
 
     @Override
-    public DataDepBubble collectCtx(Class<? extends DataDepCtx> toCollect, MetaCtx metaCtx) {
-        List<? extends DataDepCtx> intCtx = this.dataDepGraph.sortedCtx(toCollect);
+    public AssertBubble collectCtx(Class<? extends AssertCtx> toCollect, MetaCtx metaCtx) {
+        List<? extends AssertCtx> intCtx = this.initGraph.sortedCtx(toCollect);
         if (intCtx.isEmpty()) {
             logBubbleError();
             return null;
         } else if (intCtx.size() == 1) {
             return this.exec(intCtx.getFirst(), metaCtx);
         } else {
-            AtomicReference<DataDepBubble> prev = new AtomicReference<>();
+            AtomicReference<AssertBubble> prev = new AtomicReference<>();
             return GraphExec.chainCtx(
                             this.reducers(),
                             intCtx,
@@ -123,29 +108,29 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
         }
     }
 
-    public DataDepCtx preMap(DataDepCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<DataDepCtx, DataDepBubble>> nodes) {
+    public AssertCtx preMap(AssertCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<AssertCtx, AssertBubble>> nodes) {
         for (var p : preMappers()) {
             initCtx = p.apply(initCtx, metaCtx);
         }
-        final DataDepCtx initCtxExec = initCtx;
+        final AssertCtx initCtxExec = initCtx;
         return perform(nodes, (c, i) -> i.preMap(c, metaCtx), initCtxExec);
     }
 
-    public DataDepCtx postMap(DataDepCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<DataDepCtx, DataDepBubble>> nodes) {
+    public AssertCtx postMap(AssertCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<AssertCtx, AssertBubble>> nodes) {
         for (var p : preMappers()) {
             initCtx = p.apply(initCtx, metaCtx);
         }
-        final DataDepCtx initCtxExec = initCtx;
+        final AssertCtx initCtxExec = initCtx;
         return perform(nodes, (c, i) -> i.postMap(c, metaCtx), initCtxExec);
     }
 
-    public DataDepCtx exec(DataDepCtx initCtx,
+    public AssertCtx exec(AssertCtx initCtx,
                         MetaCtx metaCtx,
-                        List<? extends GraphNode<DataDepCtx, DataDepBubble>> nodes) {
+                        List<? extends GraphNode<AssertCtx, AssertBubble>> nodes) {
         return perform(nodes, (c, i) ->  c.executableFor(i) ? i.exec(c, metaCtx) : c, initCtx);
     }
 
-    private DataDepBubble doExec(MetaCtx metaCtx, DataDepCtx p, AtomicReference<DataDepBubble> prev) {
+    private AssertBubble doExec(MetaCtx metaCtx, AssertCtx p, AtomicReference<AssertBubble> prev) {
         return Optional.ofNullable(prev.get())
                 .map(i -> this.exec(p, i, metaCtx))
                 .or(() -> Optional.ofNullable(this.exec(p, metaCtx)))
@@ -156,15 +141,14 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
                 .orElse(null);
     }
 
-    public static DataDepCtx perform(List<? extends GraphNode<DataDepCtx, DataDepBubble>> nodes,
-                                  BiFunction<DataDepCtx, GraphNode<DataDepCtx, DataDepBubble>, DataDepCtx> initCtxFunction,
-                                  DataDepCtx initCtx) {
+    public static AssertCtx perform(List<? extends GraphNode<AssertCtx, AssertBubble>> nodes,
+                                  BiFunction<AssertCtx, GraphNode<AssertCtx, AssertBubble>, AssertCtx> initCtxFunction,
+                                  AssertCtx initCtx) {
         for (var n : nodes) {
             initCtx = initCtxFunction.apply(initCtx, n);
         }
 
         return initCtx;
     }
-
 
 }

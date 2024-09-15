@@ -2,6 +2,7 @@ plugins {
     id("com.hayden.base-plugin")
     id("com.hayden.spring")
     id("com.hayden.no-main-class")
+    id("com.hayden.git")
 }
 
 group = "com.hayden"

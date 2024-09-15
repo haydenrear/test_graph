@@ -33,11 +33,17 @@ public sealed interface HierarchicalContext permits
      * Required to set is leaf node to true for the leaf to auto-detect the context subgraph.
      * @return if is leaf node. If it is, then it will have a SubGraph created from it, with all parents automatically set.
      */
-    boolean isLeafNode();
+    default boolean isLeafNode() {
+        return true;
+    }
 
-    ContextValue<TestGraphContext> child();
+    default ContextValue<TestGraphContext> child() {
+        return ContextValue.empty();
+    }
 
-    ContextValue<TestGraphContext> parent();
+    default ContextValue<TestGraphContext> parent() {
+        return ContextValue.empty();
+    }
 
 
 }

@@ -12,6 +12,7 @@ import java.util.List;
 @Component
 @ThreadScope
 public class DataDepBubbleGraph implements HyperTestGraph<DataDepBubble, MetaCtx> {
+
     @Override
     public List<? extends HyperGraphNode<DataDepBubble, MetaCtx>> sortedNodes() {
         return List.of();

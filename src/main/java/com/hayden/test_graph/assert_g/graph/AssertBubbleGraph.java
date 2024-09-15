@@ -1,10 +1,12 @@
-package com.hayden.test_graph.init.graph;
+package com.hayden.test_graph.assert_g.graph;
 
-import com.hayden.test_graph.graph.*;
-import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
+import com.hayden.test_graph.assert_g.ctx.AssertBubble;
+import com.hayden.test_graph.assert_g.exec.bubble.AssertBubbleNode;
+import com.hayden.test_graph.graph.HyperTestGraph;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.exec.bubble.InitBubbleNode;
+import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ThreadScope;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,7 @@ import java.util.Optional;
 
 @Component
 @ThreadScope
-public class InitBubbleGraph implements HyperTestGraph<InitBubble, MetaCtx> {
+public class AssertBubbleGraph implements HyperTestGraph<AssertBubble, MetaCtx> {
 
     @Autowired @Lazy
     LazyMetaGraphDelegate nodesProvider;
@@ -27,10 +29,10 @@ public class InitBubbleGraph implements HyperTestGraph<InitBubble, MetaCtx> {
 
     @Autowired(required = false)
     @ThreadScope
-    List<InitBubbleNode> sortedNodes;
+    List<AssertBubbleNode> sortedNodes;
 
     @Override
-    public List<? extends InitBubbleNode> sortedNodes() {
+    public List<? extends AssertBubbleNode> sortedNodes() {
         return Optional.ofNullable(sortedNodes).orElse(new ArrayList<>());
     }
 

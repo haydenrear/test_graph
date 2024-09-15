@@ -90,7 +90,7 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
             logBubbleError();
             return null;
         } else if (intCtx.size() == 1) {
-            return intCtx.getFirst().bubble();
+            return this.exec(intCtx.getFirst(), metaCtx);
         } else {
             AtomicReference<InitBubble> prev = new AtomicReference<>();
             return GraphExec.chainCtx(

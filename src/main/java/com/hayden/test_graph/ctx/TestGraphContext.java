@@ -29,7 +29,7 @@ public non-sealed interface TestGraphContext<H extends HyperGraphContext>
 
     default List<? extends TestGraphContext<H>> parseContextTree() {
         List<? extends TestGraphContext<H>> tree = Lists.newArrayList(this);
-        parent().res().ifPresent(t -> tree.addAll(t.parseContextTree()));
+        Optional.ofNullable(parent()).flatMap(p -> p.res().optional()).ifPresent(t -> tree.addAll(t.parseContextTree()));
         return tree;
     }
 

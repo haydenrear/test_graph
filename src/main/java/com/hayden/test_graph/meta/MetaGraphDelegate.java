@@ -51,7 +51,7 @@ public class MetaGraphDelegate {
         this.hyperGraphExec = MapFunctions.CollectMap(
                 metaGraph.sortedNodes()
                         .stream()
-                        .map(m -> m.t().optional().stream())
+                        .flatMap(m -> m.t().optional().stream())
                         .flatMap(h -> h instanceof HyperGraphExec hyper ? Stream.of(hyper) : Stream.empty())
                         .map(h -> Map.entry(h.getClass(), h))
         );
@@ -138,7 +138,7 @@ public class MetaGraphDelegate {
 
         Map<Class<? extends T>, T> entryStream = graphNodes.stream()
                 .map(t -> Map.entry((Class<? extends T>) t.getClass(), t))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (k1, k2) -> k1));
 
         n.accept(entryStream);
     }
