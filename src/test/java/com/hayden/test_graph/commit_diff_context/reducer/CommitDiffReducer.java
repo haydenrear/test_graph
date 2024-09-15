@@ -6,7 +6,7 @@ import com.hayden.test_graph.init.exec.InitExec;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CommitDiffReducer implements InitExec.InitReducer{
+public class CommitDiffReducer implements InitExec.InitReducer {
     @Override
     public InitBubble reduce(InitCtx first, InitBubble second) {
         return second;

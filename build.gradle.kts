@@ -19,4 +19,5 @@ dependencies {
     implementation("io.cucumber:cucumber-java:7.18.1")
     implementation("io.cucumber:cucumber-junit:7.18.1")
     implementation("io.cucumber:cucumber-junit-platform-engine:7.18.1")
+    implementation("org.assertj:assertj-core:3.26.3")
 }
