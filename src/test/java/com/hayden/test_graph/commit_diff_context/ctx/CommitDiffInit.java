@@ -3,7 +3,6 @@ package com.hayden.test_graph.commit_diff_context.ctx;
 import com.hayden.test_graph.commit_diff_context.init.CommitDiffInitNode;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiffContext;
 import com.hayden.test_graph.ctx.ContextValue;
-import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
@@ -67,16 +66,6 @@ public record CommitDiffInit(
     @Override
     public boolean executableFor(GraphNode n) {
         return n instanceof CommitDiffInitNode;
-    }
-
-    @Override
-    public boolean toSet(TestGraphContext context) {
-        return false;
-    }
-
-    @Override
-    public void doSet(TestGraphContext context) {
-
     }
 
 

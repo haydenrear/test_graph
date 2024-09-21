@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 @Component
 @ThreadScope
@@ -55,19 +57,37 @@ public class MetaProgExec implements ProgExec {
     public MetaCtx exec(Class<? extends TestGraphContext> ctx, MetaCtx metaCtx) {
         for (var hgNode : lazyMetaGraphDelegate.retrieveHyperGraphDependencyGraph(ctx)) {
             MetaCtx finalMetaCtx = metaCtx;
-            metaCtx = Optional.ofNullable(lazyMetaGraphDelegate.getMatchingContext(hgNode))
+            metaCtx = lazyMetaGraphDelegate.retrieveContextsToRun(hgNode, ctx)
                     .map(c -> {
                         var n = graphEdges.addEdge(hgNode, finalMetaCtx);
                         return (MetaCtx) n.exec(c, finalMetaCtx);
                     })
-                    .orElseGet(() -> {
-                        log.error("Did not find matching context for {}.", hgNode.getClass().getName());
-                        return finalMetaCtx;
-                    });
+                    .toList()
+                    .stream().findAny()
+                    .orElse(metaCtx);
         }
 
         return metaCtx;
     }
+
+    private MetaCtx runDeps(Class<? extends TestGraphContext> c, MetaCtx metaCtx) {
+        AtomicReference<MetaCtx> m = new AtomicReference<>();
+        m.set(metaCtx);
+        lazyMetaGraphDelegate.getGraphContext(c).stream()
+                .flatMap(tgc -> tgc.bubble().dependsOn()
+                        .stream()
+                )
+                .flatMap(tgcClazz -> {
+                    try {
+                        return Stream.of((Class<? extends TestGraphContext>) tgcClazz);
+                    } catch (ClassCastException clzz) {
+                        return Stream.empty();
+                    }
+                })
+                .forEach(dependency -> m.set(this.exec((Class<? extends TestGraphContext>) dependency, m.get())));
+        return m.get();
+    }
+
     @Override
     public MetaCtx exec(Class<? extends TestGraphContext> ctx) {
         if (!metaProgCtx.isEmpty()) {

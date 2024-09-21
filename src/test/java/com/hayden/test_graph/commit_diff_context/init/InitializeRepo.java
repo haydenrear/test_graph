@@ -1,5 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.init;
 
+import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.ctx.CommitDiffInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiffContext;
@@ -19,6 +20,7 @@ public class InitializeRepo implements CommitDiffInitNode{
 
 
     @Override
+    @Idempotent
     public CommitDiffInit exec(CommitDiffInit c, MetaCtx h) {
         // clone repo, add to context
         return c.repoData().res()

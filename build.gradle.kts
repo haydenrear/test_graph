@@ -4,6 +4,7 @@ plugins {
     id("com.hayden.no-main-class")
     id("com.hayden.git")
     id("com.hayden.graphql")
+    id("com.hayden.docker-compose")
 }
 
 group = "com.hayden"

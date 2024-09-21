@@ -33,9 +33,11 @@ public class TestGraphSort {
         List<T> out = new ArrayList<>();
         var values = MapFunctions.CollectMap(toSort.stream().map(e -> Map.entry(e.getClass(), e)));
         for (var t : toSort) {
-            if (!t.dependsOn().isEmpty()) {
-                var v = getVals(t.dependsOn().stream().map(values::get).toList());
-                out.addAll(toGraphSortable(t.dependsOn().stream().map(v::get).toList()));
+            List dependsOnValues = t.dependsOn();
+            if (!dependsOnValues.isEmpty()) {
+                var v = getVals(dependsOnValues.stream().map(values::get).toList());
+                List list = dependsOnValues.stream().map(v::get).toList();
+                out.addAll(toGraphSortable(list));
             }
 
             out.add(t);

@@ -10,7 +10,9 @@ import com.hayden.test_graph.meta.graph.MetaGraph;
 import com.hayden.test_graph.thread.ThreadScope;
 import com.hayden.utilitymodule.MapFunctions;
 import com.hayden.utilitymodule.proxies.ProxyUtil;
+import com.hayden.utilitymodule.sort.GraphSort;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -57,6 +59,10 @@ public class MetaGraphDelegate {
         );
     }
 
+    public <T extends TestGraphContext> Optional<T> getGraphContext(Class<T> clazz) {
+        return Optional.ofNullable((T) this.graphCtxt.get(clazz));
+    }
+
     @Autowired
     @ThreadScope
     @Lazy
@@ -86,21 +92,43 @@ public class MetaGraphDelegate {
         return graphSort.sort(hyperGraphExec.parseAllDeps(this.hyperGraphExec));
     }
 
-    public Class<? extends TestGraphContext> getMatchingContext(HyperGraphExec hg) {
-        return subGraphs.stream()
-                .filter(sub ->  sub.clazz().equals(sub.dependsOn(hg)))
-                .findAny()
-                .map(SubGraph::clazz)
-                .orElse(null);
+    /**
+     * For each context type, such as InitCtx, DataDepCtx, there can exist some within context dependency graph, across defined contexts,
+     * so then in this case the contexts that this context depends on as provided by clazz are retrieved and returned so that they can be
+     * ran before. Assumed user provided Idempotency protection.
+     * @param hg
+     * @param clazz
+     * @return
+     */
+    public Stream<Class<? extends TestGraphContext>> retrieveContextsToRun(HyperGraphExec hg, Class<? extends TestGraphContext> clazz) {
+        Stream<TestGraphContext> matching = subGraphs.stream()
+                .filter(sub -> sub.clazz().equals(sub.dependsOn(hg)))
+                .flatMap(sub -> getGraphContext((Class<TestGraphContext>) sub.clazz())
+                        .stream()
+                        .flatMap(testGraphContext -> getGraphContext(clazz)
+                                .map(tgc -> Map.entry(testGraphContext, tgc))
+                                .stream()
+                        )
+                        .flatMap(contexts -> {
+                            var testGraphContext = contexts.getKey();
+                            var ctx = contexts.getValue();
+                            return testGraphContext.getClass().equals(clazz) || ctx.bubble().dependsOn().contains(testGraphContext.bubbleClazz())
+                                    ? Stream.of(testGraphContext)
+                                    : Stream.empty();
+                        })
+                );
 
+        return getSortedBubbles(matching)
+                .map(TestGraphContext::getClass);
     }
+
 
     public HyperGraphExec getMatchingContext(Class<? extends TestGraphContext> clazz) {
         return metaGraph.sortedNodes().stream()
                 .flatMap(m -> m.t().optional().stream())
                 .flatMap(h -> h instanceof HyperGraphExec hyper ? Stream.of(hyper) : Stream.empty())
                 .filter(s -> subGraphs.stream()
-                        .map(sub -> Objects.equals(sub.dependsOn(s), clazz) && sub.clazz().equals(clazz))
+                        .map(sub -> sub.clazz().equals(clazz) && Objects.equals(sub.dependsOn(s), clazz))
                         .filter(Boolean::booleanValue)
                         .findAny().orElse(false)
                 )
@@ -143,5 +171,15 @@ public class MetaGraphDelegate {
         n.accept(entryStream);
     }
 
+    private static @NotNull Stream<TestGraphContext> getSortedBubbles(Stream<TestGraphContext> matching) {
+        List<TestGraphContext> toSortCtx = matching.toList();
+        Stream<TestGraphContext> bubbleNodes = toSortCtx.stream().map(TestGraphContext::bubble);
+        List<TestGraphContext> sortedBubbles = GraphSort.sort(bubbleNodes.toList());
+
+        Stream<TestGraphContext> sortedDistinctBubbles = sortedBubbles.stream()
+                .flatMap(tgc -> toSortCtx.stream().filter(t -> t.bubbleClazz().equals(tgc.getClass())))
+                .distinct();
+        return sortedDistinctBubbles;
+    }
 
 }

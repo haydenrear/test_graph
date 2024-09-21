@@ -12,7 +12,9 @@ public sealed interface HierarchicalContext permits
                 parent().set(toSet);
         }
 
-        boolean toSet(HasChildContext toSet);
+        default boolean toSet(HasChildContext toSet) {
+            return false;
+        }
     }
 
     non-sealed interface HasChildContext extends HierarchicalContext, TestGraphContext{
@@ -22,12 +24,16 @@ public sealed interface HierarchicalContext permits
                 child().set(toSet);
         }
 
-        boolean toSet(HasParentContext toSet);
+        default boolean toSet(HasParentContext toSet) {
+            return false;
+        }
     }
 
-    boolean toSet(TestGraphContext context);
+    default boolean toSet(TestGraphContext context) {
+        return false;
+    }
 
-    void doSet(TestGraphContext context);
+    default void doSet(TestGraphContext context) {}
 
     /**
      * Required to set is leaf node to true for the leaf to auto-detect the context subgraph.
