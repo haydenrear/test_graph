@@ -8,16 +8,21 @@ import com.hayden.test_graph.init.docker.exec.StartDockerNode;
 import com.hayden.test_graph.thread.ThreadScope;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.logging.LogLevel;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.util.Set;
 
 @Component
 @ThreadScope
-public record DockerInitCtx(ContextValue<File> composePath) implements InitCtx {
+public record DockerInitCtx(ContextValue<File> composePath,
+                            ContextValue<LogLevel> logLevel,
+                            ContextValue<Set<String>> dockerProfiles) implements InitCtx {
 
     public DockerInitCtx() {
-        this(ContextValue.empty());
+        this(ContextValue.empty(), ContextValue.empty(),
+                ContextValue.empty());
     }
 
     @Override

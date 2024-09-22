@@ -6,6 +6,7 @@ import com.hayden.test_graph.init.exec.single.InitNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ThreadScope;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.docker.compose.core.DockerComposeFile;
 import org.springframework.boot.docker.compose.core.ExposeCompose;
@@ -23,18 +24,24 @@ public class StartDockerNode implements DockerInitNode {
 
 
 
-    public static void initializeDockerCompose(File workingDirectory) {
-//        ExposeCompose exposeCompose = new ExposeCompose(workingDirectory, DockerComposeFile.find(workingDirectory), new HashSet<>());
-//        exposeCompose.up(LogLevel.DEBUG);
+    public static void initializeDockerCompose(DockerInitCtx workingDirectory) {
+        File workDir = workingDirectory.composePath().res().get();
+        ExposeCompose exposeCompose = new ExposeCompose(
+                workDir,
+                DockerComposeFile.find(workDir),
+                workingDirectory.dockerProfiles().res().orElseRes(new HashSet<>()));
+        exposeCompose.up(workingDirectory.logLevel().res().orElseRes(LogLevel.INFO));
     }
+
 
     @Override
     @Idempotent
     public DockerInitCtx exec(DockerInitCtx c, MetaCtx h) {
-        var composeFile = c.composePath().optional()
-                .orElseThrow(() -> new RuntimeException("Could not initialize docker compose, as compose file not provided."));
-        log.info("Initializing docker compose.");
-        initializeDockerCompose(composeFile);
+        c.composePath()
+                .optional()
+                .ifPresentOrElse(
+                        p -> StartDockerNode.initializeDockerCompose(c),
+                        () -> log.info("Skipping initialization of docker compose as file was not set."));
         return c;
     }
 

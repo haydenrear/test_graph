@@ -26,6 +26,11 @@ public record CommitDiffInit(
         ContextValue<BubbleData> bubbleDataContextValue
 ) implements InitCtx {
 
+    public CommitDiffInit() {
+        this(ContextValue.empty(), ContextValue.empty(),
+                ContextValue.empty());
+    }
+
     @Builder
     public record RepositoryData(String url, String branchName) {}
 
@@ -34,6 +39,7 @@ public record CommitDiffInit(
 
     @Builder
     public record BubbleData(Path clonedTo) {}
+
 
     public CommitDiffContext.CommitRequestArgs toCommitRequestArgs() {
         RepositoryData repoArgs = repoDataOrThrow();
@@ -45,20 +51,13 @@ public record CommitDiffInit(
     }
 
     public UserCodeData userCodeDataOrThrow() {
-        var userCodeDataFound = userCodeData.res().orElseThrow();
-        return userCodeDataFound;
+        return userCodeData.res().orElseThrow();
     }
 
     public RepositoryData repoDataOrThrow() {
-        RepositoryData repoArgs = repoData.res().orElseThrow();
-        return repoArgs;
+        return repoData.res().orElseThrow();
     }
 
-
-    public CommitDiffInit() {
-        this(ContextValue.empty(), ContextValue.empty(),
-                ContextValue.empty());
-    }
 
     @Override
     public CommitDiffInitBubble bubble() {
