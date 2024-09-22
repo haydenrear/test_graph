@@ -18,11 +18,12 @@ import java.util.Set;
 @ThreadScope
 public record DockerInitCtx(ContextValue<File> composePath,
                             ContextValue<LogLevel> logLevel,
-                            ContextValue<Set<String>> dockerProfiles) implements InitCtx {
+                            ContextValue<Set<String>> dockerProfiles,
+                            ContextValue<String> host) implements InitCtx {
 
     public DockerInitCtx() {
         this(ContextValue.empty(), ContextValue.empty(),
-                ContextValue.empty());
+                ContextValue.empty(), ContextValue.empty());
     }
 
     @Override

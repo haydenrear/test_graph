@@ -70,24 +70,6 @@ public class MetaProgExec implements ProgExec {
         return metaCtx;
     }
 
-    private MetaCtx runDeps(Class<? extends TestGraphContext> c, MetaCtx metaCtx) {
-        AtomicReference<MetaCtx> m = new AtomicReference<>();
-        m.set(metaCtx);
-        lazyMetaGraphDelegate.getGraphContext(c).stream()
-                .flatMap(tgc -> tgc.bubble().dependsOn()
-                        .stream()
-                )
-                .flatMap(tgcClazz -> {
-                    try {
-                        return Stream.of((Class<? extends TestGraphContext>) tgcClazz);
-                    } catch (ClassCastException clzz) {
-                        return Stream.empty();
-                    }
-                })
-                .forEach(dependency -> m.set(this.exec((Class<? extends TestGraphContext>) dependency, m.get())));
-        return m.get();
-    }
-
     @Override
     public MetaCtx exec(Class<? extends TestGraphContext> ctx) {
         if (!metaProgCtx.isEmpty()) {

@@ -29,7 +29,8 @@ public class StartDockerNode implements DockerInitNode {
         ExposeCompose exposeCompose = new ExposeCompose(
                 workDir,
                 DockerComposeFile.find(workDir),
-                workingDirectory.dockerProfiles().res().orElseRes(new HashSet<>()));
+                workingDirectory.dockerProfiles().res().orElseRes(new HashSet<>()),
+                workingDirectory.host().res().orElseRes("localhost"));
         exposeCompose.up(workingDirectory.logLevel().res().orElseRes(LogLevel.INFO));
     }
 
