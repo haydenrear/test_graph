@@ -118,6 +118,9 @@ public class MetaGraphDelegate {
                         }));
 
         return getSortedBubbles(matching)
+                .peek(tgc -> {
+                    System.out.printf("");
+                })
                 .map(TestGraphContext::getClass);
     }
 

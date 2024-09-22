@@ -32,8 +32,8 @@ public class TestInitChildCtx implements InitCtx {
     }
 
     @Override
-    public Class<InitBubble> bubbleClazz() {
-        return InitBubble.class;
+    public Class<TestInitBubble> bubbleClazz() {
+        return TestInitBubble.class;
     }
 
     @Override
