@@ -5,6 +5,7 @@ import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
+import com.hayden.test_graph.init.exec.single.InitNode;
 import com.hayden.test_graph.init.graph.InitGraph;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ThreadScope;
@@ -105,7 +106,7 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
         }
     }
 
-    public InitCtx preMap(InitCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<InitCtx, InitBubble>> nodes) {
+    public InitCtx preMap(InitCtx initCtx, MetaCtx metaCtx, List<GraphExecNode<InitCtx, InitBubble>> nodes) {
         for (var p : preMappers()) {
             initCtx = p.apply(initCtx, metaCtx);
         }
@@ -113,7 +114,7 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
         return perform(nodes, (c, i) -> i.preMap(c, metaCtx), initCtxExec);
     }
 
-    public InitCtx postMap(InitCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<InitCtx, InitBubble>> nodes) {
+    public InitCtx postMap(InitCtx initCtx, MetaCtx metaCtx, List<GraphExecNode<InitCtx, InitBubble>> nodes) {
         for (var p : preMappers()) {
             initCtx = p.apply(initCtx, metaCtx);
         }
@@ -123,7 +124,7 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
 
     public InitCtx exec(InitCtx initCtx,
                         MetaCtx metaCtx,
-                        List<? extends GraphNode<InitCtx, InitBubble>> nodes) {
+                        List<GraphExecNode<InitCtx, InitBubble>> nodes) {
         return perform(nodes, (c, i) ->  c.executableFor(i) ? i.exec(c, metaCtx) : c, initCtx);
     }
 
@@ -138,8 +139,8 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
                 .orElse(null);
     }
 
-    public static InitCtx perform(List<? extends GraphNode<InitCtx, InitBubble>> nodes,
-                                  BiFunction<InitCtx, GraphNode<InitCtx, InitBubble>, InitCtx> initCtxFunction,
+    public static InitCtx perform(List<GraphExecNode<InitCtx, InitBubble>> nodes,
+                                  BiFunction<InitCtx, GraphExecNode<InitCtx, InitBubble>, InitCtx> initCtxFunction,
                                   InitCtx initCtx) {
         for (var n : nodes) {
             initCtx = initCtxFunction.apply(initCtx, n);

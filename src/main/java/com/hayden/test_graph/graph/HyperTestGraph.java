@@ -1,7 +1,8 @@
 package com.hayden.test_graph.graph;
 
 import com.hayden.test_graph.ctx.HyperGraphContext;
-import com.hayden.test_graph.graph.node.HyperGraphNode;
+import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
+import com.hayden.test_graph.meta.ctx.MetaCtx;
 
 import java.util.List;
 
@@ -10,9 +11,9 @@ import java.util.List;
  * @param <C>
  * @param <T>
  */
-public interface HyperTestGraph<C extends HyperGraphContext<T>, T extends HyperGraphContext<T>> extends Graph {
+public interface HyperTestGraph<C extends HyperGraphContext<T>, T extends HyperGraphContext<MetaCtx>> extends Graph {
 
-    List<? extends HyperGraphNode<C, T>> sortedNodes();
+    List<? extends HyperGraphBubbleNode<C, T>> sortedNodes();
 
 
 }

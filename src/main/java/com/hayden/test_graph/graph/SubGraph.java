@@ -4,6 +4,7 @@ import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.graph.service.TestGraphSort;
+import com.hayden.test_graph.meta.ctx.MetaCtx;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeansException;
@@ -20,7 +21,7 @@ import java.util.Optional;
  * @param <H>
  */
 @RequiredArgsConstructor
-public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext> implements Graph, ApplicationContextAware {
+public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext<MetaCtx>> implements Graph, ApplicationContextAware {
 
     private final T t;
 

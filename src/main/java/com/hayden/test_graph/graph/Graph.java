@@ -4,6 +4,7 @@ import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.graph.service.TestGraphSort;
+import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.utilitymodule.MapFunctions;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 public interface Graph {
 
 
-     static <T extends TestGraphContext<U>, U extends HyperGraphContext, N extends TestGraphNode<? extends T, ? extends U>> Map<Class<? extends T>, List<N>> collectNodes(
+     static <T extends TestGraphContext<U>, U extends HyperGraphContext<MetaCtx>, N extends TestGraphNode<? extends T, ? extends U>> Map<Class<? extends T>, List<N>> collectNodes(
              List<? extends N> nodes,
              TestGraphSort graphSort
      ) {
@@ -37,7 +38,7 @@ public interface Graph {
          );
     }
 
-    private static <T extends TestGraphContext<U>, U extends HyperGraphContext, N extends TestGraphNode<? extends T, ? extends U>>
+    private static <T extends TestGraphContext<U>, U extends HyperGraphContext<MetaCtx>, N extends TestGraphNode<? extends T, ? extends U>>
     @NotNull List<N> javaGraphNodes(
             Map.Entry<Class<? extends N>, List<? extends N>> e
     ) {

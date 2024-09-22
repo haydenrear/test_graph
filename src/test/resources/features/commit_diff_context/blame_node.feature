@@ -1,4 +1,5 @@
 @commit_diff_context
+@all
 Feature: Add blame node context for repo
   Scenario Outline:
     Given docker-compose is started from "<composePath>"

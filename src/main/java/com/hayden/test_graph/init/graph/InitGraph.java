@@ -1,5 +1,6 @@
 package com.hayden.test_graph.init.graph;
 
+import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.*;
 import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
@@ -30,7 +31,7 @@ public class InitGraph implements TestGraph<InitCtx, InitBubble> {
     @ThreadScope
     List<SubGraph<InitCtx, InitBubble>> subGraphs;
 
-    Map<Class<? extends InitCtx>, List<GraphNode<InitCtx, InitBubble>>> nodes = new HashMap<>();
+    Map<Class<? extends InitCtx>, List<GraphExec.GraphExecNode<InitCtx, InitBubble>>> nodes = new HashMap<>();
 
     @ThreadScope
     @Autowired(required = false)
@@ -50,9 +51,10 @@ public class InitGraph implements TestGraph<InitCtx, InitBubble> {
     }
 
     @Override
-    public Map<Class<? extends InitCtx>, List<GraphNode<InitCtx, InitBubble>>> sortedNodes() {
+    public Map<Class<? extends InitCtx>, List<GraphExec.GraphExecNode<InitCtx, InitBubble>>> sortedNodes() {
         return this.nodes;
     }
+
 
 
 }

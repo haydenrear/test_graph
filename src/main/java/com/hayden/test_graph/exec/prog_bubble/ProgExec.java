@@ -15,7 +15,25 @@ public interface ProgExec  {
 
     Logger log = LoggerFactory.getLogger(ProgExec.class);
 
-    interface ProgExecNode<CTX extends HyperGraphContext<CTX>> extends GraphExec.GraphExecNode<CTX, CTX> { }
+    interface ProgExecNode<CTX extends HyperGraphContext<MetaCtx>> extends GraphExec<TestGraphContext<CTX>, CTX> {
+
+        default CTX preMap(CTX c, MetaCtx h) {
+            return c;
+        }
+
+        default CTX postMap(CTX c, MetaCtx h) {
+            return c;
+        }
+
+        default CTX exec(CTX c, MetaCtx h) {
+            return c;
+        }
+
+        default CTX exec(CTX c, MetaCtx hgCtx, MetaCtx h) {
+            return exec(c, h);
+        }
+
+    }
 
     interface ProgExecReducer extends GraphExec.GraphExecReducer<MetaCtx, MetaCtx> {
     }

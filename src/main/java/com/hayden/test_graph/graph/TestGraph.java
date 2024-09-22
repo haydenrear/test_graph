@@ -4,18 +4,20 @@ import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.ctx.HierarchicalContext;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.node.GraphNode;
+import com.hayden.test_graph.meta.ctx.MetaCtx;
 import lombok.SneakyThrows;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-public interface TestGraph<T extends TestGraphContext<H>, H extends HyperGraphContext> extends Graph {
+public interface TestGraph<T extends TestGraphContext<H>, H extends HyperGraphContext<MetaCtx>> extends Graph {
 
     List<? extends T> sortedCtx(Class<? extends T> clzz);
 
-    Map<Class<? extends T>, List<GraphNode<T, H>>> sortedNodes();
+    Map<Class<? extends T>, List<GraphExec.GraphExecNode<T, H>>> sortedNodes();
 
     default void setChildren() {
         sortedNodes().keySet().forEach(ctx -> setChildren(() -> sortedCtx(ctx)));
@@ -32,7 +34,7 @@ public interface TestGraph<T extends TestGraphContext<H>, H extends HyperGraphCo
                 .forEach(TestGraph::setParentChild);
     }
 
-    private static <T extends TestGraphContext<H>, H extends HyperGraphContext> void setParentChild(Map.Entry<? extends T, ? extends T> e) {
+    private static <T extends TestGraphContext<H>, H extends HyperGraphContext<MetaCtx>> void setParentChild(Map.Entry<? extends T, ? extends T> e) {
         var i = e.getKey();
         var j = e.getValue();
         if (i instanceof HierarchicalContext.HasChildContext c

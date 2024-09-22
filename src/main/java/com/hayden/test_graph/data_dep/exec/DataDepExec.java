@@ -123,7 +123,7 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
         }
     }
 
-    public DataDepCtx preMap(DataDepCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<DataDepCtx, DataDepBubble>> nodes) {
+    public DataDepCtx preMap(DataDepCtx initCtx, MetaCtx metaCtx, List<GraphExecNode<DataDepCtx, DataDepBubble>> nodes) {
         for (var p : preMappers()) {
             initCtx = p.apply(initCtx, metaCtx);
         }
@@ -131,7 +131,7 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
         return perform(nodes, (c, i) -> i.preMap(c, metaCtx), initCtxExec);
     }
 
-    public DataDepCtx postMap(DataDepCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<DataDepCtx, DataDepBubble>> nodes) {
+    public DataDepCtx postMap(DataDepCtx initCtx, MetaCtx metaCtx, List<GraphExecNode<DataDepCtx, DataDepBubble>> nodes) {
         for (var p : preMappers()) {
             initCtx = p.apply(initCtx, metaCtx);
         }
@@ -141,7 +141,7 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
 
     public DataDepCtx exec(DataDepCtx initCtx,
                         MetaCtx metaCtx,
-                        List<? extends GraphNode<DataDepCtx, DataDepBubble>> nodes) {
+                        List<GraphExecNode<DataDepCtx, DataDepBubble>> nodes) {
         return perform(nodes, (c, i) ->  c.executableFor(i) ? i.exec(c, metaCtx) : c, initCtx);
     }
 
@@ -156,8 +156,8 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
                 .orElse(null);
     }
 
-    public static DataDepCtx perform(List<? extends GraphNode<DataDepCtx, DataDepBubble>> nodes,
-                                  BiFunction<DataDepCtx, GraphNode<DataDepCtx, DataDepBubble>, DataDepCtx> initCtxFunction,
+    public static DataDepCtx perform(List<GraphExecNode<DataDepCtx, DataDepBubble>> nodes,
+                                  BiFunction<DataDepCtx, GraphExecNode<DataDepCtx, DataDepBubble>, DataDepCtx> initCtxFunction,
                                   DataDepCtx initCtx) {
         for (var n : nodes) {
             initCtx = initCtxFunction.apply(initCtx, n);

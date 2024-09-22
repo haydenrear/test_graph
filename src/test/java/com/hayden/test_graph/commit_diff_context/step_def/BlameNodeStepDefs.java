@@ -30,7 +30,7 @@ public class BlameNodeStepDefs {
 
     @Given("docker-compose is started from {string}")
     public void docker_compose_started(String composePath) {
-        dockerInitCtx.getComposePath().set(new File(composePath));
+        dockerInitCtx.composePath().set(new File(composePath));
     }
 
     @And("there is a repository at the url {string} with branch {string} checked out and next commit message from user {string}")
@@ -48,7 +48,6 @@ public class BlameNodeStepDefs {
                         .build()
         );
     }
-
 
     @When("the user requests to get the next commit")
     public void user_requests_next_commit() {

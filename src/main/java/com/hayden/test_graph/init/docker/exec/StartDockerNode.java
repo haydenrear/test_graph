@@ -31,7 +31,7 @@ public class StartDockerNode implements DockerInitNode {
     @Override
     @Idempotent
     public DockerInitCtx exec(DockerInitCtx c, MetaCtx h) {
-        var composeFile = c.getComposePath().optional()
+        var composeFile = c.composePath().optional()
                 .orElseThrow(() -> new RuntimeException("Could not initialize docker compose, as compose file not provided."));
         log.info("Initializing docker compose.");
         initializeDockerCompose(composeFile);

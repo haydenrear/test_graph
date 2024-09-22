@@ -112,11 +112,10 @@ public class MetaGraphDelegate {
                         .flatMap(contexts -> {
                             var testGraphContext = contexts.getKey();
                             var ctx = contexts.getValue();
-                            return testGraphContext.getClass().equals(clazz) || ctx.bubble().dependsOn().contains(testGraphContext.bubbleClazz())
+                            return testGraphContext.getClass().equals(clazz) || ctx.dependsOnRecursive().contains(testGraphContext.bubbleClazz())
                                     ? Stream.of(testGraphContext)
                                     : Stream.empty();
-                        })
-                );
+                        }));
 
         return getSortedBubbles(matching)
                 .map(TestGraphContext::getClass);

@@ -5,6 +5,7 @@ import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
 import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
+import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.thread.ThreadScope;
 import org.springframework.stereotype.Component;
@@ -25,19 +26,8 @@ public record CommitDiffDataDepCtx() implements DataDepCtx {
     }
 
     @Override
-    public boolean executableFor(GraphNode n) {
+    public boolean executableFor(GraphExec.GraphExecNode n) {
         return n instanceof CommitDiffDataDepNode;
     }
-
-    @Override
-    public boolean toSet(TestGraphContext context) {
-        return false;
-    }
-
-    @Override
-    public void doSet(TestGraphContext context) {
-
-    }
-
 
 }

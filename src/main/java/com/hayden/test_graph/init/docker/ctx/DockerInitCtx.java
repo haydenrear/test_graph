@@ -1,6 +1,7 @@
 package com.hayden.test_graph.init.docker.ctx;
 
 import com.hayden.test_graph.ctx.ContextValue;
+import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.init.docker.exec.StartDockerNode;
@@ -11,13 +12,13 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 
-@Data
-@RequiredArgsConstructor
 @Component
 @ThreadScope
-public class DockerInitCtx implements InitCtx {
+public record DockerInitCtx(ContextValue<File> composePath) implements InitCtx {
 
-    private final ContextValue<File> composePath = ContextValue.empty();
+    public DockerInitCtx() {
+        this(ContextValue.empty());
+    }
 
     @Override
     public DockerInitBubbleCtx bubble() {
@@ -30,7 +31,7 @@ public class DockerInitCtx implements InitCtx {
     }
 
     @Override
-    public boolean executableFor(GraphNode n) {
+    public boolean executableFor(GraphExec.GraphExecNode n) {
         return n instanceof StartDockerNode;
     }
 

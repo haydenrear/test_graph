@@ -12,7 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 
-public interface HyperGraphExec<SG extends TestGraphContext<CTX>, CTX extends HyperGraphContext<H>, H extends HyperGraphContext<H>> extends GraphExec<CTX, H>, HyperGraphTestNode<CTX, H> {
+public interface HyperGraphExec<SG extends TestGraphContext, CTX extends HyperGraphContext<H>, H extends HyperGraphContext<MetaCtx>>
+        extends GraphExec.GraphExecNode<CTX, H>, HyperGraphTestNode<CTX, H> {
 
     /**
      * There exists some number of contexts that need to be collected into the bubble context. For example there could exist hierarchies

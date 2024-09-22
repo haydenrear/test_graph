@@ -3,8 +3,9 @@ package com.hayden.test_graph.meta.ctx;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.node.GraphNode;
-import com.hayden.test_graph.graph.node.HyperGraphNode;
+import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
 import com.hayden.test_graph.meta.exec.prog_bubble.MetaProgNode;
 import com.hayden.test_graph.thread.ThreadScope;
 import lombok.experimental.Delegate;
@@ -31,9 +32,13 @@ public class MetaProgCtx implements MetaCtx {
     }
 
     @Override
-    public boolean executableFor(GraphNode n) {
-        return n instanceof HyperGraphNode<?, ?>
-                && !(n instanceof MetaProgNode<?>);
+    public boolean executableFor(GraphExec.GraphExecNode n) {
+        return n instanceof HyperGraphBubbleNode<?, ?>;
+    }
+
+    @Override
+    public boolean executableFor(MetaProgNode n) {
+        return n instanceof MetaProgNode<?>;
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.hayden.test_graph.data_dep.graph;
 import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
 import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
 import com.hayden.test_graph.data_dep.exec.single.DataDepNode;
+import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.Graph;
 import com.hayden.test_graph.graph.SubGraph;
 import com.hayden.test_graph.graph.TestGraph;
@@ -32,7 +33,7 @@ public class DataDepGraph implements TestGraph<DataDepCtx, DataDepBubble> {
     @ThreadScope
     List<SubGraph<DataDepCtx, DataDepBubble>> subGraphs;
 
-    Map<Class<? extends DataDepCtx>, List<GraphNode<DataDepCtx, DataDepBubble>>> nodes = new HashMap<>();
+    Map<Class<? extends DataDepCtx>, List<GraphExec.GraphExecNode<DataDepCtx, DataDepBubble>>> nodes = new HashMap<>();
 
     @ThreadScope
     @Autowired(required = false)
@@ -52,7 +53,7 @@ public class DataDepGraph implements TestGraph<DataDepCtx, DataDepBubble> {
     }
 
     @Override
-    public Map<Class<? extends DataDepCtx>, List<GraphNode<DataDepCtx, DataDepBubble>>> sortedNodes() {
+    public Map<Class<? extends DataDepCtx>, List<GraphExec.GraphExecNode<DataDepCtx, DataDepBubble>>> sortedNodes() {
         return this.nodes;
     }
 

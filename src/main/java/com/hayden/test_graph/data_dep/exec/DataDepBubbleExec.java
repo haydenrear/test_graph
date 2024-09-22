@@ -7,7 +7,7 @@ import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
 import com.hayden.test_graph.data_dep.graph.DataDepBubbleGraph;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.graph.edge.GraphEdges;
-import com.hayden.test_graph.graph.node.HyperGraphNode;
+import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
 import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.init.exec.InitBubbleExec;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
@@ -122,7 +122,7 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
     }
 
     @Override
-    public List<Class<? extends HyperGraphNode<? extends HyperGraphContext<MetaCtx>, MetaCtx>>> dependsOnHyperNodes() {
+    public List<Class<? extends HyperGraphBubbleNode<? extends HyperGraphContext<MetaCtx>, MetaCtx>>> dependsOnHyperNodes() {
         return List.of(InitBubbleExec.class);
     }
 }

@@ -5,18 +5,10 @@ import com.hayden.test_graph.meta.ctx.MetaCtx;
 
 import java.util.List;
 
-public interface HyperGraphNode<T extends HyperGraphContext<H>, H extends HyperGraphContext> extends GraphNode<T, H> {
+public interface HyperGraphNode<T extends HyperGraphContext<H>, H extends HyperGraphContext<MetaCtx>> extends GraphNode {
 
     default List<Class<? extends HyperGraphNode<? extends HyperGraphContext<H>, H>>> dependsOnHyperNodes() {
         return List.of();
-    }
-
-    default T preMap(T ctx, MetaCtx metaCtx) {
-        return ctx;
-    }
-
-    default T postMap(T ctx, MetaCtx metaCtx) {
-        return ctx;
     }
 
 }

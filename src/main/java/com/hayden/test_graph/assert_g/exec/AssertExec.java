@@ -6,9 +6,6 @@ import com.hayden.test_graph.assert_g.graph.AssertGraph;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.edge.GraphEdges;
 import com.hayden.test_graph.graph.node.GraphNode;
-import com.hayden.test_graph.init.ctx.InitBubble;
-import com.hayden.test_graph.init.ctx.InitCtx;
-import com.hayden.test_graph.init.graph.InitGraph;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ThreadScope;
 import lombok.RequiredArgsConstructor;
@@ -108,7 +105,7 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
         }
     }
 
-    public AssertCtx preMap(AssertCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<AssertCtx, AssertBubble>> nodes) {
+    public AssertCtx preMap(AssertCtx initCtx, MetaCtx metaCtx, List<GraphExecNode<AssertCtx, AssertBubble>> nodes) {
         for (var p : preMappers()) {
             initCtx = p.apply(initCtx, metaCtx);
         }
@@ -116,7 +113,7 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
         return perform(nodes, (c, i) -> i.preMap(c, metaCtx), initCtxExec);
     }
 
-    public AssertCtx postMap(AssertCtx initCtx, MetaCtx metaCtx, List<? extends GraphNode<AssertCtx, AssertBubble>> nodes) {
+    public AssertCtx postMap(AssertCtx initCtx, MetaCtx metaCtx, List<GraphExecNode<AssertCtx, AssertBubble>> nodes) {
         for (var p : preMappers()) {
             initCtx = p.apply(initCtx, metaCtx);
         }
@@ -126,7 +123,7 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
 
     public AssertCtx exec(AssertCtx initCtx,
                         MetaCtx metaCtx,
-                        List<? extends GraphNode<AssertCtx, AssertBubble>> nodes) {
+                        List<GraphExecNode<AssertCtx, AssertBubble>> nodes) {
         return perform(nodes, (c, i) ->  c.executableFor(i) ? i.exec(c, metaCtx) : c, initCtx);
     }
 
@@ -141,9 +138,9 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
                 .orElse(null);
     }
 
-    public static AssertCtx perform(List<? extends GraphNode<AssertCtx, AssertBubble>> nodes,
-                                  BiFunction<AssertCtx, GraphNode<AssertCtx, AssertBubble>, AssertCtx> initCtxFunction,
-                                  AssertCtx initCtx) {
+    public static AssertCtx perform(List<GraphExecNode<AssertCtx, AssertBubble>> nodes,
+                                    BiFunction<AssertCtx, GraphExecNode<AssertCtx, AssertBubble>, AssertCtx> initCtxFunction,
+                                    AssertCtx initCtx) {
         for (var n : nodes) {
             initCtx = initCtxFunction.apply(initCtx, n);
         }
