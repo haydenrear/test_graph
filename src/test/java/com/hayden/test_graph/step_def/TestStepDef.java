@@ -33,9 +33,11 @@ public class TestStepDef {
     public void it_runs() {
 
         var classStream = Stream.of(
+//                      gets called a couple more times...
+                        TestInitChildCtx.class, TestInitChildCtx.class, TestInitChildCtx.class, TestInitChildCtx.class,
                         InitReducer.class, InitReducer2.class,
                         InitReducer.class, InitReducer2.class,
-                        TestInitBubbleNode.class, TestInitChildCtx.class,
+                        TestInitBubbleNode.class,
                         TestInitChildDepNode.class, TestInitChildNode.class,
                         TestInitCtx.class, TestInitCtxDepNode.class,
                         TestInitCtxNode.class, TestInitParentCtx.class,

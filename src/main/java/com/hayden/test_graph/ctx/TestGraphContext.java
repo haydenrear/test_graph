@@ -39,7 +39,7 @@ public non-sealed interface TestGraphContext<H extends HyperGraphContext<MetaCtx
 
     default List<Class<? extends TestGraphContext>> dependsOnRecursive() {
         List<Class<? extends TestGraphContext>> d = new ArrayList<>(this.dependsOn());
-        List<Class<? extends TestGraphContext>>parentDep = this.bubble().dependsOn();
+        List<Class<? extends TestGraphContext>> parentDep = this.bubble().dependsOn();
         d.addAll(parentDep) ;
 
         return d.stream().distinct().toList();
