@@ -36,7 +36,7 @@ public class StartDockerNode implements DockerInitNode {
 
 
     @Override
-    @Idempotent
+    @Idempotent(returnArg = 0)
     public DockerInitCtx exec(DockerInitCtx c, MetaCtx h) {
         c.composePath()
                 .optional()

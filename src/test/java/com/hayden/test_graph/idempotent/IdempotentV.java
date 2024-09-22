@@ -20,4 +20,21 @@ public class IdempotentV {
         didAgain();
     }
 
+    public String didWArg(String arg) {
+        return arg;
+    }
+
+    public String didAgainWArg(String argAgain) {
+        return argAgain;
+    }
+
+    @Idempotent(returnArg = 0)
+    public String doIWArg(String in) {
+        return didWArg("goodbye");
+    }
+
+    @Idempotent(returnArg = 0)
+    public String doIAgainWArg(String in) {
+        return didAgainWArg("goodbye");
+    }
 }

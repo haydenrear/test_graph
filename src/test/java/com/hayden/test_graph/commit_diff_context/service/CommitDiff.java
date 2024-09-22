@@ -17,7 +17,6 @@ import org.springframework.graphql.client.HttpSyncGraphQlClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
 
-import java.nio.channels.ClosedChannelException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +24,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-public class CommitDiffContext {
+public class CommitDiff {
 
     @Autowired
     @ThreadScope

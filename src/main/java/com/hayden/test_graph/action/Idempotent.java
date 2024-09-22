@@ -12,6 +12,10 @@ import java.lang.annotation.*;
 @Documented
 public @interface Idempotent {
 
+    /**
+     * @return the arg index to return if not calling - ret type must be same as that arg index.
+     */
+    int returnArg() default -1;
     long timeoutMillis() default 0L;
 
 }

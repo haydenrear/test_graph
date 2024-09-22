@@ -2,7 +2,7 @@ package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.hayden.test_graph.commit_diff_context.ctx.CommitDiffAssert;
 import com.hayden.test_graph.commit_diff_context.ctx.CommitDiffInit;
-import com.hayden.test_graph.commit_diff_context.service.CommitDiffContext;
+import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.steps.AssertStep;
 import com.hayden.test_graph.steps.InitStep;
@@ -26,7 +26,7 @@ public class BlameNodeStepDefs {
     DockerInitCtx dockerInitCtx;
 
     @Autowired
-    CommitDiffContext commitDiffContext;
+    CommitDiff commitDiff;
 
     @Given("docker-compose is started from {string}")
     public void docker_compose_started(String composePath) {
@@ -51,7 +51,7 @@ public class BlameNodeStepDefs {
 
     @When("the user requests to get the next commit")
     public void user_requests_next_commit() {
-        commitDiffContext.requestCommit(commitDiffInit.toCommitRequestArgs());
+        commitDiff.requestCommit(commitDiffInit.toCommitRequestArgs());
     }
 
     @Then("the model responds with valid commit that is committed to the repository successfully")

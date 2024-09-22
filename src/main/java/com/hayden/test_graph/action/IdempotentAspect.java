@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.aop.aspectj.MethodInvocationProceedingJoinPoint;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -89,20 +91,15 @@ public class IdempotentAspect {
                 return getProceedToAdd(joinPoint, cv);
             } else {
                 Assert.notNull(prev, "Assumed not to be null.");
-                return prev;
+                return idempotentActionPrev(joinPoint, idempotent, prev);
             }
         }
 
-        long delay = prev.getDelay(TimeUnit.MILLISECONDS);
-        if (delay <= 0) {
+        if (prev.getDelay(TimeUnit.MILLISECONDS) <= 0) {
             return getProceedToAddTimed(joinPoint, cv, idempotent);
         } else {
-            return prev;
+            return idempotentActionPrev(joinPoint, idempotent, prev);
         }
-    }
-
-    private static boolean isNotTimed(Idempotent idempotent) {
-        return idempotent.timeoutMillis() <= 0L;
     }
 
 
@@ -120,5 +117,36 @@ public class IdempotentAspect {
                 .or(() -> Optional.of(voidObj))
                 .map(o -> new DelayedAction(LocalDateTime.now().plus(idempotent.timeoutMillis(), ChronoUnit.MILLIS), cv, o))
                 .get();
+    }
+
+    private static DelayedAction idempotentActionPrev(ProceedingJoinPoint joinPoint, Idempotent idempotent, DelayedAction prev) {
+        int numArgs = Optional.ofNullable(joinPoint.getArgs())
+                .map(a -> a.length)
+                .orElse(-1);
+
+        if(idempotent.returnArg() == -1 || numArgs == -1)
+            return prev;
+        else {
+            if (numArgs <= idempotent.returnArg()) {
+                String message = "Return index provided was greater than argument.";
+                log.error(message);
+                return prev;
+            }
+
+            Object retArg = joinPoint.getArgs()[idempotent.returnArg()];
+
+            if (joinPoint instanceof MethodInvocationProceedingJoinPoint j
+                    && j.getSignature() instanceof MethodSignature m
+                    && !m.getReturnType().isAssignableFrom(retArg.getClass())) {
+                log.error("Return type did not match arg index for {}, {}, {}", joinPoint.getSignature(), retArg.getClass(), m.getReturnType());
+                return prev;
+            }
+
+            return new DelayedAction(prev.expireFutureTime, prev.cacheValue, retArg);
+        }
+    }
+
+    private static boolean isNotTimed(Idempotent idempotent) {
+        return idempotent.timeoutMillis() <= 0L;
     }
 }

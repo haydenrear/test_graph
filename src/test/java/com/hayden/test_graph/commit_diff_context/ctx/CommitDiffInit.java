@@ -1,22 +1,16 @@
 package com.hayden.test_graph.commit_diff_context.ctx;
 
 import com.hayden.test_graph.commit_diff_context.init.CommitDiffInitNode;
-import com.hayden.test_graph.commit_diff_context.service.CommitDiffContext;
+import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.ctx.ContextValue;
-import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
-import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
-import com.hayden.test_graph.init.docker.ctx.DockerInitBubbleCtx;
-import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ThreadScope;
-import com.hayden.utilitymodule.sort.GraphSort;
 import lombok.Builder;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
-import java.util.List;
 
 @Component
 @ThreadScope
@@ -41,9 +35,9 @@ public record CommitDiffInit(
     public record BubbleData(Path clonedTo) {}
 
 
-    public CommitDiffContext.CommitRequestArgs toCommitRequestArgs() {
+    public CommitDiff.CommitRequestArgs toCommitRequestArgs() {
         RepositoryData repoArgs = repoDataOrThrow();
-        return CommitDiffContext.CommitRequestArgs.builder()
+        return CommitDiff.CommitRequestArgs.builder()
                 .commitMessage(userCodeDataOrThrow().commitMessage)
                 .gitRepoPath(repoArgs.url)
                 .branchName(repoArgs.branchName)

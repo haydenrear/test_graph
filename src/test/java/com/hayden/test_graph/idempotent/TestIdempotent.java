@@ -2,6 +2,7 @@ package com.hayden.test_graph.idempotent;
 
 
 import com.hayden.test_graph.meta.exec.prog_bubble.TestMetaGraph;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -45,5 +46,15 @@ public class TestIdempotent {
         v.doIAgain();
 
         Mockito.verify(v, times(1)).didAgain();
+    }
+
+    @Test
+    public void testW() {
+        var f = v.doIWArg("whatever");
+        var q = v.doIWArg("whatever");
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(f, "goodbye"),
+                () -> Assertions.assertEquals(q, "whatever")
+        );
     }
 }
