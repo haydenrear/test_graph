@@ -149,10 +149,9 @@ public class IdempotentAspect implements ApplicationContextAware {
                 Assert.notNull(prevRun, "Assumed not to be null.");
                 if (prevRun.doRunAgain(joinPoint.getArgs())) {
                     p.set(getProceedToAdd(joinPoint, cv));
-                    return prevRun;
-                } else {
-                    return prevRun;
                 }
+
+                return prevRun;
             });
 
             return p.get();
