@@ -57,4 +57,23 @@ public class TestIdempotent {
                 () -> Assertions.assertEquals(q, "whatever")
         );
     }
+
+    @Test
+    public void testIAgainIf() {
+        var f = v.doIAgainIf("okay");
+        var q = v.doIAgainIf("whatever");
+
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(f, "okay"),
+                () -> Assertions.assertEquals(q, "okay")
+        );
+
+        v.doIAgainVIf();
+        Mockito.verify(v, times(1)).didIf();
+        v.doIAgainVIf();
+        v.doIAgainVIf();
+        Mockito.verify(v, times(2)).didIf();
+        v.doIAgainVIf();
+        Mockito.verify(v, times(3)).didIf();
+    }
 }
