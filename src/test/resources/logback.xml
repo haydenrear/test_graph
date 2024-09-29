@@ -1,0 +1,17 @@
+<configuration>
+    <appender name="fluentd" class="ch.qos.logback.more.appenders.DataFluentAppender">
+        <remoteHost>localhost</remoteHost>
+        <port>8888</port>
+    </appender>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="fluentd" />
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>

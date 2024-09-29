@@ -1,0 +1,32 @@
+services:
+  commit-diff-postgres:
+    image: localhost:5001/postgres-pgvector
+    container_name: commit-diff-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - commit-diff:/var/lib/postgresql/data
+    ports:
+      - "5440:5432"
+  commit-diff-context:
+    image: localhost:5001/commit-diff-server
+    container_name: commit-diff-server
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: inttest
+  model-server:
+    image: localhost:5001/model-server
+    container_name: model-server-container
+    ports:
+      - "9991:9991"
+    environment:
+      HF_HOME: /.huggingface
+    volumes:
+      - type: bind
+        source: /Users/hayde/IdeaProjects/drools/model_server/.models
+        target: /.huggingface
+
+volumes:
+  commit-diff:
