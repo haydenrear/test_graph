@@ -5,18 +5,30 @@ import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.init.docker.exec.StartDockerNode;
 import com.hayden.test_graph.thread.ResettableThread;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.logging.LogLevel;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.util.Objects;
 import java.util.Set;
 
 @Component
 @ResettableThread
-public record DockerInitCtx(ContextValue<File> composePath,
-                            ContextValue<LogLevel> logLevel,
-                            ContextValue<Set<String>> dockerProfiles,
-                            ContextValue<String> host) implements InitCtx {
+@RequiredArgsConstructor
+public class DockerInitCtx implements InitCtx {
+    private final ContextValue<File> composePath;
+    private final ContextValue<LogLevel> logLevel;
+    private final ContextValue<Set<String>> dockerProfiles;
+    private final ContextValue<String> host;
+
+    private DockerInitBubbleCtx dockerInitBubbleCtx;
+
+    @Autowired
+    public void setDockerInitBubbleCtx(DockerInitBubbleCtx dockerInitBubbleCtx) {
+        this.dockerInitBubbleCtx = dockerInitBubbleCtx;
+    }
 
     public DockerInitCtx() {
         this(ContextValue.empty(), ContextValue.empty(),
@@ -25,7 +37,7 @@ public record DockerInitCtx(ContextValue<File> composePath,
 
     @Override
     public DockerInitBubbleCtx bubble() {
-        return new DockerInitBubbleCtx();
+        return dockerInitBubbleCtx;
     }
 
     @Override
@@ -37,5 +49,22 @@ public record DockerInitCtx(ContextValue<File> composePath,
     public boolean executableFor(GraphExec.GraphExecNode n) {
         return n instanceof StartDockerNode;
     }
+
+    public ContextValue<File> composePath() {
+        return composePath;
+    }
+
+    public ContextValue<LogLevel> logLevel() {
+        return logLevel;
+    }
+
+    public ContextValue<Set<String>> dockerProfiles() {
+        return dockerProfiles;
+    }
+
+    public ContextValue<String> host() {
+        return host;
+    }
+
 
 }

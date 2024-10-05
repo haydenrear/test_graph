@@ -20,10 +20,7 @@ public class CommitDiffInitAssertTestGraphEdge implements TestGraphEdge<CommitDi
     @Override
     public MetaCtx edge(CommitDiffAssert first, MetaCtx s) {
         if (s instanceof MetaProgCtx second) {
-            var i = second.retrieve(InitMeta.class)
-                    .flatMap(im -> im.getBubbled() instanceof CommitDiffInitBubble cdb
-                            ? Stream.of(cdb)
-                            : Stream.empty())
+            var i = second.retrieveBubbled(CommitDiffInitBubble.class)
                     .toList();
 
             if (i.size() != 1)  {
@@ -38,12 +35,12 @@ public class CommitDiffInitAssertTestGraphEdge implements TestGraphEdge<CommitDi
     }
 
     @Override
-    public Predicate<?> from() {
+    public Predicate<? super Object> from() {
         return  c -> c instanceof CommitDiffAssert;
     }
 
     @Override
-    public Predicate<?> to() {
+    public Predicate<? super Object> to() {
         return c -> c instanceof MetaProgCtx;
     }
 }

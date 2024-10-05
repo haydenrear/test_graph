@@ -6,10 +6,14 @@ import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
 import com.hayden.test_graph.meta.exec.prog_bubble.MetaProgNode;
+import jakarta.validation.constraints.Null;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Stack;
 
 public interface MetaCtx extends HyperGraphContext<MetaCtx> {
+
+    @Nullable HyperGraphContext<MetaCtx> getBubbled();
 
     boolean executableFor(MetaProgNode n);
 

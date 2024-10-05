@@ -14,8 +14,8 @@ public interface GraphEdge<T, U> {
      */
     U edge(T first, U second);
 
-    Predicate from();
+    Predicate<? super Object> from();
 
-    Predicate to();
+    Predicate<? super Object> to();
 
 }

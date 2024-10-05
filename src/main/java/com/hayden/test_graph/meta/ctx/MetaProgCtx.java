@@ -8,6 +8,7 @@ import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
 import com.hayden.test_graph.meta.exec.prog_bubble.MetaProgNode;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.experimental.Delegate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -15,12 +16,28 @@ import java.util.Objects;
 import java.util.Stack;
 import java.util.stream.Stream;
 
+@Slf4j
 @Component
 @ResettableThread
 public class MetaProgCtx implements MetaCtx {
 
     @Delegate
     Stack<MetaCtx> delegates = new Stack<>();
+
+    public <T extends HyperGraphContext<MetaCtx>> Stream<T> retrieveBubbled(Class<T> clazz) {
+        return delegates.stream()
+                .map(MetaCtx::getBubbled)
+                .filter(Objects::nonNull)
+                .filter(b -> b.getClass().equals(clazz))
+                .flatMap(hgc -> {
+                    try {
+                        return Stream.of((T) hgc) ;
+                    } catch (ClassCastException c) {
+                        log.error("{}, {}", c.getMessage(), c.getStackTrace());
+                        return Stream.empty();
+                    }
+                });
+    }
 
     public <T extends MetaCtx> Stream<T> retrieve(Class<T> clazz) {
         return delegates.stream()
@@ -33,6 +50,11 @@ public class MetaProgCtx implements MetaCtx {
                         return Stream.empty();
                     }
                 });
+    }
+
+    @Override
+    public HyperGraphContext<MetaCtx> getBubbled() {
+        return null;
     }
 
     @Override

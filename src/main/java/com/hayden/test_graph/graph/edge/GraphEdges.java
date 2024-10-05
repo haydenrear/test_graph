@@ -8,6 +8,7 @@ import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.ctx.MetaProgCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+@Slf4j
 @Component
 public class GraphEdges {
 
@@ -65,13 +67,13 @@ public class GraphEdges {
         return testGraphContext;
     }
 
-    public <T extends HyperGraphExec, U extends HyperGraphContext<MetaCtx>> T postReducePreExecTestGraph(T ctx, U hgContext, MetaCtx prev) {
+    public <T extends HyperGraphExec, U extends HyperGraphContext<MetaCtx>> T postReducePreExecTestGraph(T hgExec, U hgContext, MetaCtx prev) {
         this.retrieveFromEdges(hgContext, prev).forEach(he -> he.edge(hgContext, prev));
         this.retrieveMetaEdges(hgContext, prev).forEach(hge -> hge.edge(prev, hgContext));
-        return ctx;
+        return hgExec;
     }
 
-    public <T extends HyperGraphExec, U extends HyperGraphContext<MetaCtx>> MetaCtx postExecHgEdges(T ctx, U hgContext, MetaCtx prev, MetaCtx curr) {
+    public <T extends HyperGraphExec, U extends HyperGraphContext<MetaCtx>> MetaCtx postExecHgEdges(T exec, U hgContext, MetaCtx prev, MetaCtx curr) {
         this.retrieveFromEdges(hgContext, curr).forEach(he -> he.edge(hgContext, curr));
         this.retrieveMetaEdges(hgContext, curr).forEach(hge -> hge.edge(curr, hgContext));
         return curr;
@@ -83,6 +85,7 @@ public class GraphEdges {
                     try {
                         return Stream.ofNullable((MetaGraphEdge<T, MetaCtx>) hge);
                     } catch (ClassCastException c) {
+                        log.error("{}", c.getMessage());
                         return Stream.empty();
                     }
                 });
@@ -94,6 +97,7 @@ public class GraphEdges {
                     try {
                         return Stream.ofNullable((MetaMetaGraphEdge<T>) hge);
                     } catch (ClassCastException c) {
+                        log.error("{}, {}", c.getMessage(), c.getStackTrace());
                         return Stream.empty();
                     }
                 });
@@ -105,6 +109,7 @@ public class GraphEdges {
                     try {
                         return Stream.ofNullable((TestGraphEdge) hge);
                     } catch (ClassCastException c) {
+                        log.error("{}, {}", c.getMessage(), c.getStackTrace());
                         return Stream.empty();
                     }
                 });
@@ -116,6 +121,7 @@ public class GraphEdges {
                     try {
                         return Stream.ofNullable((HyperGraphEdge<T, MetaCtx>) hge);
                     } catch (ClassCastException c) {
+                        log.error("{}, {}", c.getMessage(), c.getStackTrace());
                         return Stream.empty();
                     }
                 });

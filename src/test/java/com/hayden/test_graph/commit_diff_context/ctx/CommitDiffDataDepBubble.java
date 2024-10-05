@@ -20,7 +20,7 @@ public class CommitDiffDataDepBubble implements DataDepBubble {
     @Autowired
     public void setDataDepMeta(DataDepMeta meta) {
         this.dataDepMeta = meta;
-        this.dataDepMeta.setBubble(this);
+        this.dataDepMeta.setBubbled(this);
     }
 
 

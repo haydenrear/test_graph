@@ -1,9 +1,9 @@
 package com.hayden.test_graph.data_dep.ctx;
 
 import com.hayden.test_graph.ctx.HyperGraphContext;
-import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.exec.prog_bubble.MetaProgNode;
+import lombok.Getter;
 import lombok.experimental.Delegate;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,8 @@ import java.util.Stack;
 @Scope("prototype")
 public class DataDepMeta implements MetaCtx {
     @Delegate
-    DataDepBubble bubble;
+    @Getter
+    DataDepBubble bubbled;
 
     final Stack<HyperGraphContext<MetaCtx>> prev = new Stack<>();
 
@@ -23,8 +24,8 @@ public class DataDepMeta implements MetaCtx {
 
     public boolean isLeafNode() {return false;}
 
-    public void setBubble(DataDepBubble bubble) {
-        this.bubble = bubble;
+    public void setBubbled(DataDepBubble bubble) {
+        this.bubbled = bubble;
         prev.push(bubble);
     }
 
