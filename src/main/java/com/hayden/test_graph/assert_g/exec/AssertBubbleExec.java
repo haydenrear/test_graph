@@ -5,7 +5,7 @@ import com.hayden.test_graph.assert_g.ctx.AssertBubble;
 import com.hayden.test_graph.assert_g.ctx.AssertCtx;
 import com.hayden.test_graph.assert_g.graph.AssertBubbleGraph;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
-import com.hayden.test_graph.graph.edge.GraphEdges;
+import com.hayden.test_graph.graph.edge.EdgeExec;
 import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
@@ -37,7 +37,7 @@ public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble,
     AssertBubbleGraph bubbleGraph;
 
     @Autowired
-    GraphEdges graphEdges;
+    EdgeExec edgeExec;
 
     @Override
     public List<BubblePreMapper> preMappers() {
@@ -59,7 +59,8 @@ public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble,
     @Idempotent
     public MetaCtx exec(Class<? extends AssertCtx> ctx, MetaCtx prev) {
         var collected = this.initExec.collectCtx(ctx, prev);
-        var c = graphEdges.postReducePreExecTestGraph(this, collected, prev);
+        var c = edgeExec.postReducePreExecTestGraph(this, collected, prev);
+        prev = edgeExec.postReducePreExecMetaCtx(this, collected, prev);
         collected = c.preMap(collected, prev);
         collected = c.exec(collected, prev);
         return c.collectCtx(collected);

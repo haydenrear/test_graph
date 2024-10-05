@@ -1,6 +1,6 @@
 package com.hayden.test_graph.init.exec;
 
-import com.hayden.test_graph.graph.edge.GraphEdges;
+import com.hayden.test_graph.graph.edge.EdgeExec;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
@@ -35,7 +35,7 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
     List<InitPostMapper> postMappers;
 
     @Autowired
-    GraphEdges graphEdges;
+    EdgeExec edgeExec;
 
     @Autowired
     @ResettableThread
@@ -58,8 +58,8 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
 
     private InitExec retrieveToExec(InitCtx initCtx, InitBubble prev, MetaCtx metaCtx) {
         return Optional.ofNullable(prev)
-                .map(ib -> graphEdges.edges(this, initCtx, ib, metaCtx))
-                .orElseGet(() -> graphEdges.edges(this, initCtx, metaCtx));
+                .map(ib -> edgeExec.edges(this, initCtx, ib, metaCtx))
+                .orElseGet(() -> edgeExec.edges(this, initCtx, metaCtx));
     }
 
     @Override

@@ -6,7 +6,7 @@ import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
 import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
 import com.hayden.test_graph.data_dep.graph.DataDepBubbleGraph;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
-import com.hayden.test_graph.graph.edge.GraphEdges;
+import com.hayden.test_graph.graph.edge.EdgeExec;
 import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
 import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.init.exec.InitBubbleExec;
@@ -41,7 +41,7 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
     DataDepBubbleGraph bubbleGraph;
 
     @Autowired
-    GraphEdges graphEdges;
+    EdgeExec edgeExec;
 
     @Override
     public List<DataDepBubbleExec.BubblePreMapper> preMappers() {
@@ -64,7 +64,8 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
     @Idempotent
     public MetaCtx exec(Class<? extends DataDepCtx> ctx, MetaCtx prev) {
         var collected = this.initExec.collectCtx(ctx, prev);
-        var c = graphEdges.postReducePreExecTestGraph(this, collected, prev);
+        var c = edgeExec.postReducePreExecTestGraph(this, collected, prev);
+        prev = edgeExec.postReducePreExecMetaCtx(this, collected, prev);
         collected = c.preMap(collected, prev);
         collected = c.exec(collected, prev);
         return c.collectCtx(collected);

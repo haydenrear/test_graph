@@ -1,8 +1,10 @@
 package com.hayden.test_graph.meta.exec;
 
+import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.graph.SubGraph;
-import com.hayden.test_graph.graph.edge.GraphEdges;
+import com.hayden.test_graph.graph.edge.EdgeExec;
 import com.hayden.test_graph.exec.prog_bubble.ProgExec;
 import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
 import com.hayden.test_graph.graph.service.TestGraphSort;
@@ -24,7 +26,7 @@ public class MetaProgExec implements ProgExec {
     private MetaProgCtx metaProgCtx;
 
     @Autowired
-    private GraphEdges graphEdges;
+    private EdgeExec edgeExec;
 
     @Autowired
     private List<SubGraph>  subGraphs;
@@ -57,9 +59,10 @@ public class MetaProgExec implements ProgExec {
             MetaCtx finalMetaCtx = metaCtx;
             lazyMetaGraphDelegate.retrieveContextsToRun(hgNode, ctx)
                     .map(c -> {
-                        var n = graphEdges.preExecHgExecEdges(hgNode, finalMetaCtx);
-                        var ctxCreated = (MetaCtx) n.exec(c, finalMetaCtx);
-                        return graphEdges.postExecMetaCtxEdges(ctxCreated, finalMetaCtx);
+                        HyperGraphExec<TestGraphContext, HyperGraphContext<MetaCtx>, MetaCtx> hgGraphExec
+                                = edgeExec.preExecHgExecEdges(hgNode, finalMetaCtx);
+                        var ctxCreated = hgGraphExec.exec(c, finalMetaCtx);
+                        return edgeExec.postExecMetaCtxEdges(ctxCreated, finalMetaCtx);
                     })
                     .forEach(mc -> {
                         if (metaCtx instanceof MetaProgCtx m) {

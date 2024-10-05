@@ -8,11 +8,11 @@ public interface GraphEdge<T, U> {
 
     /**
      * Provides
-     * @param first
-     * @param second
+     * @param transform
+     * @param ctx
      * @return
      */
-    U edge(T first, U second);
+    T edge(T transform, U ctx);
 
     Predicate<? super Object> from();
 

@@ -17,13 +17,15 @@ public class CommitDiffDataDepBubble implements DataDepBubble {
 
     private DataDepMeta dataDepMeta;
 
+
     @Autowired
     public void setDataDepMeta(DataDepMeta meta) {
         this.dataDepMeta = meta;
         this.dataDepMeta.setBubbled(this);
     }
 
-
+    // TODO: inject the hypergraph edges into these classes, and then input as an arg here the
+    //      MetaProgCtx, and bubble here.
     @Override
     public MetaCtx bubble() {
         return this.dataDepMeta;

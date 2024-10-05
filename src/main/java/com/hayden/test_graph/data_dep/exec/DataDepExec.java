@@ -4,7 +4,7 @@ import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
 import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
 import com.hayden.test_graph.data_dep.graph.DataDepGraph;
 import com.hayden.test_graph.exec.single.GraphExec;
-import com.hayden.test_graph.graph.edge.GraphEdges;
+import com.hayden.test_graph.graph.edge.EdgeExec;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +53,7 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
     List<DataDepExec.DataDepPostMapper> postMappers;
 
     @Autowired
-    GraphEdges graphEdges;
+    EdgeExec edgeExec;
 
     @Autowired
     @ResettableThread
@@ -76,8 +76,8 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
 
     private DataDepExec retrieveToExec(DataDepCtx initCtx, DataDepBubble prev, MetaCtx metaCtx) {
         return Optional.ofNullable(prev)
-                .map(ib -> graphEdges.edges(this, initCtx, ib, metaCtx))
-                .orElseGet(() -> graphEdges.edges(this, initCtx, metaCtx));
+                .map(ib -> edgeExec.edges(this, initCtx, ib, metaCtx))
+                .orElseGet(() -> edgeExec.edges(this, initCtx, metaCtx));
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.node.HyperGraphTestNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 
+// TODO: abstract base class for the fields?
 public interface HyperGraphExec<SG extends TestGraphContext, CTX extends HyperGraphContext<H>, H extends HyperGraphContext<MetaCtx>>
         extends GraphExec.GraphExecNode<CTX, H>, HyperGraphTestNode<CTX, H> {
 
