@@ -16,7 +16,7 @@ public class ThreadHooks {
     @Autowired
     ApplicationContext applicationContext;
     @Autowired
-    List<ResettableThreadLike> initializeAspect;
+    List<ResettableThreadLike> resettables;
 
     private static final AtomicInteger i = new AtomicInteger(0);
 
@@ -24,7 +24,7 @@ public class ThreadHooks {
     public void before() {
         if (i.getAndIncrement() != 0) {
             resettableThreadScope.reset();
-            initializeAspect.forEach(r -> applicationContext.getAutowireCapableBeanFactory().autowireBean(r));
+            resettables.forEach(r -> applicationContext.getAutowireCapableBeanFactory().autowireBean(r));
         }
     }
 
