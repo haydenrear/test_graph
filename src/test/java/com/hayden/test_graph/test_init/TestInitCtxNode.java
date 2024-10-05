@@ -2,14 +2,14 @@ package com.hayden.test_graph.test_init;
 
 import com.hayden.test_graph.init.exec.single.InitNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
-@ThreadScope
+@ResettableThread
 public class TestInitCtxNode implements InitNode<TestInitCtx> {
 
     @Autowired

@@ -5,9 +5,8 @@ import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
 import com.hayden.test_graph.data_dep.graph.DataDepGraph;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.edge.GraphEdges;
-import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,7 +19,7 @@ import java.util.function.BiFunction;
 
 @Component
 @RequiredArgsConstructor
-@ThreadScope
+@ResettableThread
 public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble> {
 
     public interface DataDepReducer extends GraphExecReducer<DataDepCtx, DataDepBubble> {}
@@ -57,7 +56,7 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
     GraphEdges graphEdges;
 
     @Autowired
-    @ThreadScope
+    @ResettableThread
     DataDepGraph dataDepGraph;
 
     @Override
@@ -77,8 +76,8 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
 
     private DataDepExec retrieveToExec(DataDepCtx initCtx, DataDepBubble prev, MetaCtx metaCtx) {
         return Optional.ofNullable(prev)
-                .map(ib -> graphEdges.addEdge(this, initCtx, ib, metaCtx))
-                .orElseGet(() -> graphEdges.addEdge(this, initCtx, metaCtx));
+                .map(ib -> graphEdges.edges(this, initCtx, ib, metaCtx))
+                .orElseGet(() -> graphEdges.edges(this, initCtx, metaCtx));
     }
 
     @Override

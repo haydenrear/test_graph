@@ -3,13 +3,10 @@ package com.hayden.test_graph.test_init;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
-import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
-import com.hayden.test_graph.init.ctx.InitMeta;
 import com.hayden.test_graph.init.exec.single.InitNode;
-import com.hayden.test_graph.meta.ctx.MetaCtx;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-@ThreadScope
+@ResettableThread
 public class TestInitChildCtx implements InitCtx {
 
     @Autowired

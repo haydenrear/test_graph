@@ -11,7 +11,7 @@ import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
 import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.init.exec.InitBubbleExec;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-@ThreadScope
+@ResettableThread
 public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubble, MetaCtx> {
 
     public interface BubblePreMapper extends GraphExecMapper<DataDepBubble, MetaCtx> {}
@@ -34,10 +34,10 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
     @Autowired(required = false)
     List<DataDepBubbleExec.BubblePostMapper> postMappers;
     @Autowired
-    @ThreadScope
+    @ResettableThread
     DataDepExec initExec;
     @Autowired
-    @ThreadScope
+    @ResettableThread
     DataDepBubbleGraph bubbleGraph;
 
     @Autowired
@@ -64,7 +64,7 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
     @Idempotent
     public MetaCtx exec(Class<? extends DataDepCtx> ctx, MetaCtx prev) {
         var collected = this.initExec.collectCtx(ctx, prev);
-        var c = graphEdges.addEdge(this, collected, prev);
+        var c = graphEdges.postReducePreExecTestGraph(this, collected, prev);
         collected = c.preMap(collected, prev);
         collected = c.exec(collected, prev);
         return c.collectCtx(collected);

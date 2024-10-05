@@ -14,5 +14,5 @@ import static com.hayden.test_graph.config.ScopeConfig.THREAD_SCOPE;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Scope(THREAD_SCOPE)
-public @interface ThreadScope {
+public @interface ResettableThread {
 }

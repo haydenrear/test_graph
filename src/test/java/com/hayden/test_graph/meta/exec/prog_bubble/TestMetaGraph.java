@@ -3,8 +3,7 @@ package com.hayden.test_graph.meta.exec.prog_bubble;
 import com.hayden.test_graph.meta.exec.MetaProgExec;
 import com.hayden.test_graph.meta.graph.MetaGraph;
 import com.hayden.test_graph.test_init.TestInitChildCtx;
-import com.hayden.test_graph.test_init.TestInitCtx;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,10 +27,10 @@ public class TestMetaGraph {
     }
 
     @Autowired
-    @ThreadScope
+    @ResettableThread
     MetaGraph metaGraph;
     @Autowired
-    @ThreadScope
+    @ResettableThread
     MetaProgExec exec;
 
     @Test

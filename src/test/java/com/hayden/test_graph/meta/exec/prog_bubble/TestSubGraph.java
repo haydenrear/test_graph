@@ -2,7 +2,7 @@ package com.hayden.test_graph.meta.exec.prog_bubble;
 
 import com.hayden.test_graph.graph.SubGraph;
 import com.hayden.test_graph.test_init.TestInitChildCtx;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +28,7 @@ public class TestSubGraph {
     }
 
     @Autowired
-    @ThreadScope
+    @ResettableThread
     List<SubGraph> subGraph;
 
     @Test

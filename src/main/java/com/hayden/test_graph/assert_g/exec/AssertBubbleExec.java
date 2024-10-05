@@ -8,7 +8,7 @@ import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.graph.edge.GraphEdges;
 import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-@ThreadScope
+@ResettableThread
 public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble, MetaCtx> {
 
     public interface BubblePreMapper extends GraphExecMapper<AssertBubble, MetaCtx> {}
@@ -30,10 +30,10 @@ public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble,
     @Autowired(required = false)
     List<BubblePostMapper> postMappers;
     @Autowired
-    @ThreadScope
+    @ResettableThread
     AssertExec initExec;
     @Autowired
-    @ThreadScope
+    @ResettableThread
     AssertBubbleGraph bubbleGraph;
 
     @Autowired
@@ -59,7 +59,7 @@ public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble,
     @Idempotent
     public MetaCtx exec(Class<? extends AssertCtx> ctx, MetaCtx prev) {
         var collected = this.initExec.collectCtx(ctx, prev);
-        var c = graphEdges.addEdge(this, collected, prev);
+        var c = graphEdges.postReducePreExecTestGraph(this, collected, prev);
         collected = c.preMap(collected, prev);
         collected = c.exec(collected, prev);
         return c.collectCtx(collected);

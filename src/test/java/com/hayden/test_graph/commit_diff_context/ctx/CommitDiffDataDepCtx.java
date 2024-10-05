@@ -4,15 +4,21 @@ import com.hayden.test_graph.commit_diff_context.data_dep.CommitDiffDataDepNode;
 import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
 import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
 import com.hayden.test_graph.exec.single.GraphExec;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-@ThreadScope
-public record CommitDiffDataDepCtx() implements DataDepCtx {
+@ResettableThread
+public class CommitDiffDataDepCtx implements DataDepCtx {
+
+    @Autowired
+    @ResettableThread
+    private CommitDiffDataDepBubble bubble;
+
     @Override
     public DataDepBubble bubble() {
-        return new CommitDiffDataDepBubble();
+        return bubble;
     }
 
     @Override
@@ -24,5 +30,6 @@ public record CommitDiffDataDepCtx() implements DataDepCtx {
     public boolean executableFor(GraphExec.GraphExecNode n) {
         return n instanceof CommitDiffDataDepNode;
     }
+
 
 }

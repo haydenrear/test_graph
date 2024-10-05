@@ -14,6 +14,7 @@ public class ValidateCommitResponse implements CommitDiffAssertNode{
 
     @Override
     public CommitDiffAssert exec(CommitDiffAssert c, MetaCtx h) {
+        c.repoUrl().res().get();
         return c;
     }
 }

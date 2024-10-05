@@ -2,7 +2,7 @@ package com.hayden.test_graph.commit_diff_context.service;
 
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.ctx.CommitDiffInit;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.result.Result;
 import com.hayden.utilitymodule.result.error.ErrorCollect;
 import lombok.Builder;
@@ -27,13 +27,13 @@ import java.util.stream.Collectors;
 public class CommitDiff {
 
     @Autowired
-    @ThreadScope
+    @ResettableThread
     CommitDiffInit commitDiffInit;
 
     @Autowired
     HttpSyncGraphQlClient graphQlClient;
     @Autowired
-    @ThreadScope
+    @ResettableThread
     Assertions assertions;
 
     private static final @Language("graphql") String NEXT_COMMIT_GRAPH_QL_TEMPLATE = """

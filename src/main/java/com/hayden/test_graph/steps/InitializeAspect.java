@@ -1,7 +1,7 @@
 package com.hayden.test_graph.steps;
 
 import com.hayden.test_graph.meta.exec.MetaProgExec;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -10,9 +10,9 @@ import org.springframework.stereotype.Component;
 
 @Aspect
 @Component
-public class InitializeAspect {
+public class InitializeAspect implements StepAspect {
 
-    @ThreadScope
+    @ResettableThread
     @Autowired
     private MetaProgExec metaGraph;
 

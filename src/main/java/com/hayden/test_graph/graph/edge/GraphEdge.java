@@ -1,5 +1,9 @@
 package com.hayden.test_graph.graph.edge;
 
+import com.hayden.test_graph.meta.ctx.MetaCtx;
+
+import java.util.function.Predicate;
+
 public interface GraphEdge<T, U> {
 
     /**
@@ -9,5 +13,9 @@ public interface GraphEdge<T, U> {
      * @return
      */
     U edge(T first, U second);
+
+    Predicate from();
+
+    Predicate to();
 
 }

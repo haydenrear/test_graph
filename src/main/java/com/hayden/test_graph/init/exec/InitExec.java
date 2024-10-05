@@ -2,13 +2,11 @@ package com.hayden.test_graph.init.exec;
 
 import com.hayden.test_graph.graph.edge.GraphEdges;
 import com.hayden.test_graph.exec.single.GraphExec;
-import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
-import com.hayden.test_graph.init.exec.single.InitNode;
 import com.hayden.test_graph.init.graph.InitGraph;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,7 +19,7 @@ import java.util.function.BiFunction;
 
 @Component
 @RequiredArgsConstructor
-@ThreadScope
+@ResettableThread
 public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
 
     public interface InitReducer extends GraphExecReducer<InitCtx, InitBubble> {}
@@ -40,7 +38,7 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
     GraphEdges graphEdges;
 
     @Autowired
-    @ThreadScope
+    @ResettableThread
     InitGraph initGraph;
 
     @Override
@@ -60,8 +58,8 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
 
     private InitExec retrieveToExec(InitCtx initCtx, InitBubble prev, MetaCtx metaCtx) {
         return Optional.ofNullable(prev)
-                .map(ib -> graphEdges.addEdge(this, initCtx, ib, metaCtx))
-                .orElseGet(() -> graphEdges.addEdge(this, initCtx, metaCtx));
+                .map(ib -> graphEdges.edges(this, initCtx, ib, metaCtx))
+                .orElseGet(() -> graphEdges.edges(this, initCtx, metaCtx));
     }
 
     @Override

@@ -34,4 +34,5 @@ public interface MetaCtx extends HyperGraphContext<MetaCtx> {
     default ContextValue<TestGraphContext> parent() {
         return ContextValue.empty();
     }
+
 }

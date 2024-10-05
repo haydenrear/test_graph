@@ -4,13 +4,13 @@ import com.hayden.test_graph.graph.HyperTestGraph;
 import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
 import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
-@ThreadScope
+@ResettableThread
 public class DataDepBubbleGraph implements HyperTestGraph<DataDepBubble, MetaCtx> {
 
     @Override

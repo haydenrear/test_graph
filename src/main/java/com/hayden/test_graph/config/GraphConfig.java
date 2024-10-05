@@ -31,6 +31,8 @@ public class GraphConfig {
                 } else {
                     initContexts.stream()
                             // we can only do for leaf as can retrieve parent
+                            .peek(tgc -> beanFactory.autowireBean(tgc))
+                            .peek(tgc -> {})
                             .filter(HierarchicalContext::isLeafNode)
                             .forEach(i -> {
                                 BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SubGraph.class);

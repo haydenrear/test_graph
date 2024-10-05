@@ -6,34 +6,48 @@ import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import lombok.Builder;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 
 @Component
-@ThreadScope
-public record CommitDiffInit(
-        ContextValue<RepositoryData> repoData,
-        ContextValue<UserCodeData> userCodeData,
-        ContextValue<BubbleData> bubbleDataContextValue
-) implements InitCtx {
+@ResettableThread
+@RequiredArgsConstructor
+public final class CommitDiffInit implements InitCtx {
+    private final ContextValue<UserCodeData> userCodeData;
+    private final ContextValue<BubbleData> bubbleDataContextValue;
+    private final ContextValue<CommitDiffInitBubble> bubbleUnderlying;
 
     public CommitDiffInit() {
-        this(ContextValue.empty(), ContextValue.empty(),
-                ContextValue.empty());
+        this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty());
+    }
+
+    @Autowired
+    public void setBubble(CommitDiffInitBubble bubble) {
+        this.bubbleUnderlying.set(bubble);
     }
 
     @Builder
-    public record RepositoryData(String url, String branchName) {}
+    public record RepositoryData(String url,
+                                 String branchName) {
+    }
 
     @Builder
-    public record UserCodeData(String commitMessage) {}
+    public record UserCodeData(
+            String commitMessage) {
+    }
 
     @Builder
-    public record BubbleData(Path clonedTo) {}
+    public record BubbleData(Path clonedTo) {
+    }
 
+    public ContextValue<RepositoryData> repoData() {
+        return bubbleUnderlying.res().get().repositoryData();
+    }
 
     public CommitDiff.CommitRequestArgs toCommitRequestArgs() {
         RepositoryData repoArgs = repoDataOrThrow();
@@ -49,13 +63,13 @@ public record CommitDiffInit(
     }
 
     public RepositoryData repoDataOrThrow() {
-        return repoData.res().orElseThrow();
+        return this.bubbleUnderlying.res().get().repositoryData().res().orElseThrow();
     }
 
 
     @Override
     public CommitDiffInitBubble bubble() {
-        return new CommitDiffInitBubble();
+        return this.bubbleUnderlying.res().get();
     }
 
     @Override
@@ -68,5 +82,16 @@ public record CommitDiffInit(
         return n instanceof CommitDiffInitNode;
     }
 
+    public ContextValue<UserCodeData> userCodeData() {
+        return userCodeData;
+    }
+
+    public ContextValue<BubbleData> bubbleDataContextValue() {
+        return bubbleDataContextValue;
+    }
+
+    public ContextValue<CommitDiffInitBubble> bubbleUnderlying() {
+        return bubbleUnderlying;
+    }
 
 }

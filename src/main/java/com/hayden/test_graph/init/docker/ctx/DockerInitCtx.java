@@ -2,12 +2,9 @@ package com.hayden.test_graph.init.docker.ctx;
 
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;
-import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.init.docker.exec.StartDockerNode;
-import com.hayden.test_graph.thread.ThreadScope;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import com.hayden.test_graph.thread.ResettableThread;
 import org.springframework.boot.logging.LogLevel;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +12,7 @@ import java.io.File;
 import java.util.Set;
 
 @Component
-@ThreadScope
+@ResettableThread
 public record DockerInitCtx(ContextValue<File> composePath,
                             ContextValue<LogLevel> logLevel,
                             ContextValue<Set<String>> dockerProfiles,

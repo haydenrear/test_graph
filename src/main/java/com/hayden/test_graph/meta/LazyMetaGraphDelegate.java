@@ -1,6 +1,6 @@
 package com.hayden.test_graph.meta;
 
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +12,8 @@ import org.springframework.stereotype.Component;
 public class LazyMetaGraphDelegate {
 
     @Lazy
-    @ThreadScope
+    @ResettableThread
     @Autowired
     @Delegate
     MetaGraphDelegate autoDetect;
-
 }

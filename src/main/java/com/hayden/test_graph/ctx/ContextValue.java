@@ -9,6 +9,10 @@ import java.util.function.Supplier;
 
 public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
 
+    public void clear() {
+        res.res = Result.empty();
+    }
+
     public boolean isEmpty() {
         return !res.res.isPresent();
     }

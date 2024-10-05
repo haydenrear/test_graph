@@ -1,7 +1,6 @@
 package com.hayden.test_graph.init.exec;
 
 import com.hayden.test_graph.action.Idempotent;
-import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.graph.edge.GraphEdges;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.graph.node.TestGraphNode;
@@ -9,7 +8,7 @@ import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.init.graph.InitBubbleGraph;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,7 +19,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-@ThreadScope
+@ResettableThread
 public class InitBubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaCtx> {
 
     public interface BubblePreMapper extends GraphExecMapper<InitBubble, MetaCtx> {}
@@ -31,10 +30,10 @@ public class InitBubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaC
     @Autowired(required = false)
     List<BubblePostMapper> postMappers;
     @Autowired
-    @ThreadScope
+    @ResettableThread
     InitExec initExec;
     @Autowired
-    @ThreadScope
+    @ResettableThread
     InitBubbleGraph bubbleGraph;
 
     @Autowired
@@ -60,10 +59,11 @@ public class InitBubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaC
     @Idempotent
     public MetaCtx exec(Class<? extends InitCtx> ctx, MetaCtx prev) {
         var collected = this.initExec.collectCtx(ctx, prev);
-        var c = graphEdges.addEdge(this, collected, prev);
+        var c = graphEdges.postReducePreExecTestGraph(this, collected, prev);
         collected = c.preMap(collected, prev);
         collected = c.exec(collected, prev);
-        return c.collectCtx(collected);
+        var collectedCtx =  c.collectCtx(collected);
+        return graphEdges.postExecHgEdges(this, collected, prev, collectedCtx);
     }
 
     @Override

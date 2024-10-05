@@ -11,7 +11,7 @@
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="fluentd" />
+<!--        <appender-ref ref="fluentd" />-->
         <appender-ref ref="CONSOLE" />
     </root>
 </configuration>

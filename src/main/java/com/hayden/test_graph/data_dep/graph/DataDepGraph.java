@@ -7,10 +7,9 @@ import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.Graph;
 import com.hayden.test_graph.graph.SubGraph;
 import com.hayden.test_graph.graph.TestGraph;
-import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
 import com.hayden.test_graph.graph.service.TestGraphSort;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -20,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@ThreadScope
+@ResettableThread
 public class DataDepGraph implements TestGraph<DataDepCtx, DataDepBubble> {
 
     @Lazy
@@ -30,12 +29,12 @@ public class DataDepGraph implements TestGraph<DataDepCtx, DataDepBubble> {
     TestGraphSort graphSort;
 
     @Autowired
-    @ThreadScope
+    @ResettableThread
     List<SubGraph<DataDepCtx, DataDepBubble>> subGraphs;
 
     Map<Class<? extends DataDepCtx>, List<GraphExec.GraphExecNode<DataDepCtx, DataDepBubble>>> nodes = new HashMap<>();
 
-    @ThreadScope
+    @ResettableThread
     @Autowired(required = false)
     public void setNodes(List<? extends DataDepNode> nodes) {
         this.nodes = Graph.collectNodes(nodes, graphSort);

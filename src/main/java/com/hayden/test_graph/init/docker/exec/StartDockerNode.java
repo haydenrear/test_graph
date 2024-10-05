@@ -2,15 +2,12 @@ package com.hayden.test_graph.init.docker.exec;
 
 import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
-import com.hayden.test_graph.init.exec.single.InitNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.docker.compose.core.DockerComposeFile;
 import org.springframework.boot.docker.compose.core.ExposeCompose;
-import org.springframework.boot.logging.LogLevel;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -18,7 +15,7 @@ import java.util.HashSet;
 
 @RequiredArgsConstructor
 @Component
-@ThreadScope
+@ResettableThread
 @Slf4j
 public class StartDockerNode implements DockerInitNode {
 
@@ -31,7 +28,7 @@ public class StartDockerNode implements DockerInitNode {
                 DockerComposeFile.find(workDir),
                 workingDirectory.dockerProfiles().res().orElseRes(new HashSet<>()),
                 workingDirectory.host().res().orElseRes("localhost"));
-        exposeCompose.up(workingDirectory.logLevel().res().orElseRes(LogLevel.INFO));
+//        exposeCompose.up(workingDirectory.logLevel().res().orElseRes(LogLevel.INFO));
     }
 
 

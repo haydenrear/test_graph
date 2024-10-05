@@ -2,13 +2,12 @@ package com.hayden.test_graph.init.graph;
 
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.*;
-import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.init.exec.single.InitNode;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -18,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@ThreadScope
+@ResettableThread
 public class InitGraph implements TestGraph<InitCtx, InitBubble> {
 
     @Lazy
@@ -28,12 +27,12 @@ public class InitGraph implements TestGraph<InitCtx, InitBubble> {
     TestGraphSort graphSort;
 
     @Autowired
-    @ThreadScope
+    @ResettableThread
     List<SubGraph<InitCtx, InitBubble>> subGraphs;
 
     Map<Class<? extends InitCtx>, List<GraphExec.GraphExecNode<InitCtx, InitBubble>>> nodes = new HashMap<>();
 
-    @ThreadScope
+    @ResettableThread
     @Autowired(required = false)
     public void setNodes(List<? extends InitNode> nodes) {
         this.nodes = Graph.collectNodes(nodes, graphSort);

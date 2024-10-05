@@ -16,7 +16,7 @@ public class TestInitBubble implements InitBubble {
 
     @Override
     public MetaCtx bubble() {
-        return new InitMeta(this);
+        return new InitMeta();
     }
 
     @Override

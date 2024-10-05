@@ -7,7 +7,7 @@ import com.hayden.test_graph.graph.SubGraph;
 import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.meta.graph.MetaGraph;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.MapFunctions;
 import com.hayden.utilitymodule.proxies.ProxyUtil;
 import com.hayden.utilitymodule.sort.GraphSort;
@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 
 @Component
 @Slf4j
-@ThreadScope
+@ResettableThread
 public class MetaGraphDelegate {
 
     private Map<Class<? extends TestGraphNode>, TestGraphNode> graphNodes;
@@ -38,7 +38,7 @@ public class MetaGraphDelegate {
     private Map<Class<? extends HyperGraphExec>, HyperGraphExec> hyperGraphExec;
 
     @Autowired
-    @ThreadScope
+    @ResettableThread
     private List<? extends SubGraph> subGraphs;
 
     private MetaGraph metaGraph;
@@ -47,7 +47,7 @@ public class MetaGraphDelegate {
     private TestGraphSort graphSort;
 
     @Autowired
-    @ThreadScope
+    @ResettableThread
     public void setMetaGraph(MetaGraph metaGraph) {
         this.metaGraph = metaGraph;
         this.hyperGraphExec = MapFunctions.CollectMap(
@@ -64,21 +64,21 @@ public class MetaGraphDelegate {
     }
 
     @Autowired
-    @ThreadScope
+    @ResettableThread
     @Lazy
     public void setGraphs(List<Graph> graphNodes) {
         initializeMapNotProxy(graphNodes, c -> this.graphs = c);
     }
 
     @Autowired
-    @ThreadScope
+    @ResettableThread
     @Lazy
     public void setNodes(List<TestGraphNode> graphNodes) {
         initializeMapNotProxy(graphNodes, c -> this.graphNodes = c);
     }
 
     @Autowired
-    @ThreadScope
+    @ResettableThread
     @Lazy
     public void setGraphContext(List<TestGraphContext> graphCtx) {
         initializeMapNotProxy(graphCtx, c -> this.graphCtxt = c);
@@ -118,9 +118,6 @@ public class MetaGraphDelegate {
                         }));
 
         return getSortedBubbles(matching)
-                .peek(tgc -> {
-                    System.out.printf("");
-                })
                 .map(TestGraphContext::getClass);
     }
 

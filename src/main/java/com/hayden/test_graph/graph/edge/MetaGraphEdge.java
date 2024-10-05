@@ -3,5 +3,5 @@ package com.hayden.test_graph.graph.edge;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 
-public interface HyperGraphEdge<T extends HyperGraphContext, U extends MetaCtx> extends GraphEdge<T, U> {
+public interface MetaGraphEdge<T extends HyperGraphContext<U>, U extends MetaCtx> extends GraphEdge<U, T> {
 }

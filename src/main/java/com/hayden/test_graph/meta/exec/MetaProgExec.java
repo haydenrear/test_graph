@@ -8,21 +8,19 @@ import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.ctx.MetaProgCtx;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
 
 @Component
-@ThreadScope
+@ResettableThread
 public class MetaProgExec implements ProgExec {
 
     @Autowired
-    @ThreadScope
+    @ResettableThread
     private MetaProgCtx metaProgCtx;
 
     @Autowired
@@ -57,14 +55,19 @@ public class MetaProgExec implements ProgExec {
     public MetaCtx exec(Class<? extends TestGraphContext> ctx, MetaCtx metaCtx) {
         for (var hgNode : lazyMetaGraphDelegate.retrieveHyperGraphDependencyGraph(ctx)) {
             MetaCtx finalMetaCtx = metaCtx;
-            metaCtx = lazyMetaGraphDelegate.retrieveContextsToRun(hgNode, ctx)
+            lazyMetaGraphDelegate.retrieveContextsToRun(hgNode, ctx)
                     .map(c -> {
-                        var n = graphEdges.addEdge(hgNode, finalMetaCtx);
-                        return (MetaCtx) n.exec(c, finalMetaCtx);
+                        var n = graphEdges.preExecHgExecEdges(hgNode, finalMetaCtx);
+                        var ctxCreated = (MetaCtx) n.exec(c, finalMetaCtx);
+                        return graphEdges.postExecMetaCtxEdges(ctxCreated, finalMetaCtx);
                     })
-                    .toList()
-                    .stream().findAny()
-                    .orElse(metaCtx);
+                    .forEach(mc -> {
+                        if (metaCtx instanceof MetaProgCtx m) {
+                            m.push(mc);
+                        }
+                    });
+
+            return finalMetaCtx;
         }
 
         return metaCtx;
@@ -72,15 +75,8 @@ public class MetaProgExec implements ProgExec {
 
     @Override
     public MetaCtx exec(Class<? extends TestGraphContext> ctx) {
-        if (!metaProgCtx.isEmpty()) {
-            var prev = metaProgCtx.peek();
-            var metaCtx = exec(ctx, prev);
-            metaProgCtx.push(metaCtx);
-            return metaCtx;
-        }
-
-        var n = exec(ctx, null);
-        metaProgCtx.push(n);
+        var n = exec(ctx, metaProgCtx);
         return n;
     }
+
 }

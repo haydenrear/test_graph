@@ -5,9 +5,8 @@ import com.hayden.test_graph.assert_g.ctx.AssertCtx;
 import com.hayden.test_graph.assert_g.graph.AssertGraph;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.edge.GraphEdges;
-import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
-import com.hayden.test_graph.thread.ThreadScope;
+import com.hayden.test_graph.thread.ResettableThread;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,7 +19,7 @@ import java.util.function.BiFunction;
 
 @Component
 @RequiredArgsConstructor
-@ThreadScope
+@ResettableThread
 public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
 
     public interface InitReducer extends GraphExecReducer<AssertCtx, AssertBubble> {}
@@ -39,7 +38,7 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
     GraphEdges graphEdges;
 
     @Autowired
-    @ThreadScope
+    @ResettableThread
     AssertGraph initGraph;
 
     @Override
@@ -59,8 +58,8 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
 
     private AssertExec retrieveToExec(AssertCtx initCtx, AssertBubble prev, MetaCtx metaCtx) {
         return Optional.ofNullable(prev)
-                .map(ib -> graphEdges.addEdge(this, initCtx, ib, metaCtx))
-                .orElseGet(() -> graphEdges.addEdge(this, initCtx, metaCtx));
+                .map(ib -> graphEdges.edges(this, initCtx, ib, metaCtx))
+                .orElseGet(() -> graphEdges.edges(this, initCtx, metaCtx));
     }
 
     @Override
@@ -85,7 +84,11 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
 
     @Override
     public AssertBubble collectCtx(Class<? extends AssertCtx> toCollect, MetaCtx metaCtx) {
-        List<? extends AssertCtx> intCtx = this.initGraph.sortedCtx(toCollect);
+        List<? extends AssertCtx> intCtx = this.initGraph.sortedCtx(toCollect)
+                .stream()
+                .map(ac -> this.graphEdges.preExecTestGraphEdges(ac, metaCtx))
+                .toList();
+
         if (intCtx.isEmpty()) {
             logBubbleError();
             return null;
