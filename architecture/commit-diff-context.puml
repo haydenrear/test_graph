@@ -1,0 +1,14 @@
+@startuml
+
+component Gateway
+component AuthorizationServer
+component Cache
+component ModelServer
+component CommitDiffContext
+component ContinuePlugin
+component OpenSearch
+component OtelCollector
+component NodeExporter
+component PrometheusExporter
+
+@enduml
