@@ -3,6 +3,7 @@ package com.hayden.test_graph.init.docker.ctx;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitCtx;
+import com.hayden.test_graph.init.docker.exec.DockerInitNode;
 import com.hayden.test_graph.init.docker.exec.StartDockerNode;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +48,7 @@ public class DockerInitCtx implements InitCtx {
 
     @Override
     public boolean executableFor(GraphExec.GraphExecNode n) {
-        return n instanceof StartDockerNode;
+        return n instanceof DockerInitNode;
     }
 
     public ContextValue<File> composePath() {

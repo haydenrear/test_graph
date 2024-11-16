@@ -1,6 +1,6 @@
-package com.hayden.test_graph.commit_diff_context.init.ctx;
+package com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx;
 
-import com.hayden.test_graph.commit_diff_context.init.CommitDiffInitNode;
+import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.CommitDiffInitNode;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;

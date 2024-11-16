@@ -2,7 +2,7 @@ package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpCtx;
-import com.hayden.test_graph.commit_diff_context.init.ctx.CommitDiffInit;
+import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.steps.AssertStep;
 import com.hayden.test_graph.steps.InitStep;

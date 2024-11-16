@@ -10,7 +10,7 @@ public class ExposeCompose {
 
 
     public ExposeCompose(File workingDirectory, DockerComposeFile dockerComposeFile, Set<String> profiles, String host) {
-        this.defaultDockerCompose = new DefaultDockerCompose(new DockerCli(workingDirectory, dockerComposeFile, profiles), host);
+//        this.defaultDockerCompose = new DefaultDockerCompose(new DockerCli(workingDirectory, dockerComposeFile, profiles), host);
     }
 
     @Delegate

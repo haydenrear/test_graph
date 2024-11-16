@@ -1,7 +1,7 @@
-package com.hayden.test_graph.commit_diff_context.init;
+package com.hayden.test_graph.commit_diff_context.init.commit_diff_init;
 
 import com.hayden.test_graph.action.Idempotent;
-import com.hayden.test_graph.commit_diff_context.init.ctx.CommitDiffInit;
+import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,9 +1,8 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.hayden.test_graph.assertions.Assertions;
-import com.hayden.test_graph.commit_diff_context.assert_nodes.CommitDiffAssert;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.codegen.Codegen;
-import com.hayden.test_graph.commit_diff_context.init.ctx.CommitDiffInit;
+import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.steps.AssertStep;
@@ -11,12 +10,9 @@ import com.hayden.test_graph.steps.InitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
 import io.cucumber.java.en.And;
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.File;
 
 public class BlameNodeStepDefs implements ResettableStep {
 

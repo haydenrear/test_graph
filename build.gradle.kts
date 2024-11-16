@@ -24,6 +24,8 @@ dependencies {
     implementation("io.cucumber:cucumber-junit:7.18.1")
     implementation("io.cucumber:cucumber-junit-platform-engine:7.18.1")
     implementation("org.assertj:assertj-core:3.26.3")
+    implementation("org.mbtest.javabank:javabank-client:0.4.10")
+    implementation("org.mbtest.javabank:javabank-core:0.4.10")
 }
 
 tasks.compileJava {
@@ -45,10 +47,12 @@ tasks.generateJava {
     )
 }
 
-
 tasks.named("generateJava").configure { dependsOn("copyGraphQlSchema") }
 tasks.named("processResources").configure { dependsOn("copyGraphQlSchema") }
 
+tasks.register("printStop") {
+    println("Stopping mountebank!")
+}
 
 tasks.acquireMountebank {
     println("Getting mountebank!")
@@ -59,14 +63,15 @@ tasks.startMountebank {
 }
 
 tasks.stopMountebank {
-    println("Stopping mountebank!")
+//    dependsOn("test")
+    finalizedBy(tasks.getAt("printStop"))
+    mustRunAfter(tasks.test, tasks.startMountebank)
 }
 
 tasks.test {
+    dependsOn(tasks.acquireMountebank, tasks.startMountebank)
     useJUnitPlatform()
-    dependsOn("acquireMountebank", "startMountebank")
+    finalizedBy(tasks.stopMountebank)
 }
 
-tasks.stopMountebank {
-    dependsOn("test")
-}
+

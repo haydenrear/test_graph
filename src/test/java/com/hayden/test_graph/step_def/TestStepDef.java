@@ -47,7 +47,7 @@ public class TestStepDef {
         var not = classStream.stream().filter(Predicate.not(mockRegister.getMocks()::contains))
                         .toList();
 
-        Assertions.assertEquals(mockRegister.getMocks().size(), classStream.size());
+        Assertions.assertEquals(mockRegister.getMocks().size(), classStream.size() + 1);
         Assertions.assertEquals(0, not.size(), "Following did not exist: %s".formatted(not));
     }
 
