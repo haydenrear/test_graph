@@ -4,12 +4,14 @@ plugins {
     id("com.hayden.observable-app")
     id("com.hayden.no-main-class")
     id("com.hayden.git")
-    id("com.hayden.graphql")
+    id("com.hayden.dgs-graphql")
     id("com.hayden.docker-compose")
+    id("org.ndrwdn.mountebank") version "0.0.6"
 }
 
 group = "com.hayden"
 version = "1.0.0"
+
 
 
 dependencies {
@@ -27,4 +29,43 @@ dependencies {
 tasks.compileJava {
     dependsOn("copyPromAgent")
 //     java -javaagent:commit-diff-context/build/agent/prometheus-javaagent.jar=12345:commit-diff-context/prom-config.yaml -jar ?.jar
+}
+
+tasks.register<Copy>("copyGraphQlSchema") {
+    from(project.rootDir.toPath().resolve("commit-diff-context/src/main/resources/schema"))
+    into(projectDir.resolve("src/main/resources/schema"))
+}
+
+tasks.generateJava {
+    schemaPaths.add("${projectDir}/src/main/resources/schema")
+    packageName = "com.hayden.test_graph.codegen"
+    generateClient = true
+    typeMapping = mutableMapOf(
+        Pair("ByteArray", "com.hayden.test_graph.config.ByteArray")
+    )
+}
+
+tasks.named("generateJava").configure { dependsOn("copyGraphQlSchema") }
+tasks.named("processResources").configure { dependsOn("copyGraphQlSchema") }
+
+
+tasks.acquireMountebank {
+    println("Getting mountebank!")
+}
+
+tasks.startMountebank {
+    println("Starting mountebank!")
+}
+
+tasks.stopMountebank {
+    println("Stopping mountebank!")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    dependsOn("acquireMountebank", "startMountebank")
+}
+
+tasks.stopMountebank {
+    dependsOn("test")
 }

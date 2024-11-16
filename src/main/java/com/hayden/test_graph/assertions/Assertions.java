@@ -12,4 +12,14 @@ public class Assertions {
     @Delegate
     private final SoftAssertions softAssertions = new SoftAssertions();
 
+    public void assertStrongly(boolean v, String fail){
+        assertStrongly(v, fail, "Assertion with failure message\n%s\nhas passed.".formatted(fail));
+    }
+
+    public void assertStrongly(boolean v, String fail, String success){
+        assertThat(v)
+                .withFailMessage(fail)
+                .isTrue();
+    }
+
 }

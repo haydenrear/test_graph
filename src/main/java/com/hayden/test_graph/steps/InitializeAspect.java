@@ -16,6 +16,8 @@ public class InitializeAspect implements StepAspect {
     @Autowired
     private MetaProgExec metaGraph;
 
+    // TODO: this should probably go on Then steps, a list of them provided also as meta-annotations
+    //      and then perform it only on Then steps to generalize setup across
     @Around("@annotation(initStep)")
     public Object around(ProceedingJoinPoint joinPoint, InitStep initStep) throws Throwable {
         var proceeded =  joinPoint.proceed();

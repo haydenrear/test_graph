@@ -21,7 +21,6 @@ public class AssertAspect implements StepAspect {
         var proceeded =  joinPoint.proceed();
 
         metaGraph.exec(assertStep.value());
-
         return proceeded;
     }
 

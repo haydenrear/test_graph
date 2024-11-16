@@ -3,6 +3,7 @@ package com.hayden.test_graph.graph.node;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
+import com.hayden.utilitymodule.sort.GraphSort;
 
 import java.util.List;
 
@@ -13,10 +14,6 @@ public interface HyperGraphBubbleNode<T extends HyperGraphContext<H>, H extends 
      * @return
      */
     Class<? extends T> clzz();
-
-    default List<Class<? extends HyperGraphBubbleNode<? extends HyperGraphContext<H>, H>>> dependsOnHyperNodes() {
-        return List.of();
-    }
 
     default T preMap(T ctx, MetaCtx metaCtx) {
         return ctx;

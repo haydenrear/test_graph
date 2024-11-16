@@ -45,11 +45,6 @@ public class TestInitBubble implements InitBubble {
     }
 
     @Override
-    public ContextValue<TestGraphContext> child() {
-        return ContextValue.empty();
-    }
-
-    @Override
     public ContextValue<TestGraphContext> parent() {
         return ContextValue.empty();
     }

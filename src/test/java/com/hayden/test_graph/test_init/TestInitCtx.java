@@ -59,18 +59,8 @@ public class TestInitCtx implements InitCtx {
     }
 
     @Override
-    public ContextValue<TestGraphContext> child() {
-        return child;
-    }
-
-    @Override
     public ContextValue<TestGraphContext> parent() {
         return parent;
-    }
-
-    @Override
-    public Optional<Class<? extends TestGraphContext>> childTy() {
-        return Optional.of(TestInitChildCtx.class) ;
     }
 
     @Override

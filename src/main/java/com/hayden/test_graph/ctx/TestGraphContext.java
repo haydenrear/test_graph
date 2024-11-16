@@ -2,16 +2,10 @@ package com.hayden.test_graph.ctx;
 
 import com.google.common.collect.Lists;
 import com.hayden.test_graph.exec.single.GraphExec;
-import com.hayden.test_graph.graph.TestGraph;
-import com.hayden.test_graph.graph.node.GraphNode;
-import com.hayden.test_graph.init.docker.ctx.DockerInitBubbleCtx;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.utilitymodule.sort.GraphSort;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public non-sealed interface TestGraphContext<H extends HyperGraphContext<MetaCtx>>
         extends GraphContext,
@@ -28,13 +22,10 @@ public non-sealed interface TestGraphContext<H extends HyperGraphContext<MetaCtx
         return Optional.empty();
     }
 
-    default Optional<Class<? extends TestGraphContext>> childTy() {
-        return Optional.empty();
-    }
-
     default List<? extends TestGraphContext<H>> parseContextTree() {
         List<? extends TestGraphContext<H>> tree = Lists.newArrayList(this);
-        Optional.ofNullable(parent()).flatMap(p -> p.res().optional()).ifPresent(t -> tree.addAll(t.parseContextTree()));
+        Optional.ofNullable(parent()).flatMap(p -> p.res().optional())
+                .ifPresent(t -> tree.addAll(t.parseContextTree()));
         return tree;
     }
 
@@ -46,5 +37,8 @@ public non-sealed interface TestGraphContext<H extends HyperGraphContext<MetaCtx
         return d.stream().distinct().toList();
     }
 
+    default Collection<ContextValue<?>> requiredDependencies() {
+        return new ArrayList<>() ;
+    }
 
 }

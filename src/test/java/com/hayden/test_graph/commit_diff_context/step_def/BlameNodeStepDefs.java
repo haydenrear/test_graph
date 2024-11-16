@@ -1,7 +1,9 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
-import com.hayden.test_graph.commit_diff_context.ctx.CommitDiffAssert;
-import com.hayden.test_graph.commit_diff_context.ctx.CommitDiffInit;
+import com.hayden.test_graph.assertions.Assertions;
+import com.hayden.test_graph.commit_diff_context.assert_nodes.CommitDiffAssert;
+import com.hayden.test_graph.commit_diff_context.assert_nodes.codegen.Codegen;
+import com.hayden.test_graph.commit_diff_context.init.ctx.CommitDiffInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.steps.AssertStep;
@@ -28,26 +30,18 @@ public class BlameNodeStepDefs implements ResettableStep {
 
     @Autowired
     CommitDiff commitDiff;
+    @Autowired
+    Codegen codegen;
+    @Autowired
+    Assertions assertions;
 
-    @Given("docker-compose is started from {string}")
-    public void docker_compose_started(String composePath) {
-        dockerInitCtx.composePath().set(new File(composePath));
-    }
-
-    @And("there is a repository at the url {string} with branch {string} checked out and next commit message from user {string}")
+    @And("the user requests to get the next commit with commit message {string}")
     @InitStep(CommitDiffInit.class)
-    public void do_set_repo_given(String repoUrl, String branch, String commitMessage) {
-        commitDiffInit.repoData().set(
-                CommitDiffInit.RepositoryData.builder()
-                        .url(repoUrl)
-                        .branchName(branch)
-                        .build()
-        );
+    public void do_set_user_repo_data(String commitMessage) {
         commitDiffInit.userCodeData().set(
                 CommitDiffInit.UserCodeData.builder()
                         .commitMessage(commitMessage)
-                        .build()
-        );
+                        .build());
     }
 
     @When("the user requests to get the next commit")
@@ -56,8 +50,11 @@ public class BlameNodeStepDefs implements ResettableStep {
     }
 
     @Then("the model responds with valid commit that is committed to the repository successfully")
-    @AssertStep(CommitDiffAssert.class)
+    @AssertStep(Codegen.class)
     public void assert_model_response() {
+        // validate that the data exists in the context for any assertion
+        assertions.assertThat(codegen.repoUrl().res().isPresent()).isTrue();
+        assertions.assertThat(codegen.getUserCode().res().isPresent()).isTrue();
     }
 
 }

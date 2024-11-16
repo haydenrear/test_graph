@@ -37,12 +37,12 @@ public interface TestGraph<T extends TestGraphContext<H>, H extends HyperGraphCo
     private static <T extends TestGraphContext<H>, H extends HyperGraphContext<MetaCtx>> void setParentChild(Map.Entry<? extends T, ? extends T> e) {
         var i = e.getKey();
         var j = e.getValue();
-        if (i instanceof HierarchicalContext.HasChildContext c
+        if (i instanceof TestGraphContext c
                 && j instanceof HierarchicalContext.HasParentContext p) {
             if (p.toSet(c)) {
                 p.doSet(c);
             }
-        } else if (j instanceof HierarchicalContext.HasChildContext c
+        } else if (j instanceof TestGraphContext c
                 && i instanceof HierarchicalContext.HasParentContext p) {
             if (p.toSet(c)) {
                 p.doSet(c);
@@ -51,7 +51,7 @@ public interface TestGraph<T extends TestGraphContext<H>, H extends HyperGraphCo
     }
 
     private static <T extends HierarchicalContext> boolean needsChildParent(T value) {
-        return value.child().isEmpty() || value.parent().isEmpty();
+        return value.parent().isEmpty();
     }
 
 }

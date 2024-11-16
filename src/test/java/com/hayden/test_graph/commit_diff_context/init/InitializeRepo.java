@@ -1,7 +1,7 @@
 package com.hayden.test_graph.commit_diff_context.init;
 
 import com.hayden.test_graph.action.Idempotent;
-import com.hayden.test_graph.commit_diff_context.ctx.CommitDiffInit;
+import com.hayden.test_graph.commit_diff_context.init.ctx.CommitDiffInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class InitializeRepo implements CommitDiffInitNode{
+public class InitializeRepo implements CommitDiffInitNode {
 
     @Autowired
     CommitDiff commitDiff;
@@ -21,14 +21,13 @@ public class InitializeRepo implements CommitDiffInitNode{
     public CommitDiffInit exec(CommitDiffInit c, MetaCtx h) {
         // clone repo, add to context
         return c.repoData().res()
+                .filterResult(rd -> rd.branchName() != null && rd.url() != null)
                 .map(rd -> {
                         commitDiff.addCodeBranch(
                                 CommitDiff.AddCodeBranchArgs.builder()
                                         .gitRepoPath(c.repoDataOrThrow().url())
                                         .branchName(c.repoDataOrThrow().branchName())
-                                        .commitMessage(c.userCodeDataOrThrow().commitMessage())
-                                        .build()
-                        );
+                                        .build());
                     return c;
                 })
                 .orElseRes(c);

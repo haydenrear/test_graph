@@ -28,6 +28,7 @@ public class MetaProgCtx implements MetaCtx {
         return delegates.stream()
                 .map(MetaCtx::getBubbled)
                 .filter(Objects::nonNull)
+                .distinct()
                 .filter(b -> b.getClass().equals(clazz))
                 .flatMap(hgc -> {
                     try {

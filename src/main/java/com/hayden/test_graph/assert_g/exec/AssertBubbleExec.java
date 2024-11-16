@@ -4,8 +4,11 @@ import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.assert_g.ctx.AssertBubble;
 import com.hayden.test_graph.assert_g.ctx.AssertCtx;
 import com.hayden.test_graph.assert_g.graph.AssertBubbleGraph;
+import com.hayden.test_graph.ctx.HyperGraphContext;
+import com.hayden.test_graph.data_dep.exec.DataDepBubbleExec;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.graph.edge.EdgeExec;
+import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
 import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
@@ -96,10 +99,9 @@ public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble,
     }
 
     @Override
-    public List<Class<? extends TestGraphNode<AssertBubble, MetaCtx>>> dependsOn() {
+    public List<Class<? extends HyperGraphBubbleNode<? extends HyperGraphContext<MetaCtx>, MetaCtx>>> dependsOn() {
         return List.of();
     }
-
 
     @Override
     public AssertBubble exec(AssertBubble c, MetaCtx metaCtx) {

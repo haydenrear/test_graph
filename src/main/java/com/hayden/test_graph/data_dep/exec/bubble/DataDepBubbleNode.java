@@ -12,8 +12,9 @@ import java.util.List;
 public interface DataDepBubbleNode<D extends DataDepBubble> extends HyperGraphTestNode<D, MetaCtx> {
 
     @Override
-    default List<Class<? extends HyperGraphBubbleNode<? extends HyperGraphContext<MetaCtx>, MetaCtx>>> dependsOnHyperNodes() {
-        return List.of(InitBubbleNode.class);
+    default List<Class<? extends HyperGraphBubbleNode<? extends HyperGraphContext, MetaCtx>>> dependsOn() {
+//        return List.of(InitBubbleNode.class); // TODO: how autoconfigured should this be ??? any then should? Then > Given > When and anything < Then idempotent on anything < Then ???
+        return List.of();
     }
 
 }

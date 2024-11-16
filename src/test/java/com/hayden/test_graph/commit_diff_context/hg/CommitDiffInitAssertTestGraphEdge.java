@@ -1,25 +1,23 @@
 package com.hayden.test_graph.commit_diff_context.hg;
 
 import com.hayden.test_graph.assert_g.ctx.AssertBubble;
-import com.hayden.test_graph.commit_diff_context.ctx.CommitDiffAssert;
-import com.hayden.test_graph.commit_diff_context.ctx.CommitDiffInitBubble;
+import com.hayden.test_graph.commit_diff_context.assert_nodes.CommitDiffAssert;
+import com.hayden.test_graph.commit_diff_context.assert_nodes.parent.CommitDiffAssertParentCtx;
+import com.hayden.test_graph.commit_diff_context.init.ctx.CommitDiffInitBubble;
 import com.hayden.test_graph.graph.edge.PreExecTestGraphEdge;
-import com.hayden.test_graph.graph.edge.TestGraphEdge;
-import com.hayden.test_graph.init.ctx.InitMeta;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.ctx.MetaProgCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import org.springframework.stereotype.Component;
 
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 @Component
 @ResettableThread
-public class CommitDiffInitAssertTestGraphEdge implements PreExecTestGraphEdge<CommitDiffAssert, AssertBubble> {
+public class CommitDiffInitAssertTestGraphEdge implements PreExecTestGraphEdge<CommitDiffAssertParentCtx, AssertBubble> {
 
     @Override
-    public CommitDiffAssert edge(CommitDiffAssert first, MetaCtx s) {
+    public CommitDiffAssertParentCtx edge(CommitDiffAssertParentCtx first, MetaCtx s) {
         if (s instanceof MetaProgCtx second) {
             var i = second.retrieveBubbled(CommitDiffInitBubble.class)
                     .toList();
@@ -37,7 +35,7 @@ public class CommitDiffInitAssertTestGraphEdge implements PreExecTestGraphEdge<C
 
     @Override
     public Predicate<? super Object> from() {
-        return  c -> c instanceof CommitDiffAssert;
+        return  c -> c instanceof CommitDiffAssertParentCtx;
     }
 
     @Override

@@ -54,22 +54,8 @@ public class TestInitParentCtx implements InitCtx {
     }
 
     @Override
-    public ContextValue<TestGraphContext> child() {
-        return child;
-    }
-
-    @Override
-    public ContextValue<TestGraphContext> parent() {
-        return ContextValue.empty();
-    }
-
-    @Override
     public List<Class<? extends TestGraphContext<InitBubble>>> dependsOn() {
         return List.of();
     }
 
-    @Override
-    public Optional<Class<? extends TestGraphContext>> childTy() {
-        return Optional.of(TestInitCtx.class);
-    }
 }

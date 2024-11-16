@@ -1,12 +1,16 @@
 package com.hayden.test_graph.graph;
 
+import com.hayden.test_graph.ctx.HierarchicalContext;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
+import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.test_graph.thread.ResettableThreadLike;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -21,13 +25,18 @@ import java.util.Optional;
  * @param <H>
  */
 @RequiredArgsConstructor
-public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext<MetaCtx>> implements Graph, ApplicationContextAware {
+public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext<MetaCtx>>
+        implements Graph, ApplicationContextAware, ResettableThreadLike {
 
-    private final T t;
+    @Setter
+    private T t;
 
-    private final TestGraphSort graphSort;
 
     private ApplicationContext ctx;
+
+    public SubGraph(T t) {
+        this.t = t;
+    }
 
     public Class<? extends T> clazz() {
         return (Class<? extends T>) t.getClass();
@@ -48,38 +57,36 @@ public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext
         return null;
     }
 
-    private static Optional<TestGraphContext> setParentChild(ApplicationContext beanFactory,
-                                                             TestGraphContext i,
-                                                             TestGraphContext prev) {
+    private static Optional<TestGraphContext> setParent(ApplicationContext beanFactory,
+                                                        TestGraphContext i) {
         beanFactory.getAutowireCapableBeanFactory().autowireBean(i);
-        i.childTy().ifPresentOrElse(
-                p -> {
-                    Assert.isTrue(p == prev.getClass(), "Previous parent must be equal to child for %s, %s."
-                            .formatted(p, prev.getClass()));
-                    i.child().set(prev);
-                },
-                () -> Assert.isNull(prev, "Child must be null if doesn't have parent for %s.".formatted(i.getClass()))
-        );
         return i.parentTy()
                 .map(p -> {
-                    var tgc = beanFactory.getBean((Class<? extends TestGraphContext>) p);
+                    TestGraphContext tgc = beanFactory.getBean((Class<? extends TestGraphContext>) p);
                     beanFactory.getAutowireCapableBeanFactory().autowireBean(tgc);
-                    Assert.isTrue(tgc.childTy().isPresent() && tgc.childTy().get().equals(i.getClass()),
+                    Assert.isTrue(i.parentTy().isPresent() && i.parentTy().get().equals(tgc.getClass()),
                             "Child type and parent type must be compatible for %s.".formatted(tgc.getClass().getName()));
-                    i.parent().set(tgc);
+                    i.doSet(tgc);
                     return tgc;
                 });
     }
 
     @PostConstruct
-    public void setParentChild() {
+    public void setParent() {
+        // have to do this because of resettable ThreadScope
+        this.preReset();
         Optional<TestGraphContext> next = Optional.ofNullable(this.t);
         TestGraphContext prev = null;
         while (next.isPresent()) {
             var nextValue = next.get();
-            next = setParentChild(ctx, next.get(), prev);
+            next = setParent(ctx, next.get());
             prev = nextValue;
         }
+    }
+
+    @Override
+    public void preReset() {
+        this.t = ctx.getBean(this.clazz());
     }
 
     @Override

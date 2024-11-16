@@ -122,8 +122,4 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
         return c;
     }
 
-    @Override
-    public List<Class<? extends HyperGraphBubbleNode<? extends HyperGraphContext<MetaCtx>, MetaCtx>>> dependsOnHyperNodes() {
-        return List.of(InitBubbleExec.class);
-    }
 }

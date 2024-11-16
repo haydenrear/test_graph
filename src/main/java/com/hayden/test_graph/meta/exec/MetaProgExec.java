@@ -1,5 +1,6 @@
 package com.hayden.test_graph.meta.exec;
 
+import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
@@ -55,6 +56,7 @@ public class MetaProgExec implements ProgExec {
 
     @Override
     public MetaCtx exec(Class<? extends TestGraphContext> ctx, MetaCtx metaCtx) {
+//        assertDeps(ctx);
         for (var hgNode : lazyMetaGraphDelegate.retrieveHyperGraphDependencyGraph(ctx)) {
             MetaCtx finalMetaCtx = metaCtx;
             lazyMetaGraphDelegate.retrieveContextsToRun(hgNode, ctx)
@@ -74,6 +76,16 @@ public class MetaProgExec implements ProgExec {
         }
 
         return metaCtx;
+    }
+
+    /**
+     * For false negatives
+     * @param ctx
+     */
+    private void assertDeps(Class<? extends TestGraphContext> ctx) {
+        var c = lazyMetaGraphDelegate.getGraphContext(ctx);
+        assert c.isPresent();
+        assert c.get().requiredDependencies().stream().allMatch(contextValue ->((ContextValue) contextValue).isPresent());
     }
 
     @Override

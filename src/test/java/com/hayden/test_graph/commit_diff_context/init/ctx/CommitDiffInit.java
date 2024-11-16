@@ -1,4 +1,4 @@
-package com.hayden.test_graph.commit_diff_context.ctx;
+package com.hayden.test_graph.commit_diff_context.init.ctx;
 
 import com.hayden.test_graph.commit_diff_context.init.CommitDiffInitNode;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
@@ -12,18 +12,24 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.nio.file.Path;
 
 @Component
 @ResettableThread
 @RequiredArgsConstructor
 public final class CommitDiffInit implements InitCtx {
+
     private final ContextValue<UserCodeData> userCodeData;
     private final ContextValue<BubbleData> bubbleDataContextValue;
     private final ContextValue<CommitDiffInitBubble> bubbleUnderlying;
+    private final ContextValue<GraphQlQueries> queries;
+
+    @Builder
+    public record GraphQlQueries(File addRepo) {}
 
     public CommitDiffInit() {
-        this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty());
+        this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty());
     }
 
     @Autowired
@@ -37,16 +43,17 @@ public final class CommitDiffInit implements InitCtx {
     }
 
     @Builder
-    public record UserCodeData(
-            String commitMessage) {
-    }
+    public record UserCodeData(String commitMessage) { }
 
     @Builder
-    public record BubbleData(Path clonedTo) {
-    }
+    public record BubbleData(Path clonedTo) { }
 
     public ContextValue<RepositoryData> repoData() {
         return bubbleUnderlying.res().get().repositoryData();
+    }
+
+    public ContextValue<GraphQlQueries> graphQlQueries() {
+        return queries;
     }
 
     public CommitDiff.CommitRequestArgs toCommitRequestArgs() {

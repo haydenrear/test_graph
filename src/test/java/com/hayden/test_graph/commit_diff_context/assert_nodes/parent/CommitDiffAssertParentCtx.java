@@ -1,11 +1,14 @@
-package com.hayden.test_graph.commit_diff_context.ctx;
+package com.hayden.test_graph.commit_diff_context.assert_nodes.parent;
 
 import com.hayden.test_graph.assert_g.ctx.AssertBubble;
-import com.hayden.test_graph.assert_g.ctx.AssertCtx;
+import com.hayden.test_graph.commit_diff_context.assert_nodes.CommitDiffAssert;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.CommitDiffAssertNode;
+import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpBubble;
+import com.hayden.test_graph.commit_diff_context.init.ctx.CommitDiffInit;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.thread.ResettableThread;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -14,33 +17,37 @@ import org.springframework.stereotype.Component;
 @Component
 @ResettableThread
 @RequiredArgsConstructor
-public class CommitDiffAssert implements AssertCtx {
-    private final ContextValue<CommitDiffInit.RepositoryData> repoUrl;
+@Getter
+public class CommitDiffAssertParentCtx implements CommitDiffAssert {
 
-    private CommitDiffAssertBubble commitDiffAssertBubble;
+    private final ContextValue<CommitDiffInit.RepositoryData> repoUrl;
+    private final ContextValue<CommitDiffInit.GraphQlQueries> graphQlQueries;
+
+    private RepoOpBubble commitDiffAssertBubble;
+
 
     @Autowired
-    public void setCommitDiffAssertBubble(CommitDiffAssertBubble commitDiffAssertBubble) {
+    public void setRepoOpBubble(RepoOpBubble commitDiffAssertBubble) {
         this.commitDiffAssertBubble = commitDiffAssertBubble;
     }
 
-    public CommitDiffAssert() {
-        this(ContextValue.empty());
+    public CommitDiffAssertParentCtx() {
+        this(ContextValue.empty(), ContextValue.empty());
     }
 
     @Override
-    public CommitDiffAssertBubble bubble() {
+    public RepoOpBubble bubble() {
         return commitDiffAssertBubble;
     }
 
     @Override
     public Class<? extends AssertBubble> bubbleClazz() {
-        return CommitDiffAssertBubble.class;
+        return RepoOpBubble.class;
     }
 
     @Override
     public boolean executableFor(GraphExec.GraphExecNode n) {
-        return n instanceof CommitDiffAssertNode;
+        return n instanceof CommitDiffAssertParentCtx;
     }
 
     public ContextValue<CommitDiffInit.RepositoryData> repoUrl() {

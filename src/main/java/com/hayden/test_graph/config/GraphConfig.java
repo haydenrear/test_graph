@@ -3,6 +3,7 @@ package com.hayden.test_graph.config;
 import com.hayden.test_graph.ctx.HierarchicalContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.graph.SubGraph;
+import com.hayden.test_graph.thread.ResettableThread;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +23,7 @@ public class GraphConfig {
 
     @Bean
     BeanFactoryPostProcessor buildInitSubGraphs(
-            List<? extends TestGraphContext> initContexts
+            @ResettableThread List<? extends TestGraphContext> initContexts
     ) {
         return beanFactory -> {
             if (beanFactory instanceof BeanDefinitionRegistry registry) {

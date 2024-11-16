@@ -12,4 +12,5 @@ import com.hayden.test_graph.meta.ctx.MetaCtx;
 public interface AssertBubbleNode extends HyperGraphTestNode<AssertBubble, MetaCtx> {
 
 
+
 }

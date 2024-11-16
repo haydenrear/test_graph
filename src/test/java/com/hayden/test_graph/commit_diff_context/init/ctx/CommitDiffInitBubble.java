@@ -1,4 +1,4 @@
-package com.hayden.test_graph.commit_diff_context.ctx;
+package com.hayden.test_graph.commit_diff_context.init.ctx;
 
 import com.hayden.test_graph.commit_diff_context.init.CommitDiffInitBubbleNode;
 import com.hayden.test_graph.ctx.ContextValue;
