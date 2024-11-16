@@ -45,6 +45,7 @@ tasks.generateJava {
     )
 }
 
+
 tasks.named("generateJava").configure { dependsOn("copyGraphQlSchema") }
 tasks.named("processResources").configure { dependsOn("copyGraphQlSchema") }
 
