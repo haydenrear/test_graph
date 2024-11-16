@@ -9,17 +9,22 @@ import org.mbtest.javabank.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+// TODO: add edge and data so it sets data to call imposters
 @Component
 @ResettableThread
 @RequiredArgsConstructor
 public class CdMbInitCtx implements MbInitCtx {
 
+    public record AiClientResponses() {}
+
     Client client;
 
     private final ContextValue<CdMbInitBubbleCtx> bubbleUnderlying;
 
+    private final ContextValue<AiClientResponses> aiClientResponses;
+
     public CdMbInitCtx() {
-        this(ContextValue.empty());
+        this(ContextValue.empty(), ContextValue.empty());
     }
 
     @Autowired

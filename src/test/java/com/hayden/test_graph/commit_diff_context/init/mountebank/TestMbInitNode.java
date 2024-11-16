@@ -1,7 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.init.mountebank;
 
 import com.hayden.test_graph.init.mountebank.ctx.MbInitCtx;
-import com.hayden.test_graph.init.mountebank.exec.MbInitNode;
 import com.hayden.test_graph.thread.ResettableThread;
 import org.mbtest.javabank.http.core.Stub;
 import org.mbtest.javabank.http.imposters.Imposter;
@@ -20,7 +19,7 @@ import java.util.stream.Stream;
 @Profile("mb")
 public class TestMbInitNode implements CdMbInitNode {
     @Override
-    public Stream<Imposter> createGetImposters(MbInitCtx ctx) {
+    public Stream<Imposter> createGetImposters(CdMbInitCtx ctx) {
         Stub stub = new Stub();
         Predicate e1 = new Predicate(PredicateType.EQUALS);
         e1.withPath("/hello");
@@ -32,10 +31,8 @@ public class TestMbInitNode implements CdMbInitNode {
     }
 
     @Override
-    public Class<? extends MbInitCtx> clzz() {
+    public Class<CdMbInitCtx> clzz() {
         return CdMbInitCtx.class;
     }
-
-
 
 }

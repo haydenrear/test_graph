@@ -3,6 +3,7 @@ package com.hayden.test_graph.commit_diff_context.step_def;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.codegen.Codegen;
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
+import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.steps.AssertStep;
@@ -18,7 +19,7 @@ public class BlameNodeStepDefs implements ResettableStep {
 
     @Autowired
     @ResettableThread
-    CommitDiffInit commitDiffInit;
+    RepoOpInit commitDiffInit;
 
     @Autowired
     @ResettableThread
@@ -32,12 +33,20 @@ public class BlameNodeStepDefs implements ResettableStep {
     Assertions assertions;
 
     @And("the user requests to get the next commit with commit message {string}")
-    @InitStep(CommitDiffInit.class)
     public void do_set_user_repo_data(String commitMessage) {
         commitDiffInit.userCodeData().set(
-                CommitDiffInit.UserCodeData.builder()
+                RepoOpInit.UserCodeData.builder()
                         .commitMessage(commitMessage)
                         .build());
+    }
+
+    @Then("the initial data is added for commit diff context blame node")
+    @InitStep(CommitDiffInit.class) // TODO: can probably be replaced by first Then - annotating all Then then
+    public void initial_commit_diff_context_blame_node() {
+    }
+
+    @When("the embeddings are added to the database for the repo by calling commit diff context")
+    public void add_embeddings_to_database_for_commit_diff_context() {
     }
 
     @When("the user requests to get the next commit")
@@ -53,4 +62,19 @@ public class BlameNodeStepDefs implements ResettableStep {
         assertions.assertThat(codegen.getUserCode().res().isPresent()).isTrue();
     }
 
+    @And("the initial code response is loaded from {string}")
+    public void initial_code_response(String initialCodeResponseFile) {
+    }
+
+    @And("the embeddings response for the initial code response is loaded from {string}")
+    public void initial_code_embeddings_response(String embeddingsResponseFile) {
+    }
+
+    @And("the embeddings responses for the branch are loaded from {string}")
+    public void load_embeddings_response_for_branch(String branchEmbeddingsResponse) {
+    }
+
+    @And("the AI code tree response is loaded from {string}")
+    public void load_ai_code_tree_response(String aiCodeTreeResponse) {
+    }
 }

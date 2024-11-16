@@ -1,8 +1,9 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.hayden.test_graph.assertions.Assertions;
-import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpCtx;
+import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
+import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.steps.AssertStep;
 import com.hayden.test_graph.steps.InitStep;
@@ -19,7 +20,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
 
     @Autowired
     @ResettableThread
-    CommitDiffInit commitDiffInit;
+    RepoOpInit commitDiffInit;
 
     @Autowired
     @ResettableThread
@@ -27,7 +28,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
 
     @Autowired
     @ResettableThread
-    RepoOpCtx commitDiffAssert;
+    RepoOpAssertCtx commitDiffAssert;
 
     @Autowired
     @ResettableThread
@@ -36,7 +37,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
     @And("there is a repository at the url {string}")
     public void do_set_repo_given(String repoUrl) {
         commitDiffInit.repoData().set(
-                CommitDiffInit.RepositoryData.builder()
+                RepoOpInit.RepositoryData.builder()
                         .url(repoUrl)
                         .build());
     }
@@ -49,14 +50,14 @@ public class RepoOperationsStepDefs implements ResettableStep {
             assertions.assertStrongly(false, "Repository did not exist.");
 
         commitDiffInit.graphQlQueries().set(
-                CommitDiffInit.GraphQlQueries.builder().addRepo(repoFile).build());
+                RepoOpInit.GraphQlQueries.builder().addRepo(repoFile).build());
     }
 
     @And("a branch should be added {string}")
     public void do_set_branch_to_add(String arg0) {
         var r = commitDiffInit.repoDataOrThrow();
         commitDiffInit.repoData().set(
-                CommitDiffInit.RepositoryData.builder()
+                RepoOpInit.RepositoryData.builder()
                         .url(r.url())
                         .branchName(arg0)
                         .build());
@@ -70,11 +71,11 @@ public class RepoOperationsStepDefs implements ResettableStep {
     @Then("a branch with name {string} will be added to the database")
     public void validate_branch_added(String branchAdded) {
         commitDiffAssert.getRepositoryAssertionDescriptor()
-                .set(new RepoOpCtx.RepoOpAssertionDescriptor(branchAdded));
+                .set(new RepoOpAssertCtx.RepoOpAssertionDescriptor(branchAdded));
     }
 
     @And("all repository operations are validated")
-    @AssertStep(RepoOpCtx.class)
+    @AssertStep(RepoOpAssertCtx.class)
     public void validate_repo_operations() {
     }
 }

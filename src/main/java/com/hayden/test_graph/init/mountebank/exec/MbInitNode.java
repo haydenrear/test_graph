@@ -10,12 +10,12 @@ import org.mbtest.javabank.http.imposters.Imposter;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public interface MbInitNode extends InitNode<MbInitCtx> {
+public interface MbInitNode<T extends MbInitCtx> extends InitNode<T> {
 
-    Stream<Imposter> createGetImposters(MbInitCtx ctx);
+    Stream<Imposter> createGetImposters(T ctx);
 
     @Override
-    default MbInitCtx exec(MbInitCtx c, MetaCtx h) {
+    default T exec(T c, MetaCtx h) {
         createGetImposters(c)
                 .forEach(imposterCreated -> {
                     try {
@@ -34,13 +34,13 @@ public interface MbInitNode extends InitNode<MbInitCtx> {
         return c;
     }
 
-    private static void createDeleteImposter(MbInitCtx c, Imposter imposterCreated) {
+    private static void createDeleteImposter(T c, Imposter imposterCreated) {
         log.info("{}", c.client().deleteImposter(imposterCreated.getPort()));
         log.info("{}", c.client().createImposter(imposterCreated));
     }
 
     @Override
-    default MbInitCtx exec(MbInitCtx c, InitBubble hgCtx, MetaCtx h) {
+    default T exec(T c, InitBubble hgCtx, MetaCtx h) {
         return exec(c, h) ;
     }
 

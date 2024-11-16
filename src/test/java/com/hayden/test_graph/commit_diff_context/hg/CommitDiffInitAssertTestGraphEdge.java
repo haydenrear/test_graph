@@ -3,6 +3,7 @@ package com.hayden.test_graph.commit_diff_context.hg;
 import com.hayden.test_graph.assert_g.ctx.AssertBubble;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.parent.CommitDiffAssertParentCtx;
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInitBubble;
+import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpBubble;
 import com.hayden.test_graph.graph.edge.PreExecTestGraphEdge;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.ctx.MetaProgCtx;
@@ -18,7 +19,7 @@ public class CommitDiffInitAssertTestGraphEdge implements PreExecTestGraphEdge<C
     @Override
     public CommitDiffAssertParentCtx edge(CommitDiffAssertParentCtx first, MetaCtx s) {
         if (s instanceof MetaProgCtx second) {
-            var i = second.retrieveBubbled(CommitDiffInitBubble.class)
+            var i = second.retrieveBubbled(RepoOpBubble.class)
                     .toList();
 
             if (i.size() != 1)  {

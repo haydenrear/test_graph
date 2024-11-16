@@ -4,6 +4,7 @@ import com.hayden.test_graph.assert_g.ctx.AssertBubble;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.CommitDiffAssert;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.parent.CommitDiffAssertParentCtx;
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
+import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
@@ -22,7 +23,7 @@ import java.util.Optional;
 @Getter
 public class Codegen implements CommitDiffAssert {
 
-    private final ContextValue<CommitDiffInit.UserCodeData> userCode;
+    private final ContextValue<RepoOpInit.UserCodeData> userCode;
 
     private CodegenBubble commitDiffAssertBubble;
 
@@ -58,7 +59,7 @@ public class Codegen implements CommitDiffAssert {
         return Optional.of(CommitDiffAssertParentCtx.class);
     }
 
-    public ContextValue<CommitDiffInit.RepositoryData> repoUrl() {
+    public ContextValue<RepoOpInit.RepositoryData> repoUrl() {
         return this.parent
                 .res().map(CommitDiffAssertParentCtx::repoUrl)
                 .orElseRes(ContextValue.empty());

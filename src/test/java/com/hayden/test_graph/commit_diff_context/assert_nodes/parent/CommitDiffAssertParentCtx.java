@@ -2,8 +2,8 @@ package com.hayden.test_graph.commit_diff_context.assert_nodes.parent;
 
 import com.hayden.test_graph.assert_g.ctx.AssertBubble;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.CommitDiffAssert;
-import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpBubble;
-import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
+import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertBubble;
+import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.thread.ResettableThread;
@@ -19,14 +19,14 @@ import org.springframework.stereotype.Component;
 @Getter
 public class CommitDiffAssertParentCtx implements CommitDiffAssert {
 
-    private final ContextValue<CommitDiffInit.RepositoryData> repoUrl;
-    private final ContextValue<CommitDiffInit.GraphQlQueries> graphQlQueries;
+    private final ContextValue<RepoOpInit.RepositoryData> repoUrl;
+    private final ContextValue<RepoOpInit.GraphQlQueries> graphQlQueries;
 
-    private RepoOpBubble commitDiffAssertBubble;
+    private RepoOpAssertBubble commitDiffAssertBubble;
 
 
     @Autowired
-    public void setRepoOpBubble(RepoOpBubble commitDiffAssertBubble) {
+    public void setRepoOpBubble(RepoOpAssertBubble commitDiffAssertBubble) {
         this.commitDiffAssertBubble = commitDiffAssertBubble;
     }
 
@@ -35,13 +35,13 @@ public class CommitDiffAssertParentCtx implements CommitDiffAssert {
     }
 
     @Override
-    public RepoOpBubble bubble() {
+    public RepoOpAssertBubble bubble() {
         return commitDiffAssertBubble;
     }
 
     @Override
     public Class<? extends AssertBubble> bubbleClazz() {
-        return RepoOpBubble.class;
+        return RepoOpAssertBubble.class;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class CommitDiffAssertParentCtx implements CommitDiffAssert {
         return n instanceof CommitDiffAssertParentCtx;
     }
 
-    public ContextValue<CommitDiffInit.RepositoryData> repoUrl() {
+    public ContextValue<RepoOpInit.RepositoryData> repoUrl() {
         return repoUrl;
     }
 
