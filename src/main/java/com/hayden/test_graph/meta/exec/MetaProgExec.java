@@ -108,6 +108,11 @@ public class MetaProgExec implements ProgExec {
         }
     }
 
+    @Override
+    public int didExec() {
+        return this.metaProgCtx.size();
+    }
+
     /**
      * For false negatives
      * @param ctx
