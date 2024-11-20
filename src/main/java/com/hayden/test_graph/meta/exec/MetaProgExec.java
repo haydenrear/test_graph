@@ -1,6 +1,8 @@
 package com.hayden.test_graph.meta.exec;
 
+import com.google.common.collect.Queues;
 import com.hayden.test_graph.ctx.ContextValue;
+import com.hayden.test_graph.ctx.GraphContext;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
@@ -29,14 +31,10 @@ public class MetaProgExec implements ProgExec {
     @Autowired
     private EdgeExec edgeExec;
 
-    @Autowired
-    private List<SubGraph>  subGraphs;
-
     @Autowired @Lazy
     LazyMetaGraphDelegate lazyMetaGraphDelegate;
 
-    @Autowired
-    private TestGraphSort graphSort;
+    private Queue<Class<? extends TestGraphContext>> registered = new ArrayDeque<>();
 
     @Override
     public MetaCtx collectCtx() {
@@ -76,6 +74,19 @@ public class MetaProgExec implements ProgExec {
         }
 
         return metaCtx;
+    }
+
+    @Override
+    public void register(Class<? extends TestGraphContext> ctx) {
+        this.registered.offer(ctx);
+    }
+
+    @Override
+    public void execAll() {
+        Class<? extends TestGraphContext> ctx;
+        while((ctx = registered.poll()) != null) {
+            this.exec(ctx);
+        }
     }
 
     /**

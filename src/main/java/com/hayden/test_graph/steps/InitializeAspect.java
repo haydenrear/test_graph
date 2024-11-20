@@ -22,7 +22,8 @@ public class InitializeAspect implements StepAspect {
     public Object around(ProceedingJoinPoint joinPoint, InitStep initStep) throws Throwable {
         var proceeded =  joinPoint.proceed();
 
-        metaGraph.exec(initStep.value());
+        metaGraph.register(initStep.value());
+//        metaGraph.exec(initStep.value());
 
         return proceeded;
     }

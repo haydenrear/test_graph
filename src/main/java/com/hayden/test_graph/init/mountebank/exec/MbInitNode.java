@@ -34,7 +34,7 @@ public interface MbInitNode<T extends MbInitCtx> extends InitNode<T> {
         return c;
     }
 
-    private static void createDeleteImposter(T c, Imposter imposterCreated) {
+    private void createDeleteImposter(T c, Imposter imposterCreated) {
         log.info("{}", c.client().deleteImposter(imposterCreated.getPort()));
         log.info("{}", c.client().createImposter(imposterCreated));
     }

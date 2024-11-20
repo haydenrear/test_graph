@@ -20,6 +20,7 @@ public class AssertAspect implements StepAspect {
     public Object around(ProceedingJoinPoint joinPoint, AssertStep assertStep) throws Throwable {
         var proceeded =  joinPoint.proceed();
 
+        metaGraph.execAll();
         metaGraph.exec(assertStep.value());
         return proceeded;
     }

@@ -1,5 +1,6 @@
 package com.hayden.test_graph.exec.prog_bubble;
 
+import com.hayden.test_graph.ctx.GraphContext;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
@@ -45,5 +46,9 @@ public interface ProgExec  {
     }
 
     MetaCtx exec(Class<? extends TestGraphContext> ctx, MetaCtx prev);
+
+    void register(Class<? extends TestGraphContext> ctx);
+
+    void execAll();
 
 }

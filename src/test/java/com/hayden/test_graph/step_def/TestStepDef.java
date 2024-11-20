@@ -1,8 +1,11 @@
 package com.hayden.test_graph.step_def;
 
+import com.hayden.test_graph.meta.exec.MetaProgExec;
+import com.hayden.test_graph.meta.graph.MetaGraph;
 import com.hayden.test_graph.steps.InitStep;
 import com.hayden.test_graph.steps.InitializeAspect;
 import com.hayden.test_graph.test_init.*;
+import com.hayden.test_graph.thread.ResettableThread;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.junit.jupiter.api.Assertions;
@@ -16,6 +19,8 @@ public class TestStepDef {
 
     @Autowired
     MockRegister mockRegister;
+    @Autowired @ResettableThread
+    MetaProgExec metaGraph;
 
 
     @When("I attempt to run")
@@ -31,7 +36,7 @@ public class TestStepDef {
 
     @Then("it runs")
     public void it_runs() {
-
+        metaGraph.execAll();
         var classStream = Stream.of(
 //                      gets called a couple more times...
                         TestInitChildCtx.class, TestInitChildCtx.class, TestInitChildCtx.class, TestInitChildCtx.class,

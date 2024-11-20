@@ -5,7 +5,6 @@ import com.hayden.test_graph.commit_diff_context.assert_nodes.codegen.Codegen;
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
-import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.steps.AssertStep;
 import com.hayden.test_graph.steps.InitStep;
 import com.hayden.test_graph.steps.ResettableStep;
@@ -20,10 +19,6 @@ public class BlameNodeStepDefs implements ResettableStep {
     @Autowired
     @ResettableThread
     RepoOpInit commitDiffInit;
-
-    @Autowired
-    @ResettableThread
-    DockerInitCtx dockerInitCtx;
 
     @Autowired
     CommitDiff commitDiff;

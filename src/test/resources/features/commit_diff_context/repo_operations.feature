@@ -8,7 +8,6 @@ Feature: Add blame node context for repo
     And a branch should be added "<branchName>"
     When the repo is added to the database by calling commit diff context
     Then a branch with name "<branchName>" will be added to the database
-    Then all repository operations are validated
     Examples:
       | repoUrl                                                                    | branchName | composePath                                                                                     | addUrlQueryPath                                                               |
       | /Users/hayde/IdeaProjects/drools/commit-diff-context/test_repos/first/.git | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server | /Users/hayde/IdeaProjects/drools/test_graph/src/test/resource/addRepo.graphql |

@@ -69,13 +69,10 @@ public class RepoOperationsStepDefs implements ResettableStep {
     }
 
     @Then("a branch with name {string} will be added to the database")
+    @AssertStep(RepoOpAssertCtx.class)
     public void validate_branch_added(String branchAdded) {
         commitDiffAssert.getRepositoryAssertionDescriptor()
                 .set(new RepoOpAssertCtx.RepoOpAssertionDescriptor(branchAdded));
     }
 
-    @And("all repository operations are validated")
-    @AssertStep(RepoOpAssertCtx.class)
-    public void validate_repo_operations() {
-    }
 }
