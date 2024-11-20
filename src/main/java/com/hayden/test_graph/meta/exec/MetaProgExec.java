@@ -13,6 +13,7 @@ import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.ctx.MetaProgCtx;
+import com.hayden.test_graph.report.ReportingValidationNode;
 import com.hayden.test_graph.thread.ResettableThread;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -32,7 +33,10 @@ public class MetaProgExec implements ProgExec {
     private EdgeExec edgeExec;
 
     @Autowired @Lazy
-    LazyMetaGraphDelegate lazyMetaGraphDelegate;
+    private LazyMetaGraphDelegate lazyMetaGraphDelegate;
+
+    @Autowired(required = false)
+    private List<ReportingValidationNode> reportingValidationNodes = new ArrayList<>();
 
     private final Queue<Class<? extends TestGraphContext>> registered = new ArrayDeque<>();
 
@@ -110,7 +114,12 @@ public class MetaProgExec implements ProgExec {
 
     @Override
     public int didExec() {
-        return this.metaProgCtx.size();
+        var s = this.metaProgCtx.size();
+        this.metaProgCtx.stream()
+                .forEach(mc -> reportingValidationNodes.stream()
+                        .filter(rn -> rn.matches(mc))
+                        .forEach(rn -> rn.doValidateReport(mc)));
+        return s;
     }
 
     /**
