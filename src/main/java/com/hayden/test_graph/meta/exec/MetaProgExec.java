@@ -81,15 +81,30 @@ public class MetaProgExec implements ProgExec {
         this.registered.offer(ctx);
     }
 
+    /**
+     * Gets called on the first assert step - this removes the previous contexts registered one at a time,
+     * executing them first, running each one only once, in the ordering of the last one inserted is kept,
+     * assuming that it has dependencies on anything before it.
+     */
     @Override
     public void execAll() {
         Class<? extends TestGraphContext> ctx;
-        Set<Class<? extends TestGraphContext>> visited = new HashSet<>();
+
+        List<Class<? extends TestGraphContext>> ordering = new ArrayList<>();
+
         while((ctx = registered.poll()) != null) {
-            if (!visited.contains(ctx)) {
-                this.exec(ctx);
-                visited.add(ctx);
+            if (ordering.contains(ctx)) {
+                // the ordering should be last so that anything dependent will run first
+                ordering.remove(ctx);
+                assert !ordering.contains(ctx);
+                ordering.add(ctx);
+            } else {
+                ordering.add(ctx);
             }
+        }
+
+        for (var o : ordering) {
+            this.exec(o);
         }
     }
 
