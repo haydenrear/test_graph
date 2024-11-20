@@ -34,7 +34,7 @@ public class MetaProgExec implements ProgExec {
     @Autowired @Lazy
     LazyMetaGraphDelegate lazyMetaGraphDelegate;
 
-    private Queue<Class<? extends TestGraphContext>> registered = new ArrayDeque<>();
+    private final Queue<Class<? extends TestGraphContext>> registered = new ArrayDeque<>();
 
     @Override
     public MetaCtx collectCtx() {
