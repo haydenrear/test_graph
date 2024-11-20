@@ -84,8 +84,12 @@ public class MetaProgExec implements ProgExec {
     @Override
     public void execAll() {
         Class<? extends TestGraphContext> ctx;
+        Set<Class<? extends TestGraphContext>> visited = new HashSet<>();
         while((ctx = registered.poll()) != null) {
-            this.exec(ctx);
+            if (!visited.contains(ctx)) {
+                this.exec(ctx);
+                visited.add(ctx);
+            }
         }
     }
 
