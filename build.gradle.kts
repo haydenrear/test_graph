@@ -1,3 +1,4 @@
+
 plugins {
     id("com.hayden.base-plugin")
     id("com.hayden.spring")
@@ -6,13 +7,12 @@ plugins {
     id("com.hayden.git")
     id("com.hayden.dgs-graphql")
     id("com.hayden.docker-compose")
-    id("org.ndrwdn.mountebank") version "0.0.6"
+    id("com.hayden.mb")
 }
+
 
 group = "com.hayden"
 version = "1.0.0"
-
-
 
 dependencies {
     implementation(project(":utilitymodule"))
@@ -26,6 +26,10 @@ dependencies {
     implementation("org.assertj:assertj-core:3.26.3")
     implementation("org.mbtest.javabank:javabank-client:0.4.10")
     implementation("org.mbtest.javabank:javabank-core:0.4.10")
+}
+
+tasks.nodeSetup {
+    dependsOn("acquireMountebank")
 }
 
 tasks.compileJava {
@@ -63,7 +67,6 @@ tasks.startMountebank {
 }
 
 tasks.stopMountebank {
-//    dependsOn("test")
     finalizedBy(tasks.getAt("printStop"))
     mustRunAfter(tasks.test, tasks.startMountebank)
 }
