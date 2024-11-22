@@ -63,14 +63,16 @@ public class MetaProgExec implements ProgExec {
             MetaCtx finalMetaCtx = metaCtx;
             lazyMetaGraphDelegate.retrieveContextsToRun(hgNode, ctx)
                     .map(c -> {
-                        HyperGraphExec<TestGraphContext, HyperGraphContext<MetaCtx>, MetaCtx> hgGraphExec
+                        HyperGraphExec<TestGraphContext<HyperGraphContext>, HyperGraphContext> hgGraphExec
                                 = edgeExec.preExecHgExecEdges(hgNode, finalMetaCtx);
-                        var ctxCreated = hgGraphExec.exec(c, finalMetaCtx);
-                        return edgeExec.postExecMetaCtxEdges(ctxCreated, finalMetaCtx);
+                        var ctxCreated = hgGraphExec.exec((Class<? extends TestGraphContext<HyperGraphContext>>) c, finalMetaCtx);
+                        var m = edgeExec.postExecMetaCtxEdges(ctxCreated.bubbleMeta(finalMetaCtx), finalMetaCtx);
+                        return Map.entry(m, ctxCreated);
                     })
                     .forEach(mc -> {
-                        if (metaCtx instanceof MetaProgCtx m) {
-                            m.push(mc);
+                        if (mc.getKey() instanceof MetaProgCtx m) {
+                            m.push(mc.getKey());
+                            m.push(mc.getValue());
                         }
                     });
 

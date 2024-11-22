@@ -1,5 +1,6 @@
 package com.hayden.test_graph.report;
 
+import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 
 /**
@@ -11,8 +12,8 @@ import com.hayden.test_graph.meta.ctx.MetaCtx;
  */
 public interface ReportingValidationNode {
 
-    boolean matches(MetaCtx doesMatch);
+    boolean matches(HyperGraphContext doesMatch);
 
-    void doValidateReport(MetaCtx metaCtx);
+    void doValidateReport(HyperGraphContext metaCtx);
 
 }

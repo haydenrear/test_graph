@@ -23,11 +23,11 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @ResettableThread
-public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubble, MetaCtx> {
+public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubble> {
 
-    public interface BubblePreMapper extends GraphExecMapper<DataDepBubble, MetaCtx> {}
+    public interface BubblePreMapper extends GraphExecMapper<DataDepBubble, DataDepBubble> {}
 
-    public interface BubblePostMapper extends GraphExecMapper<DataDepBubble, MetaCtx> {}
+    public interface BubblePostMapper extends GraphExecMapper<DataDepBubble, DataDepBubble> {}
 
     @Autowired(required = false)
     List<DataDepBubbleExec.BubblePreMapper> preMappers;
@@ -54,16 +54,18 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
     }
 
 
+//    @Override
+
     @Override
-    public MetaCtx collectCtx(DataDepBubble toCollect) {
+    public DataDepBubble collectCtx(DataDepBubble toCollect) {
         return toCollect.bubble();
     }
 
 
     @Override
     @Idempotent
-    public MetaCtx exec(Class<? extends DataDepCtx> ctx, MetaCtx prev) {
-        var collected = this.initExec.collectCtx(ctx, prev);
+    public DataDepBubble exec(Class<? extends DataDepCtx> ctx, MetaCtx prev) {
+        DataDepBubble collected = this.initExec.collectCtx(ctx, prev);
         var c = edgeExec.postReducePreExecTestGraph(this, collected, prev);
         prev = edgeExec.postReducePreExecMetaCtx(this, collected, prev);
         collected = c.preMap(collected, prev);
@@ -72,9 +74,10 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
     }
 
     @Override
-    public MetaCtx exec(Class<? extends DataDepCtx> ctx) {
+    public DataDepBubble exec(Class<? extends DataDepCtx> ctx) {
         return this.exec(ctx, null);
     }
+
 
     @Override
     public DataDepBubble preMap(DataDepBubble ctx, MetaCtx metaCtx) {
@@ -101,7 +104,7 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
     }
 
     @Override
-    public List<Class<? extends TestGraphNode<DataDepBubble, MetaCtx>>> dependsOn() {
+    public List<Class<? extends TestGraphNode<DataDepBubble, DataDepBubble>>> dependsOn() {
         return List.of();
     }
 

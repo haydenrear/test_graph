@@ -11,7 +11,7 @@ import java.util.List;
 
 @Component
 @ResettableThread
-public class TestInitBubbleNode implements InitBubbleNode {
+public class TestInitBubbleNode implements InitBubbleNode<InitBubble> {
 
     @Autowired
     MockRegister mockRegister;

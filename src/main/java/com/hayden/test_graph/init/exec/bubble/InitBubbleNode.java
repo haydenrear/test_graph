@@ -8,7 +8,7 @@ import com.hayden.test_graph.meta.ctx.MetaCtx;
  * Bubble initialization logic.
  * @param <T>
  */
-public interface InitBubbleNode extends HyperGraphTestNode<InitBubble, MetaCtx> {
+public interface InitBubbleNode<T extends InitBubble> extends HyperGraphTestNode<T> {
 
 
 }

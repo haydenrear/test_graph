@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-public interface TestGraph<T extends TestGraphContext<H>, H extends HyperGraphContext<MetaCtx>> extends Graph {
+public interface TestGraph<T extends TestGraphContext<H>, H extends HyperGraphContext> extends Graph {
 
     List<? extends T> sortedCtx(Class<? extends T> clzz);
 
-    Map<Class<? extends T>, List<GraphExec.GraphExecNode<T, H>>> sortedNodes();
+    Map<Class<? extends T>, List<GraphExec.GraphExecNode<T>>> sortedNodes();
 
     default void setChildren() {
         sortedNodes().keySet().forEach(ctx -> setChildren(() -> sortedCtx(ctx)));

@@ -5,7 +5,6 @@ import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.node.GraphNode;
 import com.hayden.test_graph.init.ctx.InitBubble;
-import com.hayden.test_graph.init.ctx.InitMeta;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -13,16 +12,6 @@ import java.util.List;
 
 public class TestInitBubble implements InitBubble {
 
-
-    @Override
-    public MetaCtx bubble() {
-        return new InitMeta();
-    }
-
-    @Override
-    public Class<? extends MetaCtx> bubbleClazz() {
-        return InitMeta.class;
-    }
 
     @Override
     public boolean executableFor(GraphExec.GraphExecNode n) {

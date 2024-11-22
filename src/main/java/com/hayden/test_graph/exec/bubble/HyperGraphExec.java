@@ -8,8 +8,8 @@ import com.hayden.test_graph.graph.node.HyperGraphTestNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 
 // TODO: abstract base class for the fields?
-public interface HyperGraphExec<SG extends TestGraphContext, CTX extends HyperGraphContext<H>, H extends HyperGraphContext<MetaCtx>>
-        extends GraphExec.GraphExecNode<CTX, H>, HyperGraphTestNode<CTX, H> {
+public interface HyperGraphExec<SG extends TestGraphContext<CTX>, CTX extends HyperGraphContext>
+        extends HyperGraphTestNode<CTX> {
 
     /**
      * There exists some number of contexts that need to be collected into the bubble context. For example there could exist hierarchies
@@ -20,12 +20,17 @@ public interface HyperGraphExec<SG extends TestGraphContext, CTX extends HyperGr
      * @return
      */
     @Idempotent
-    H exec(Class<? extends SG> ctx, MetaCtx prev);
+    CTX exec(Class<? extends SG> ctx, MetaCtx prev);
 
-    default H exec(Class<? extends SG> ctx) {
+    @Idempotent
+    default MetaCtx execBubble(Class<? extends SG> ctx, MetaCtx prev) {
+        return this.exec(ctx, prev).bubbleMeta(prev);
+    }
+
+    default CTX exec(Class<? extends SG> ctx) {
         return this.exec(ctx, null);
     }
 
-    H collectCtx(CTX toCollect);
+    CTX collectCtx(CTX toCollect);
 
 }

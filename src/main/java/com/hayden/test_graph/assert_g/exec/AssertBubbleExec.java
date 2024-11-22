@@ -23,10 +23,10 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @ResettableThread
-public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble, MetaCtx> {
+public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble> {
 
-    public interface BubblePreMapper extends GraphExecMapper<AssertBubble, MetaCtx> {}
-    public interface BubblePostMapper extends GraphExecMapper<AssertBubble, MetaCtx> {}
+    public interface BubblePreMapper extends GraphExecMapper<AssertBubble, AssertBubble> {}
+    public interface BubblePostMapper extends GraphExecMapper<AssertBubble, AssertBubble> {}
 
     @Autowired(required = false)
     List<BubblePreMapper> preMappers;
@@ -54,13 +54,13 @@ public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble,
 
 
     @Override
-    public MetaCtx collectCtx(AssertBubble toCollect) {
+    public AssertBubble collectCtx(AssertBubble toCollect) {
         return toCollect.bubble();
     }
 
     @Override
     @Idempotent
-    public MetaCtx exec(Class<? extends AssertCtx> ctx, MetaCtx prev) {
+    public AssertBubble exec(Class<? extends AssertCtx> ctx, MetaCtx prev) {
         var collected = this.initExec.collectCtx(ctx, prev);
         var c = edgeExec.postReducePreExecTestGraph(this, collected, prev);
         prev = edgeExec.postReducePreExecMetaCtx(this, collected, prev);
@@ -70,7 +70,7 @@ public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble,
     }
 
     @Override
-    public MetaCtx exec(Class<? extends AssertCtx> ctx) {
+    public AssertBubble exec(Class<? extends AssertCtx> ctx) {
         return this.exec(ctx, null);
     }
 
@@ -99,7 +99,7 @@ public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble,
     }
 
     @Override
-    public List<Class<? extends HyperGraphBubbleNode<? extends HyperGraphContext<MetaCtx>, MetaCtx>>> dependsOn() {
+    public List<Class<? extends HyperGraphBubbleNode<? extends HyperGraphContext>>> dependsOn() {
         return List.of();
     }
 

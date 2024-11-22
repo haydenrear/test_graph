@@ -7,7 +7,7 @@ import com.hayden.utilitymodule.sort.GraphSort;
 
 import java.util.*;
 
-public non-sealed interface TestGraphContext<H extends HyperGraphContext<MetaCtx>>
+public non-sealed interface TestGraphContext<H extends HyperGraphContext>
         extends GraphContext,
                 HierarchicalContext,
                 GraphSort.GraphSortable {

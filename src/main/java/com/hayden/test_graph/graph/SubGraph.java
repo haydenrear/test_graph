@@ -25,7 +25,7 @@ import java.util.Optional;
  * @param <H>
  */
 @RequiredArgsConstructor
-public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext<MetaCtx>>
+public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext>
         implements Graph, ApplicationContextAware, ResettableThreadLike {
 
     @Setter

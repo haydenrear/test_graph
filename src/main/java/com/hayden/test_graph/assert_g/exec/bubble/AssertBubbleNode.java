@@ -9,7 +9,7 @@ import com.hayden.test_graph.meta.ctx.MetaCtx;
  * Bubble initialization logic.
  * @param <T>
  */
-public interface AssertBubbleNode extends HyperGraphTestNode<AssertBubble, MetaCtx> {
+public interface AssertBubbleNode extends HyperGraphTestNode<AssertBubble> {
 
 
 

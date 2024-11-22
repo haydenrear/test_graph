@@ -32,7 +32,7 @@ public class DataDepGraph implements TestGraph<DataDepCtx, DataDepBubble> {
     @ResettableThread
     List<SubGraph<DataDepCtx, DataDepBubble>> subGraphs;
 
-    Map<Class<? extends DataDepCtx>, List<GraphExec.GraphExecNode<DataDepCtx, DataDepBubble>>> nodes = new HashMap<>();
+    Map<Class<? extends DataDepCtx>, List<GraphExec.GraphExecNode<DataDepCtx>>> nodes = new HashMap<>();
 
     @ResettableThread
     @Autowired(required = false)
@@ -52,7 +52,7 @@ public class DataDepGraph implements TestGraph<DataDepCtx, DataDepBubble> {
     }
 
     @Override
-    public Map<Class<? extends DataDepCtx>, List<GraphExec.GraphExecNode<DataDepCtx, DataDepBubble>>> sortedNodes() {
+    public Map<Class<? extends DataDepCtx>, List<GraphExec.GraphExecNode<DataDepCtx>>> sortedNodes() {
         return this.nodes;
     }
 

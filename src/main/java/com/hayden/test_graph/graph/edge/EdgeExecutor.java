@@ -7,41 +7,43 @@ import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.ctx.MetaProgCtx;
 import com.hayden.test_graph.thread.ResettableThread;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+/**
+ * TODO??? Can be adjusted to make MetaCtx generic parameter also for better wiring for postExecMgMg
+ * @param <T>
+ * @param <H>
+ * @param <M>
+ */
 @Slf4j
-@Component
-public class EdgeExec {
-
-    // TODO: could inject the contexts for more flexibility.
+public class EdgeExecutor<T extends TestGraphContext<H>, H extends HyperGraphContext<MetaCtx>, M extends MetaCtx> {
 
     @Autowired(required = false)
     @ResettableThread
-    private List<? extends PostReduceHyperGraphEdge<? extends HyperGraphContext<MetaCtx>, MetaCtx>> postReducePreExecHg = new ArrayList<>();
+    private List<? extends PreExecTestGraphEdge<T, H>> preExecTg = new ArrayList<>();
     @Autowired(required = false)
     @ResettableThread
-    private List<? extends PostExecHyperGraphEdge<? extends HyperGraphContext<MetaCtx>, MetaCtx>> postExecHg = new ArrayList<>();
+    private List<? extends PostReduceHyperGraphEdge<H, MetaCtx>> postReducePreExecHg = new ArrayList<>();
     @Autowired(required = false)
     @ResettableThread
-    private List<? extends PostExecMetaGraphEdge<? extends HyperGraphContext<MetaCtx>, MetaCtx>> postExecMg = new ArrayList<>();
+    private List<? extends PostExecHyperGraphEdge<H, MetaCtx>> postExecHg = new ArrayList<>();
     @Autowired(required = false)
     @ResettableThread
-    private List<? extends PostReduceMetaGraphEdge<? extends HyperGraphContext<MetaCtx>, MetaCtx>> postReducePreExecMg = new ArrayList<>();
+    private List<? extends PostExecMetaGraphEdge<H, MetaCtx>> postExecMg = new ArrayList<>();
     @Autowired(required = false)
     @ResettableThread
-    private List<? extends PostExecMetaMetaGraphEdge<? extends MetaCtx>> postExecMgMg = new ArrayList<>();
+    private List<? extends PostReduceMetaGraphEdge<H, MetaCtx>> postReducePreExecMg = new ArrayList<>();
     @Autowired(required = false)
     @ResettableThread
-    private List<? extends PreExecTestGraphEdge> preExecTg = new ArrayList<>();
+    private List<? extends PostExecMetaMetaGraphEdge<M>> postExecMgMg = new ArrayList<>();
 
-    public <T extends HyperGraphExec<TestGraphContext<HyperGraphContext>, HyperGraphContext>> T preExecHgExecEdges(T exec, MetaCtx prev) {
+
+    public <HG_EXEC extends HyperGraphExec<T, H>> HG_EXEC preExecHgExecEdges(HG_EXEC exec, MetaCtx prev) {
         return exec;
     }
 
@@ -55,50 +57,50 @@ public class EdgeExec {
         return prev;
     }
 
-    public <T extends TestGraphContext<? extends HyperGraphContext>> T preExecTestGraphEdges(T testGraphContext, MetaCtx prev) {
-        for (TestGraphEdge<T, ? extends HyperGraphContext> he : this.retrieveFromEdges(testGraphContext, prev, this.preExecTg)) {
+    public H preExecTestGraphEdges(H testGraphContext, MetaCtx prev) {
+        for (TestGraphEdge<H, ? extends HyperGraphContext<MetaCtx>> he : this.retrieveFromEdges(testGraphContext, prev, this.preExecTg)) {
             testGraphContext = he.edge(testGraphContext, prev);
         }
 
         return testGraphContext;
     }
 
-    public <T extends HyperGraphExec, U extends HyperGraphContext> MetaCtx postReducePreExecMetaCtx(T hgExec, U hgContext, MetaCtx prev) {
-        for (MetaGraphEdge<U, MetaCtx> he : this.retrieveMetaEdges(hgContext, prev, this.postReducePreExecMg)) {
+    public <HG_EXEC extends HyperGraphExec> MetaCtx postReducePreExecMetaCtx(HG_EXEC hgExec, H hgContext, MetaCtx prev) {
+        for (MetaGraphEdge<H, MetaCtx> he : this.retrieveMetaEdges(hgContext, prev, this.postReducePreExecMg)) {
             prev = he.edge(prev, hgContext);
         }
 
         return prev;
     }
 
-    public <T extends HyperGraphExec, U extends HyperGraphContext> T postReducePreExecTestGraph(T hgExec, U hgContext, MetaCtx prev) {
-        for (HyperGraphEdge<U, MetaCtx> he : this.retrieveFromEdges(hgContext, prev, this.postReducePreExecHg)) {
+    public <HG_EXEC extends HyperGraphExec> HG_EXEC postReducePreExecTestGraph(HG_EXEC hgExec, H hgContext, MetaCtx prev) {
+        for (HyperGraphEdge<H, MetaCtx> he : this.retrieveFromEdges(hgContext, prev, this.postReducePreExecHg)) {
             hgContext = he.edge(hgContext, prev);
         }
 
         return hgExec;
     }
 
-    public <T extends HyperGraphExec<S, U>, S extends TestGraphContext<U>, U extends HyperGraphContext<U>> U postExecHgEdges(T exec, U hgContext, MetaCtx curr) {
-        for (HyperGraphEdge<U, MetaCtx> he : this.retrieveFromEdges(hgContext, curr, this.postExecHg)) {
+    public <HG_EXEC extends HyperGraphExec> MetaCtx postExecHgEdges(HG_EXEC exec, H hgContext, MetaCtx prev, MetaCtx curr) {
+        for (HyperGraphEdge<H, MetaCtx> he : this.retrieveFromEdges(hgContext, curr, this.postExecHg)) {
             hgContext = he.edge(hgContext, curr);
         }
-        for (MetaGraphEdge<U, MetaCtx> he : this.retrieveMetaEdges(hgContext, curr, this.postExecMg)) {
+        for (MetaGraphEdge<H, MetaCtx> he : this.retrieveMetaEdges(hgContext, curr, this.postExecMg)) {
             curr = he.edge(curr, hgContext);
         }
 
-        return hgContext;
+        return curr;
     }
 
-    public <T extends HyperGraphContext> List<MetaGraphEdge<T, MetaCtx>> retrieveMetaEdges(
-            T t, MetaCtx prev,
-            List<? extends MetaGraphEdge<? extends HyperGraphContext<MetaCtx>, MetaCtx>> mg
+    public <HG_EXEC extends HyperGraphContext<MetaCtx>> List<MetaGraphEdge<HG_EXEC, MetaCtx>> retrieveMetaEdges(
+            HG_EXEC t, MetaCtx prev,
+            List<? extends MetaGraphEdge<H, MetaCtx>> mg
     ) {
         return mg.stream()
                 .filter(hge -> hge.from().test(t) && hge.to().test(prev))
                 .flatMap(hge -> {
                     try {
-                        return Stream.ofNullable((MetaGraphEdge<T, MetaCtx>) hge);
+                        return Stream.ofNullable((MetaGraphEdge<HG_EXEC, MetaCtx>) hge);
                     } catch (ClassCastException c) {
                         log.error("{}", c.getMessage());
                         return Stream.empty();
@@ -107,11 +109,11 @@ public class EdgeExec {
                 .toList();
     }
 
-    public <T extends  MetaCtx> List<MetaMetaGraphEdge<T>> retrieveMetaMeta(T t, MetaCtx ctx, List<? extends MetaMetaGraphEdge<? extends MetaCtx>> mm) {
+    public <HG_EXEC extends  MetaCtx> List<MetaMetaGraphEdge<HG_EXEC>> retrieveMetaMeta(HG_EXEC t, MetaCtx ctx, List<? extends MetaMetaGraphEdge<? extends MetaCtx>> mm) {
         return mm.stream().filter(hge -> hge.from().test(t) && hge.to().test(ctx))
                 .flatMap(hge -> {
                     try {
-                        return Stream.ofNullable((MetaMetaGraphEdge<T>) hge);
+                        return Stream.ofNullable((MetaMetaGraphEdge<HG_EXEC>) hge);
                     } catch (ClassCastException c) {
                         log.error("{}, {}", c.getMessage(), c.getStackTrace());
                         return Stream.empty();
@@ -120,7 +122,7 @@ public class EdgeExec {
                 .toList();
     }
 
-    public List<TestGraphEdge> retrieveFromEdges(TestGraphContext t, MetaCtx ctx, List<? extends PreExecTestGraphEdge> tg) {
+    public List<TestGraphEdge> retrieveFromEdges(TestGraphContext t, MetaCtx ctx, List<? extends PreExecTestGraphEdge<T, H>> tg) {
         return tg.stream().filter(hge -> hge.from().test(t) && hge.to().test(ctx))
                 .flatMap(hge -> {
                     try {
@@ -133,11 +135,11 @@ public class EdgeExec {
                 .toList();
     }
 
-    public <T extends HyperGraphContext> List<HyperGraphEdge<T, MetaCtx>> retrieveFromEdges(T t, MetaCtx ctx, List<? extends HyperGraphEdge<? extends HyperGraphContext, MetaCtx>> hg) {
+    public List<HyperGraphEdge<H, MetaCtx>> retrieveFromEdges(H t, MetaCtx ctx, List<? extends HyperGraphEdge<H, MetaCtx>> hg) {
         return hg.stream().filter(hge -> hge.from().test(t) && hge.to().test(ctx))
                 .flatMap(hge -> {
                     try {
-                        return Stream.ofNullable((HyperGraphEdge<T, MetaCtx>) hge);
+                        return Stream.ofNullable((HyperGraphEdge<H, MetaCtx>) hge);
                     } catch (ClassCastException c) {
                         log.error("{}, {}", c.getMessage(), c.getStackTrace());
                         return Stream.empty();
@@ -153,4 +155,5 @@ public class EdgeExec {
     public <T extends GraphExec.ExecNode> T edges(T exec, TestGraphContext tgc, MetaCtx prev) {
         return exec;
     }
+
 }

@@ -1,13 +1,12 @@
-
 plugins {
     id("com.hayden.base-plugin")
-    id("com.hayden.spring")
     id("com.hayden.observable-app")
     id("com.hayden.no-main-class")
     id("com.hayden.git")
     id("com.hayden.dgs-graphql")
     id("com.hayden.docker-compose")
     id("com.hayden.mb")
+    id("com.hayden.cucumber")
 }
 
 
@@ -16,20 +15,6 @@ version = "1.0.0"
 
 dependencies {
     implementation(project(":utilitymodule"))
-    implementation("org.junit.platform:junit-platform-suite")
-    implementation("org.junit.jupiter:junit-jupiter-api")
-    implementation("org.junit.platform:junit-platform-suite-api:1.11.0")
-    implementation("io.cucumber:cucumber-spring:7.18.1")
-    implementation("io.cucumber:cucumber-java:7.18.1")
-    implementation("io.cucumber:cucumber-junit:7.18.1")
-    implementation("io.cucumber:cucumber-junit-platform-engine:7.18.1")
-    implementation("org.assertj:assertj-core:3.26.3")
-    implementation("org.mbtest.javabank:javabank-client:0.4.10")
-    implementation("org.mbtest.javabank:javabank-core:0.4.10")
-}
-
-tasks.nodeSetup {
-    dependsOn("acquireMountebank")
 }
 
 tasks.compileJava {
@@ -54,21 +39,22 @@ tasks.generateJava {
 tasks.named("generateJava").configure { dependsOn("copyGraphQlSchema") }
 tasks.named("processResources").configure { dependsOn("copyGraphQlSchema") }
 
-tasks.register("printStop") {
-    println("Stopping mountebank!")
+tasks.acquireMountebank {
+    project.logger.info("Getting mountebank!")
 }
 
-tasks.acquireMountebank {
-    println("Getting mountebank!")
+tasks.nodeSetup {
+    project.logger.info("Doing node setup!")
+    dependsOn("acquireMountebank")
 }
 
 tasks.startMountebank {
-    println("Starting mountebank!")
+    project.logger.info("Starting mountebank!")
 }
 
 tasks.stopMountebank {
-    finalizedBy(tasks.getAt("printStop"))
     mustRunAfter(tasks.test, tasks.startMountebank)
+    project.logger.info("Stopping mountebank!")
 }
 
 tasks.test {

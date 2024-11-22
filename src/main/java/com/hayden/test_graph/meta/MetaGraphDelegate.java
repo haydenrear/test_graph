@@ -112,10 +112,12 @@ public class MetaGraphDelegate {
                         .flatMap(contexts -> {
                             var testGraphContext = contexts.getKey();
                             var ctx = contexts.getValue();
-                            return testGraphContext.getClass().equals(clazz) || ctx.dependsOnRecursive().contains(testGraphContext.bubbleClazz())
+                            Class o = testGraphContext.bubbleClazz();
+                            return testGraphContext.getClass().equals(clazz) || (ctx.dependsOnRecursive().contains(o))
                                     ? Stream.of(testGraphContext)
                                     : Stream.empty();
-                        }));
+                        }))
+                .distinct();
 
         return getSortedBubbles(matching)
                 .map(TestGraphContext::getClass);
@@ -173,10 +175,10 @@ public class MetaGraphDelegate {
     private static @NotNull Stream<TestGraphContext> getSortedBubbles(Stream<TestGraphContext> matching) {
         List<TestGraphContext> toSortCtx = matching.toList();
         Stream<TestGraphContext> bubbleNodes = toSortCtx.stream().map(TestGraphContext::bubble);
-        List<TestGraphContext> sortedBubbles = GraphSort.sort(bubbleNodes.toList());
+        List<TestGraphContext> sortedBubbles = GraphSort.sort(bubbleNodes.distinct().toList());
 
         Stream<TestGraphContext> sortedDistinctBubbles = sortedBubbles.stream()
-                .flatMap(tgc -> toSortCtx.stream().filter(t -> t.bubbleClazz().equals(tgc.getClass())))
+                .flatMap(tgc -> toSortCtx.stream().filter(t -> !t.bubbleClazz().equals(t.getClass()) && t.bubbleClazz().equals(tgc.getClass())))
                 .distinct();
         return sortedDistinctBubbles;
     }

@@ -32,7 +32,7 @@ public class AssertGraph implements TestGraph<AssertCtx, AssertBubble> {
     @ResettableThread
     List<SubGraph<AssertCtx, AssertBubble>> subGraphs;
 
-    Map<Class<? extends AssertCtx>, List<GraphExec.GraphExecNode<AssertCtx, AssertBubble>>> nodes = new HashMap<>();
+    Map<Class<? extends AssertCtx>, List<GraphExec.GraphExecNode<AssertCtx>>> nodes = new HashMap<>();
 
     @ResettableThread
     @Autowired(required = false)
@@ -52,7 +52,7 @@ public class AssertGraph implements TestGraph<AssertCtx, AssertBubble> {
     }
 
     @Override
-    public Map<Class<? extends AssertCtx>, List<GraphExec.GraphExecNode<AssertCtx, AssertBubble>>> sortedNodes() {
+    public Map<Class<? extends AssertCtx>, List<GraphExec.GraphExecNode<AssertCtx>>> sortedNodes() {
         return this.nodes;
     }
 

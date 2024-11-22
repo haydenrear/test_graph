@@ -1,6 +1,8 @@
 package com.hayden.test_graph.init.mountebank.exec;
 
+import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.init.ctx.InitBubble;
+import com.hayden.test_graph.init.exec.InitExec;
 import com.hayden.test_graph.init.exec.single.InitNode;
 import com.hayden.test_graph.init.mountebank.ctx.MbInitCtx;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
@@ -40,9 +42,8 @@ public interface MbInitNode<T extends MbInitCtx> extends InitNode<T> {
     }
 
     @Override
-    default T exec(T c, InitBubble hgCtx, MetaCtx h) {
-        return exec(c, h) ;
+    default T exec(T c, HyperGraphContext hgCtx, MetaCtx h) {
+        return exec(c, h);
     }
-
 
 }

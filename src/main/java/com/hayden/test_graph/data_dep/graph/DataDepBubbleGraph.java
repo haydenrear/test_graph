@@ -11,10 +11,10 @@ import java.util.List;
 
 @Component
 @ResettableThread
-public class DataDepBubbleGraph implements HyperTestGraph<DataDepBubble, MetaCtx> {
+public class DataDepBubbleGraph implements HyperTestGraph<DataDepBubble> {
 
     @Override
-    public List<? extends HyperGraphBubbleNode<DataDepBubble, MetaCtx>> sortedNodes() {
+    public List<? extends HyperGraphBubbleNode<DataDepBubble>> sortedNodes() {
         return List.of();
     }
 

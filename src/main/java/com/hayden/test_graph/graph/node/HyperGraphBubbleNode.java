@@ -7,7 +7,8 @@ import com.hayden.utilitymodule.sort.GraphSort;
 
 import java.util.List;
 
-public interface HyperGraphBubbleNode<T extends HyperGraphContext<H>, H extends HyperGraphContext<MetaCtx>> extends GraphNode, GraphExec.GraphExecNode<T, H> {
+public interface HyperGraphBubbleNode<T extends HyperGraphContext>
+        extends GraphNode, GraphExec.GraphExecNode<T> {
 
     /**
      * Graph nodes in a large part classified by the contexts of the nodes.

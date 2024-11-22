@@ -11,9 +11,9 @@ import java.util.List;
  * @param <C>
  * @param <T>
  */
-public interface HyperTestGraph<C extends HyperGraphContext<T>, T extends HyperGraphContext<MetaCtx>> extends Graph {
+public interface HyperTestGraph<C extends HyperGraphContext> extends Graph {
 
-    List<? extends HyperGraphBubbleNode<C, T>> sortedNodes();
+    List<? extends HyperGraphBubbleNode<C>> sortedNodes();
 
 
 }

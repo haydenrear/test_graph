@@ -9,10 +9,10 @@ import com.hayden.test_graph.meta.ctx.MetaCtx;
 
 import java.util.List;
 
-public interface DataDepBubbleNode<D extends DataDepBubble> extends HyperGraphTestNode<D, MetaCtx> {
+public interface DataDepBubbleNode<D extends DataDepBubble> extends HyperGraphTestNode<D> {
 
     @Override
-    default List<Class<? extends HyperGraphBubbleNode<? extends HyperGraphContext, MetaCtx>>> dependsOn() {
+    default List<Class<? extends HyperGraphBubbleNode<? extends HyperGraphContext>>> dependsOn() {
 //        return List.of(InitBubbleNode.class); // TODO: how autoconfigured should this be ??? any then should? Then > Given > When and anything < Then idempotent on anything < Then ???
         return List.of();
     }

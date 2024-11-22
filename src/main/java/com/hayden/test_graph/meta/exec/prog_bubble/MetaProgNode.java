@@ -10,8 +10,8 @@ import com.hayden.test_graph.meta.exec.single.MetaNode;
 
 import java.util.List;
 
-public record MetaProgNode<T extends HyperGraphContext<MetaCtx>>(
-            ContextValue<HyperGraphTestNode<T, MetaCtx>> t,
+public record MetaProgNode<T extends HyperGraphContext>(
+            ContextValue<HyperGraphTestNode<T>> t,
             ContextValue<MetaCtx> m
         )
         implements MetaNode {

@@ -22,11 +22,11 @@ import java.util.stream.Stream;
 public class MetaProgCtx implements MetaCtx {
 
     @Delegate
-    Stack<MetaCtx> delegates = new Stack<>();
+    Stack<HyperGraphContext> delegates = new Stack<>();
 
-    public <T extends HyperGraphContext<MetaCtx>> Stream<T> retrieveBubbled(Class<T> clazz) {
+    public <T extends HyperGraphContext> Stream<T> retrieveBubbled(Class<T> clazz) {
         return delegates.stream()
-                .map(MetaCtx::getBubbled)
+                .map(HyperGraphContext::bubble)
                 .filter(Objects::nonNull)
                 .distinct()
                 .filter(b -> b.getClass().equals(clazz))
@@ -55,7 +55,12 @@ public class MetaProgCtx implements MetaCtx {
 
     @Override
     public HyperGraphContext<MetaCtx> getBubbled() {
-        return null;
+        return this;
+    }
+
+    @Override
+    public MetaCtx bubbleMeta(MetaCtx metaCtx) {
+        return this;
     }
 
     @Override
@@ -70,7 +75,7 @@ public class MetaProgCtx implements MetaCtx {
 
     @Override
     public boolean executableFor(GraphExec.GraphExecNode n) {
-        return n instanceof HyperGraphBubbleNode<?, ?>;
+        return n instanceof HyperGraphBubbleNode<?>;
     }
 
     @Override

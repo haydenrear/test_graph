@@ -30,7 +30,7 @@ public class InitGraph implements TestGraph<InitCtx, InitBubble> {
     @ResettableThread
     List<SubGraph<InitCtx, InitBubble>> subGraphs;
 
-    Map<Class<? extends InitCtx>, List<GraphExec.GraphExecNode<InitCtx, InitBubble>>> nodes = new HashMap<>();
+    Map<Class<? extends InitCtx>, List<GraphExec.GraphExecNode<InitCtx>>> nodes = new HashMap<>();
 
     @ResettableThread
     @Autowired(required = false)
@@ -50,7 +50,7 @@ public class InitGraph implements TestGraph<InitCtx, InitBubble> {
     }
 
     @Override
-    public Map<Class<? extends InitCtx>, List<GraphExec.GraphExecNode<InitCtx, InitBubble>>> sortedNodes() {
+    public Map<Class<? extends InitCtx>, List<GraphExec.GraphExecNode<InitCtx>>> sortedNodes() {
         return this.nodes;
     }
 

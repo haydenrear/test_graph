@@ -5,9 +5,9 @@ import com.hayden.test_graph.meta.ctx.MetaCtx;
 
 import java.util.List;
 
-public interface HyperGraphNode<T extends HyperGraphContext<H>, H extends HyperGraphContext<MetaCtx>> extends GraphNode {
+public interface HyperGraphNode<T extends HyperGraphContext, H extends HyperGraphContext<MetaCtx>> extends GraphNode {
 
-    default List<Class<? extends HyperGraphNode<? extends HyperGraphContext<H>, H>>> dependsOnHyperNodes() {
+    default List<Class<? extends HyperGraphNode<? extends HyperGraphContext, H>>> dependsOnHyperNodes() {
         return List.of();
     }
 

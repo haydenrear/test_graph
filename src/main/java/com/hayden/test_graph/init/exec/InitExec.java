@@ -104,7 +104,7 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
         }
     }
 
-    public InitCtx preMap(InitCtx initCtx, MetaCtx metaCtx, List<GraphExecNode<InitCtx, InitBubble>> nodes) {
+    public InitCtx preMap(InitCtx initCtx, MetaCtx metaCtx, List<GraphExecNode<InitCtx>> nodes) {
         for (var p : preMappers()) {
             initCtx = p.apply(initCtx, metaCtx);
         }
@@ -112,7 +112,7 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
         return perform(nodes, (c, i) -> i.preMap(c, metaCtx), initCtxExec);
     }
 
-    public InitCtx postMap(InitCtx initCtx, MetaCtx metaCtx, List<GraphExecNode<InitCtx, InitBubble>> nodes) {
+    public InitCtx postMap(InitCtx initCtx, MetaCtx metaCtx, List<GraphExecNode<InitCtx>> nodes) {
         for (var p : preMappers()) {
             initCtx = p.apply(initCtx, metaCtx);
         }
@@ -122,7 +122,7 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
 
     public InitCtx exec(InitCtx initCtx,
                         MetaCtx metaCtx,
-                        List<GraphExecNode<InitCtx, InitBubble>> nodes) {
+                        List<GraphExecNode<InitCtx>> nodes) {
         return perform(nodes, (c, i) ->  c.executableFor(i) ? i.exec(c, metaCtx) : c, initCtx);
     }
 
@@ -137,8 +137,8 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
                 .orElse(null);
     }
 
-    public static InitCtx perform(List<GraphExecNode<InitCtx, InitBubble>> nodes,
-                                  BiFunction<InitCtx, GraphExecNode<InitCtx, InitBubble>, InitCtx> initCtxFunction,
+    public static InitCtx perform(List<GraphExecNode<InitCtx>> nodes,
+                                  BiFunction<InitCtx, GraphExecNode<InitCtx>, InitCtx> initCtxFunction,
                                   InitCtx initCtx) {
         for (var n : nodes) {
             initCtx = initCtxFunction.apply(initCtx, n);

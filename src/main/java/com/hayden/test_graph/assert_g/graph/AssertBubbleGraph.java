@@ -17,7 +17,7 @@ import java.util.Optional;
 
 @Component
 @ResettableThread
-public class AssertBubbleGraph implements HyperTestGraph<AssertBubble, MetaCtx> {
+public class AssertBubbleGraph implements HyperTestGraph<AssertBubble> {
 
     @Autowired @Lazy
     LazyMetaGraphDelegate nodesProvider;

@@ -3,6 +3,7 @@ package com.hayden.test_graph.init.exec;
 import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.graph.edge.EdgeExec;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
+import com.hayden.test_graph.graph.node.HyperGraphTestNode;
 import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
@@ -20,10 +21,10 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @ResettableThread
-public class InitBubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaCtx> {
+public class InitBubbleExec implements HyperGraphExec<InitCtx, InitBubble> {
 
-    public interface BubblePreMapper extends GraphExecMapper<InitBubble, MetaCtx> {}
-    public interface BubblePostMapper extends GraphExecMapper<InitBubble, MetaCtx> {}
+    public interface BubblePreMapper extends GraphExecMapper<InitBubble, InitBubble> {}
+    public interface BubblePostMapper extends GraphExecMapper<InitBubble, InitBubble> {}
 
     @Autowired(required = false)
     List<BubblePreMapper> preMappers;
@@ -51,24 +52,24 @@ public class InitBubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaC
 
 
     @Override
-    public MetaCtx collectCtx(InitBubble toCollect) {
+    public InitBubble collectCtx(InitBubble toCollect) {
         return toCollect.bubble();
     }
 
     @Override
     @Idempotent
-    public MetaCtx exec(Class<? extends InitCtx> ctx, MetaCtx prev) {
+    public InitBubble exec(Class<? extends InitCtx> ctx, MetaCtx prev) {
         var collected = this.initExec.collectCtx(ctx, prev);
         var c = edgeExec.postReducePreExecTestGraph(this, collected, prev);
         prev = edgeExec.postReducePreExecMetaCtx(this, collected, prev);
         collected = c.preMap(collected, prev);
         collected = c.exec(collected, prev);
         var collectedCtx =  c.collectCtx(collected);
-        return edgeExec.postExecHgEdges(this, collected, prev, collectedCtx);
+        return edgeExec.postExecHgEdges(this, collectedCtx, prev);
     }
 
     @Override
-    public MetaCtx exec(Class<? extends InitCtx> ctx) {
+    public InitBubble exec(Class<? extends InitCtx> ctx) {
         return this.exec(ctx, null);
     }
 
@@ -97,7 +98,7 @@ public class InitBubbleExec implements HyperGraphExec<InitCtx, InitBubble, MetaC
     }
 
     @Override
-    public List<Class<? extends TestGraphNode<InitBubble, MetaCtx>>> dependsOn() {
+    public List<Class<? extends HyperGraphTestNode<InitBubble>>> dependsOn() {
         return List.of();
     }
 

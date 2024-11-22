@@ -6,6 +6,6 @@ import com.hayden.test_graph.meta.ctx.MetaCtx;
 
 import java.util.List;
 
-public interface InitBubble extends HyperGraphContext<MetaCtx> {
+public interface InitBubble extends HyperGraphContext<InitBubble> {
 
 }

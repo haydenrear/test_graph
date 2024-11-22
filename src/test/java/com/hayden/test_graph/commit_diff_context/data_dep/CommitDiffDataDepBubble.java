@@ -1,7 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.data_dep;
 
 import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
-import com.hayden.test_graph.data_dep.ctx.DataDepMeta;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
@@ -14,26 +13,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CommitDiffDataDepBubble implements DataDepBubble {
 
-    private DataDepMeta dataDepMeta;
-
-
-    @Autowired
-    public void setDataDepMeta(DataDepMeta meta) {
-        this.dataDepMeta = meta;
-        this.dataDepMeta.setBubbled(this);
-    }
-
-    // TODO: inject the hypergraph edges into these classes, and then input as an arg here the
-    //      MetaProgCtx, and bubble here.
-    @Override
-    public MetaCtx bubble() {
-        return this.dataDepMeta;
-    }
-
-    @Override
-    public Class<? extends MetaCtx> bubbleClazz() {
-        return DataDepMeta.class;
-    }
 
     @Override
     public boolean executableFor(GraphExec.GraphExecNode n) {

@@ -16,11 +16,11 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraphContext<MetaCtx>> {
+public interface GraphExec<CTX extends TestGraphContext> {
 
     Logger log = LoggerFactory.getLogger(GraphExec.class);
 
-    interface ExecNode<CTX extends TestGraphContext<H>, H extends HyperGraphContext<MetaCtx>> extends GraphExec<CTX, H> {
+    interface ExecNode<CTX extends TestGraphContext<H>, H extends HyperGraphContext> extends GraphExec<CTX> {
 
         H collectCtx(Class<? extends CTX> toCollect, @Nullable MetaCtx h) ;
 
@@ -34,7 +34,8 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
 
     }
 
-    interface GraphExecNode<CTX extends TestGraphContext<H>, H extends HyperGraphContext<MetaCtx>> extends GraphExec<CTX, H> {
+
+    interface GraphExecNode<CTX extends TestGraphContext> extends GraphExec<CTX> {
 
         default CTX preMap(CTX c, MetaCtx h) {
             return c;
@@ -48,7 +49,7 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
             return c;
         }
 
-        default CTX exec(CTX c, H hgCtx, MetaCtx h) {
+        default CTX exec(CTX c, HyperGraphContext hgCtx, MetaCtx h) {
             return exec(c, h);
         }
 
@@ -59,7 +60,7 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
      * @param <CTX>
      * @param <H>
      */
-    interface GraphExecReducer<CTX extends TestGraphContext<H>, H extends HyperGraphContext<MetaCtx>> extends BiFunction<CTX, H, H> {
+    interface GraphExecReducer<CTX extends TestGraphContext, H extends HyperGraphContext> extends BiFunction<CTX, H, H> {
 
         H reduce(CTX first, H second);
 
@@ -69,7 +70,7 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
         }
     }
 
-    interface GraphExecMapper<CTX extends TestGraphContext<H>, H extends HyperGraphContext<MetaCtx>> extends BiFunction<CTX, MetaCtx, CTX> {
+    interface GraphExecMapper<CTX extends TestGraphContext, H extends HyperGraphContext> extends BiFunction<CTX, MetaCtx, CTX> {
 
         CTX reduce(CTX first, MetaCtx h);
 
@@ -79,15 +80,15 @@ public interface GraphExec<CTX extends TestGraphContext<H>, H extends HyperGraph
         }
     }
 
-    default List<? extends GraphExecReducer<CTX, H>> reducers() {
+    default <H extends HyperGraphContext> List<? extends GraphExecReducer<CTX, H>> reducers() {
         return new ArrayList<>() ;
     }
 
-    default List<? extends GraphExecMapper<CTX, H>> preMappers() {
+    default <H extends HyperGraphContext> List<? extends GraphExecMapper<CTX, H>> preMappers() {
         return new ArrayList<>();
     }
 
-    default List<? extends GraphExecMapper<CTX, H>> postMappers() {
+    default <H extends HyperGraphContext> List<? extends GraphExecMapper<CTX, H>> postMappers() {
         return new ArrayList<>();
     }
 

@@ -108,7 +108,7 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
         }
     }
 
-    public AssertCtx preMap(AssertCtx initCtx, MetaCtx metaCtx, List<GraphExecNode<AssertCtx, AssertBubble>> nodes) {
+    public AssertCtx preMap(AssertCtx initCtx, MetaCtx metaCtx, List<GraphExecNode<AssertCtx>> nodes) {
         for (var p : preMappers()) {
             initCtx = p.apply(initCtx, metaCtx);
         }
@@ -116,7 +116,7 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
         return perform(nodes, (c, i) -> i.preMap(c, metaCtx), initCtxExec);
     }
 
-    public AssertCtx postMap(AssertCtx initCtx, MetaCtx metaCtx, List<GraphExecNode<AssertCtx, AssertBubble>> nodes) {
+    public AssertCtx postMap(AssertCtx initCtx, MetaCtx metaCtx, List<GraphExecNode<AssertCtx>> nodes) {
         for (var p : preMappers()) {
             initCtx = p.apply(initCtx, metaCtx);
         }
@@ -126,7 +126,7 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
 
     public AssertCtx exec(AssertCtx initCtx,
                         MetaCtx metaCtx,
-                        List<GraphExecNode<AssertCtx, AssertBubble>> nodes) {
+                        List<GraphExecNode<AssertCtx>> nodes) {
         return perform(nodes, (c, i) ->  c.executableFor(i) ? i.exec(c, metaCtx) : c, initCtx);
     }
 
@@ -141,8 +141,8 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
                 .orElse(null);
     }
 
-    public static AssertCtx perform(List<GraphExecNode<AssertCtx, AssertBubble>> nodes,
-                                    BiFunction<AssertCtx, GraphExecNode<AssertCtx, AssertBubble>, AssertCtx> initCtxFunction,
+    public static AssertCtx perform(List<GraphExecNode<AssertCtx>> nodes,
+                                    BiFunction<AssertCtx, GraphExecNode<AssertCtx>, AssertCtx> initCtxFunction,
                                     AssertCtx initCtx) {
         for (var n : nodes) {
             initCtx = initCtxFunction.apply(initCtx, n);

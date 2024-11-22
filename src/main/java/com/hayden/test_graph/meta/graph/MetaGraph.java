@@ -1,12 +1,12 @@
 package com.hayden.test_graph.meta.graph;
 
 import com.hayden.test_graph.ctx.ContextValue;
-import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.graph.*;
 import com.hayden.test_graph.graph.node.HyperGraphTestNode;
 import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
 import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
+import com.hayden.test_graph.meta.ctx.MetaProgCtx;
 import com.hayden.test_graph.meta.exec.prog_bubble.MetaProgNode;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.extern.slf4j.Slf4j;
@@ -19,14 +19,14 @@ import java.util.List;
 @Slf4j
 @Component
 @ResettableThread
-public class MetaGraph implements MetaHyperGraph<HyperGraphContext<MetaCtx>, MetaCtx> {
+public class MetaGraph implements MetaHyperGraph {
 
     @Autowired
     TestGraphSort graphSort;
     @Autowired @Lazy
     LazyMetaGraphDelegate graphAutoDetect;
 
-    private List<MetaProgNode<HyperGraphContext<MetaCtx>>> hyperGraphNodes;
+    private List<MetaProgNode<MetaProgCtx>> hyperGraphNodes;
 
     @Autowired
     @ResettableThread
@@ -37,7 +37,7 @@ public class MetaGraph implements MetaHyperGraph<HyperGraphContext<MetaCtx>, Met
     public void setHyperGraphNodes(List<HyperGraphTestNode> bubbleNodes) {
         this.hyperGraphNodes = graphSort.sort(bubbleNodes)
                 .stream()
-                .map(m -> new MetaProgNode<HyperGraphContext<MetaCtx>>(ContextValue.ofExisting(m), ContextValue.ofExisting(metaProgCtx)))
+                .map(m -> new MetaProgNode<MetaProgCtx>(ContextValue.ofExisting(m), ContextValue.ofExisting(metaProgCtx)))
                 .toList();
         log.info("Initialized {} hyper graph nodes.", this.hyperGraphNodes.size());
     }
@@ -48,7 +48,7 @@ public class MetaGraph implements MetaHyperGraph<HyperGraphContext<MetaCtx>, Met
     }
 
     @Override
-    public List<? extends MetaProgNode<HyperGraphContext<MetaCtx>>> sortedNodes() {
+    public List<? extends MetaProgNode<MetaProgCtx>> sortedNodes() {
         return hyperGraphNodes;
     }
 
