@@ -29,7 +29,7 @@ public class InitBubbleGraph implements HyperTestGraph<InitBubble> {
 
     @Autowired(required = false)
     @ResettableThread
-    List<InitBubbleNode> sortedNodes = new ArrayList<>();
+    List<InitBubbleNode<InitBubble>> sortedNodes = new ArrayList<>();
 
 //    @Override
 //    public List<? extends InitBubbleNode> sortedNodes() {
@@ -38,7 +38,7 @@ public class InitBubbleGraph implements HyperTestGraph<InitBubble> {
 
 
     @Override
-    public List<? extends HyperGraphBubbleNode<InitBubble>> sortedNodes() {
-        return List.of();
+    public List<? extends InitBubbleNode<InitBubble>> sortedNodes() {
+        return sortedNodes;
     }
 }
