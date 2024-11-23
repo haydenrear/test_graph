@@ -1,16 +1,11 @@
 package com.hayden.test_graph.exec.prog_bubble;
 
-import com.hayden.test_graph.ctx.GraphContext;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
-import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.exec.single.GraphExec;
-import com.hayden.test_graph.graph.HyperGraph;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Optional;
 
 public interface ProgExec  {
 

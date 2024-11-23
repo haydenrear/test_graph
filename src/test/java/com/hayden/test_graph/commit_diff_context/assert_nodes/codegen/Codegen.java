@@ -35,6 +35,7 @@ public class Codegen implements CommitDiffAssert {
     }
 
     @Autowired
+    @ResettableThread
     public void setCodegenBubble(CodegenBubble commitDiffAssertBubble) {
         this.commitDiffAssertBubble = commitDiffAssertBubble;
     }

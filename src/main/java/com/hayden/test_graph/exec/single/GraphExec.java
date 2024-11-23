@@ -98,10 +98,11 @@ public interface GraphExec<CTX extends TestGraphContext> {
         return Reducer.chainReducers(reducers.subList(0, reducers.size()))
                 .flatMap(red -> doReducer(ctx, extract, red))
                 .or(() -> {
-                    if (ctx.size() > 1) {
+                    if (reducers.isEmpty()) {
                         log.warn("Did not find any reducers. Returning first reducer as measured by sort.");
                     }
-                    return ctx.stream().findAny().map(extract);
+
+                    return doReducer(ctx, extract, (c, e) -> e);
                 });
     }
 

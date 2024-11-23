@@ -8,7 +8,9 @@ import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.test_graph.thread.ResettableThreadLike;
+import com.hayden.utilitymodule.sort.GraphSort;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.BeansException;
@@ -16,6 +18,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,9 +29,10 @@ import java.util.Optional;
  */
 @RequiredArgsConstructor
 public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext>
-        implements Graph, ApplicationContextAware, ResettableThreadLike {
+        implements Graph, ApplicationContextAware, ResettableThreadLike, GraphSort.GraphSortable {
 
     @Setter
+    @Getter
     private T t;
 
 
@@ -49,8 +53,21 @@ public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext
                 .toList();
     }
 
+    @Override
+    public <T extends GraphSort.GraphSortable> List<Class<? extends T>> dependsOn() {
+        return this.t.bubble().dependsOn();
+    }
+
+    public List<Class<? extends TestGraphContext>> dependsOnRecursive() {
+        List<Class<? extends TestGraphContext>> d = new ArrayList<>(this.dependsOn());
+        List<Class<? extends TestGraphContext>> parentDep = this.t.dependsOn();
+        d.addAll(parentDep) ;
+
+        return d.stream().distinct().toList();
+    }
+
     public Class<? extends TestGraphContext> dependsOn(HyperGraphExec graphExec) {
-        if(graphExec.clzz().isAssignableFrom(t.bubbleClazz())){
+        if(graphExec.clzz().isAssignableFrom(t.bubbleClazz())) {
             return this.clazz();
         }
 

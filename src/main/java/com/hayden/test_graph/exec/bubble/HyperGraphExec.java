@@ -4,8 +4,13 @@ import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
+import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
 import com.hayden.test_graph.graph.node.HyperGraphTestNode;
+import com.hayden.test_graph.init.ctx.InitBubble;
+import com.hayden.test_graph.init.exec.bubble.InitBubbleNode;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
+
+import java.util.List;
 
 // TODO: abstract base class for the fields?
 public interface HyperGraphExec<SG extends TestGraphContext<CTX>, CTX extends HyperGraphContext>
@@ -31,6 +36,32 @@ public interface HyperGraphExec<SG extends TestGraphContext<CTX>, CTX extends Hy
         return this.exec(ctx, null);
     }
 
-    CTX collectCtx(CTX toCollect);
+    default CTX collectCtx(CTX toCollect) {
+        return toCollect;
+    }
+
+    List<? extends HyperGraphBubbleNode<CTX>> sortedNodes();
+
+
+    @Override
+    default CTX preMap(CTX ctx, MetaCtx metaCtx) {
+        for (var r : preMappers()) {
+            var c = r.apply(ctx, metaCtx);
+            ctx = c;
+        }
+        return ctx;
+    }
+
+    @Override
+    default CTX postMap(CTX ctx, MetaCtx metaCtx) {
+        for (var r : postMappers()) {
+            ctx = r.apply(ctx, metaCtx);
+        }
+        for (var b : sortedNodes()) {
+            ctx = b.preMap(ctx, metaCtx);
+        }
+        return ctx;
+    }
+
 
 }

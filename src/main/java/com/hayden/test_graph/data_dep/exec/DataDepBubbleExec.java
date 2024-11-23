@@ -54,14 +54,6 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
     }
 
 
-//    @Override
-
-    @Override
-    public DataDepBubble collectCtx(DataDepBubble toCollect) {
-        return toCollect.bubble();
-    }
-
-
     @Override
     @Idempotent
     public DataDepBubble exec(Class<? extends DataDepCtx> ctx, MetaCtx prev) {
@@ -78,25 +70,6 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
         return this.exec(ctx, null);
     }
 
-
-    @Override
-    public DataDepBubble preMap(DataDepBubble ctx, MetaCtx metaCtx) {
-        for (var r : preMappers()) {
-            ctx = r.apply(ctx, metaCtx);
-        }
-        return ctx;
-    }
-
-    @Override
-    public DataDepBubble postMap(DataDepBubble ctx, MetaCtx metaCtx) {
-        for (var r : postMappers()) {
-            ctx = r.apply(ctx, metaCtx);
-        }
-        for (var b : bubbleGraph.sortedNodes()) {
-            ctx = b.postMap(ctx, metaCtx);
-        }
-        return ctx;
-    }
 
     @Override
     public Class<? extends DataDepBubble> clzz() {
@@ -125,4 +98,8 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
         return c;
     }
 
+    @Override
+    public List<? extends HyperGraphBubbleNode<DataDepBubble>> sortedNodes() {
+        return bubbleGraph.sortedNodes();
+    }
 }

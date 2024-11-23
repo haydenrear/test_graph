@@ -18,6 +18,6 @@ public @interface AssertStep {
     /**
      * @return The context type to be initialized
      */
-    Class<? extends AssertCtx> value();
+    Class<? extends AssertCtx>[] value();
 
 }

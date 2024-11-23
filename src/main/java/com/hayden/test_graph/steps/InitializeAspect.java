@@ -8,6 +8,8 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+
 @Aspect
 @Component
 public class InitializeAspect implements StepAspect {
@@ -22,7 +24,7 @@ public class InitializeAspect implements StepAspect {
     public Object around(ProceedingJoinPoint joinPoint, InitStep initStep) throws Throwable {
         var proceeded =  joinPoint.proceed();
 
-        metaGraph.register(initStep.value());
+        Arrays.stream(initStep.value()).forEach(metaGraph::register);
 //        metaGraph.exec(initStep.value());
 
         return proceeded;

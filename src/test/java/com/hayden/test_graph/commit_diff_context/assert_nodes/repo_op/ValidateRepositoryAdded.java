@@ -27,14 +27,6 @@ public class ValidateRepositoryAdded implements RepoOpAssertNode {
     @Override
     @Idempotent(returnArg = 0)
     public RepoOpAssertCtx exec(RepoOpAssertCtx c, MetaCtx h) {
-//        c.getGraphQlQueries().res()
-//                .ifPresent(ud -> {
-//                    var q = commitDiff.callGraphQlQuery(CommitDiff.CallGraphQlQueryArgs.builder().build());
-//                    assertions.assertThat(q.e().isEmpty())
-//                            .withFailMessage("There existed an error on the GraphQl callback.")
-//                            .isTrue();
-//                    // TODO: retrieve.
-//                });
         c.getRepositoryAssertionDescriptor()
                 .res()
                 .flatMap(rad -> {

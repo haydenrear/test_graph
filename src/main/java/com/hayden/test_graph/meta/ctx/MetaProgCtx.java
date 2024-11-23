@@ -64,6 +64,11 @@ public class MetaProgCtx implements MetaCtx {
     }
 
     @Override
+    public List<Class<? extends TestGraphContext>> bubblers() {
+        return List.of(MetaProgCtx.class);
+    }
+
+    @Override
     public MetaCtx bubble() {
         return this;
     }

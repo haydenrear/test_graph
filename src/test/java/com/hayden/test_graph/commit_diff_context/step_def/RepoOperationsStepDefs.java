@@ -1,6 +1,7 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.hayden.test_graph.assertions.Assertions;
+import com.hayden.test_graph.commit_diff_context.assert_nodes.parent.CommitDiffAssertParentCtx;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
@@ -73,6 +74,8 @@ public class RepoOperationsStepDefs implements ResettableStep {
     public void validate_branch_added(String branchAdded) {
         commitDiffAssert.getRepositoryAssertionDescriptor()
                 .set(new RepoOpAssertCtx.RepoOpAssertionDescriptor(branchAdded));
+        assertions.assertStrongly(commitDiffAssert.isValidParent(),
+                "Failed to set validated on parent.");
     }
 
 }

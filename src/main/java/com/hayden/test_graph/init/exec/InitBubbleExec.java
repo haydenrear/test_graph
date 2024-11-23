@@ -3,6 +3,7 @@ package com.hayden.test_graph.init.exec;
 import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.graph.edge.EdgeExec;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
+import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
 import com.hayden.test_graph.graph.node.HyperGraphTestNode;
 import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.init.ctx.InitBubble;
@@ -27,9 +28,9 @@ public class InitBubbleExec implements HyperGraphExec<InitCtx, InitBubble> {
     public interface BubblePostMapper extends GraphExecMapper<InitBubble, InitBubble> {}
 
     @Autowired(required = false)
-    List<BubblePreMapper> preMappers;
+    List<BubblePreMapper> preMappers = new ArrayList<>();
     @Autowired(required = false)
-    List<BubblePostMapper> postMappers;
+    List<BubblePostMapper> postMappers = new ArrayList<>();
     @Autowired
     @ResettableThread
     InitExec initExec;
@@ -42,18 +43,17 @@ public class InitBubbleExec implements HyperGraphExec<InitCtx, InitBubble> {
 
     @Override
     public List<BubblePreMapper> preMappers() {
-        return Optional.ofNullable(preMappers).orElse(new ArrayList<>());
+        return preMappers;
     }
 
     @Override
     public List<BubblePostMapper> postMappers() {
-        return Optional.ofNullable(postMappers).orElse(new ArrayList<>());
+        return postMappers;
     }
 
-
     @Override
-    public InitBubble collectCtx(InitBubble toCollect) {
-        return toCollect.bubble();
+    public List<? extends HyperGraphBubbleNode<InitBubble>> sortedNodes() {
+        return bubbleGraph.sortedNodes();
     }
 
     @Override
@@ -71,25 +71,6 @@ public class InitBubbleExec implements HyperGraphExec<InitCtx, InitBubble> {
     @Override
     public InitBubble exec(Class<? extends InitCtx> ctx) {
         return this.exec(ctx, null);
-    }
-
-    @Override
-    public InitBubble preMap(InitBubble ctx, MetaCtx metaCtx) {
-        for (var r : preMappers()) {
-            ctx = r.apply(ctx, metaCtx);
-        }
-        return ctx;
-    }
-
-    @Override
-    public InitBubble postMap(InitBubble ctx, MetaCtx metaCtx) {
-        for (var r : postMappers()) {
-            ctx = r.apply(ctx, metaCtx);
-        }
-        for (var b : bubbleGraph.sortedNodes()) {
-            ctx = b.preMap(ctx, metaCtx);
-        }
-        return ctx;
     }
 
     @Override

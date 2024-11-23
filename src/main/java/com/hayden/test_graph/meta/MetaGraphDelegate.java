@@ -1,5 +1,7 @@
 package com.hayden.test_graph.meta;
 
+import com.hayden.test_graph.ctx.HierarchicalContext;
+import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.graph.Graph;
@@ -12,7 +14,6 @@ import com.hayden.utilitymodule.MapFunctions;
 import com.hayden.utilitymodule.proxies.ProxyUtil;
 import com.hayden.utilitymodule.sort.GraphSort;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -39,7 +40,7 @@ public class MetaGraphDelegate {
 
     @Autowired
     @ResettableThread
-    private List<? extends SubGraph> subGraphs;
+    private List<? extends SubGraph<TestGraphContext<HyperGraphContext>, HyperGraphContext>> subGraphs;
 
     private MetaGraph metaGraph;
 
@@ -101,25 +102,29 @@ public class MetaGraphDelegate {
      * @return
      */
     public Stream<Class<? extends TestGraphContext>> retrieveContextsToRun(HyperGraphExec hg, Class<? extends TestGraphContext> clazz) {
-        Stream<TestGraphContext> matching = subGraphs.stream()
-                .filter(sub -> sub.clazz().equals(sub.dependsOn(hg)))
-                .flatMap(sub -> getGraphContext((Class<TestGraphContext>) sub.clazz())
-                        .stream()
-                        .flatMap(testGraphContext -> getGraphContext(clazz)
-                                .map(tgc -> Map.entry(testGraphContext, tgc))
-                                .stream()
-                        )
-                        .flatMap(contexts -> {
-                            var testGraphContext = contexts.getKey();
-                            var ctx = contexts.getValue();
-                            Class o = testGraphContext.bubbleClazz();
-                            return testGraphContext.getClass().equals(clazz) || (ctx.dependsOnRecursive().contains(o))
-                                    ? Stream.of(testGraphContext)
-                                    : Stream.empty();
-                        }))
-                .distinct();
+        TestGraphContext testGraphContext = this.graphCtxt.get(clazz);
+        List<TestGraphContext> matching =
+                subGraphs.stream()
+                        .filter(sub -> sub.clazz().equals(testGraphContext.bubbleClazz())
+                                       && sub.clazz().equals(sub.dependsOn(hg)))
+                        // retrieve all dependent bubble nodes
+                        .flatMap(sub -> sub.dependsOnRecursive().stream())
+                        .map(dependsOn -> this.graphCtxt.get(dependsOn))
+                        .distinct()
+                        .collect(Collectors.toCollection(ArrayList::new));
 
-        return getSortedBubbles(matching)
+        matching.add(testGraphContext.bubble());
+
+        return GraphSort.sort(matching)
+                .stream()
+                .flatMap(tgc -> tgc instanceof HyperGraphContext<?> hgc
+                                ? Stream.of(hgc)
+                                : Stream.empty())
+                .flatMap(tgc -> tgc
+                        .bubblers().stream()
+                        .flatMap(b -> Optional.ofNullable(this.graphCtxt.get(b)).stream())
+                )
+                .filter(HierarchicalContext::isLeafNode)
                 .map(TestGraphContext::getClass);
     }
 
@@ -172,15 +177,6 @@ public class MetaGraphDelegate {
         n.accept(entryStream);
     }
 
-    private static @NotNull Stream<TestGraphContext> getSortedBubbles(Stream<TestGraphContext> matching) {
-        List<TestGraphContext> toSortCtx = matching.toList();
-        Stream<TestGraphContext> bubbleNodes = toSortCtx.stream().map(TestGraphContext::bubble);
-        List<TestGraphContext> sortedBubbles = GraphSort.sort(bubbleNodes.distinct().toList());
 
-        Stream<TestGraphContext> sortedDistinctBubbles = sortedBubbles.stream()
-                .flatMap(tgc -> toSortCtx.stream().filter(t -> !t.bubbleClazz().equals(t.getClass()) && t.bubbleClazz().equals(tgc.getClass())))
-                .distinct();
-        return sortedDistinctBubbles;
-    }
 
 }

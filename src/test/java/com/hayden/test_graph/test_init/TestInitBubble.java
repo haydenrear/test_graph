@@ -42,4 +42,9 @@ public class TestInitBubble implements InitBubble {
     public List<Class<? extends TestGraphContext<MetaCtx>>> dependsOn() {
         return List.of();
     }
+
+    @Override
+    public List<Class<? extends TestGraphContext>> bubblers() {
+        return List.of(TestInitChildCtx.class);
+    }
 }

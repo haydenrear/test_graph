@@ -52,10 +52,9 @@ public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble>
         return Optional.ofNullable(postMappers).orElse(new ArrayList<>());
     }
 
-
     @Override
-    public AssertBubble collectCtx(AssertBubble toCollect) {
-        return toCollect.bubble();
+    public List<? extends HyperGraphBubbleNode<AssertBubble>> sortedNodes() {
+        return bubbleGraph.sortedNodes();
     }
 
     @Override
@@ -72,25 +71,6 @@ public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble>
     @Override
     public AssertBubble exec(Class<? extends AssertCtx> ctx) {
         return this.exec(ctx, null);
-    }
-
-    @Override
-    public AssertBubble preMap(AssertBubble ctx, MetaCtx metaCtx) {
-        for (var r : preMappers()) {
-            ctx = r.apply(ctx, metaCtx);
-        }
-        return ctx;
-    }
-
-    @Override
-    public AssertBubble postMap(AssertBubble ctx, MetaCtx metaCtx) {
-        for (var r : postMappers()) {
-            ctx = r.apply(ctx, metaCtx);
-        }
-        for (var b : bubbleGraph.sortedNodes()) {
-            ctx = b.preMap(ctx, metaCtx);
-        }
-        return ctx;
     }
 
     @Override

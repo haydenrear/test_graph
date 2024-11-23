@@ -42,4 +42,8 @@ public final class RepoOpBubble implements InitBubble {
         return repositoryData;
     }
 
+    @Override
+    public List<Class<? extends TestGraphContext>> bubblers() {
+        return List.of(RepoOpInit.class);
+    }
 }

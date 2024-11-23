@@ -3,6 +3,7 @@ package com.hayden.test_graph.step_def;
 import com.google.common.collect.Sets;
 import com.hayden.test_graph.meta.exec.MetaProgExec;
 import com.hayden.test_graph.meta.graph.MetaGraph;
+import com.hayden.test_graph.steps.AssertStep;
 import com.hayden.test_graph.steps.InitStep;
 import com.hayden.test_graph.steps.InitializeAspect;
 import com.hayden.test_graph.test_init.*;

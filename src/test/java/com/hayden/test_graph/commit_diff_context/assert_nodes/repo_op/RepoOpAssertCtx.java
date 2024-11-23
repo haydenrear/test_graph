@@ -31,8 +31,15 @@ public class RepoOpAssertCtx implements CommitDiffAssert {
 
     private ContextValue<CommitDiffAssertParentCtx> parent;
 
+    public boolean isValidParent() {
+        return parent.res().optional()
+                .flatMap(ca -> ca.getValidated().res().optional())
+                .orElse(false);
+    }
+
 
     @Autowired
+    @ResettableThread
     public void setRepoOpBubble(RepoOpAssertBubble commitDiffAssertBubble) {
         this.commitDiffAssertBubble = commitDiffAssertBubble;
     }
@@ -53,7 +60,7 @@ public class RepoOpAssertCtx implements CommitDiffAssert {
 
     @Override
     public boolean executableFor(GraphExec.GraphExecNode n) {
-        return n instanceof CommitDiffAssertNode;
+        return n instanceof RepoOpAssertNode;
     }
 
     public ContextValue<RepoOpInit.RepositoryData> repoUrl() {

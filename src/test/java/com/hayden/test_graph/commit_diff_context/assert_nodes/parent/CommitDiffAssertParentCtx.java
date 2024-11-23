@@ -2,7 +2,6 @@ package com.hayden.test_graph.commit_diff_context.assert_nodes.parent;
 
 import com.hayden.test_graph.assert_g.ctx.AssertBubble;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.CommitDiffAssert;
-import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertBubble;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;
@@ -21,37 +20,42 @@ public class CommitDiffAssertParentCtx implements CommitDiffAssert {
 
     private final ContextValue<RepoOpInit.RepositoryData> repoUrl;
     private final ContextValue<RepoOpInit.GraphQlQueries> graphQlQueries;
+    private final ContextValue<Boolean> validated;
 
-    private RepoOpAssertBubble commitDiffAssertBubble;
+    private CommitDiffCtxParentBubble commitDiffAssertBubble;
 
 
     @Autowired
-    public void setRepoOpBubble(RepoOpAssertBubble commitDiffAssertBubble) {
+    @ResettableThread
+    public void setRepoOpBubble(CommitDiffCtxParentBubble commitDiffAssertBubble) {
         this.commitDiffAssertBubble = commitDiffAssertBubble;
     }
 
     public CommitDiffAssertParentCtx() {
-        this(ContextValue.empty(), ContextValue.empty());
+        this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty());
     }
 
     @Override
-    public RepoOpAssertBubble bubble() {
+    public CommitDiffCtxParentBubble bubble() {
         return commitDiffAssertBubble;
     }
 
     @Override
     public Class<? extends AssertBubble> bubbleClazz() {
-        return RepoOpAssertBubble.class;
+        return CommitDiffCtxParentBubble.class;
     }
 
     @Override
     public boolean executableFor(GraphExec.GraphExecNode n) {
-        return n instanceof CommitDiffAssertParentCtx;
+        return n instanceof CommitDiffCtxParentAssertNode;
     }
 
     public ContextValue<RepoOpInit.RepositoryData> repoUrl() {
         return repoUrl;
     }
 
-
+    @Override
+    public boolean isLeafNode() {
+        return false;
+    }
 }

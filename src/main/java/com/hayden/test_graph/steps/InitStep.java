@@ -17,6 +17,6 @@ public @interface InitStep {
     /**
      * @return The context type to be initialized
      */
-    Class<? extends InitCtx> value();
+    Class<? extends InitCtx>[] value();
 
 }

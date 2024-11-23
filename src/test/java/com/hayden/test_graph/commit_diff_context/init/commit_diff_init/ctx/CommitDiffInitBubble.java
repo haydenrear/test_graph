@@ -3,6 +3,7 @@ package com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx;
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.CommitDiffInitBubbleNode;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpBubble;
+import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.docker.ctx.DockerInitBubbleCtx;
@@ -17,8 +18,7 @@ import java.util.List;
 @ResettableThread
 @EqualsAndHashCode
 @ToString
-public final class CommitDiffInitBubble implements InitBubble {
-
+public class CommitDiffInitBubble implements InitBubble {
 
     @Override
     public boolean executableFor(GraphExec.GraphExecNode n) {
@@ -28,5 +28,10 @@ public final class CommitDiffInitBubble implements InitBubble {
     @Override
     public List<Class<? extends InitBubble>> dependsOn() {
         return List.of(DockerInitBubbleCtx.class, RepoOpBubble.class, CdMbInitBubbleCtx.class);
+    }
+
+    @Override
+    public List<Class<? extends TestGraphContext>> bubblers() {
+        return List.of(CommitDiffInit.class);
     }
 }
