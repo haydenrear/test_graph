@@ -61,6 +61,9 @@ public class MetaProgExec implements ProgExec {
 //        assertDeps(ctx);
         for (var hgNode : lazyMetaGraphDelegate.retrieveHyperGraphDependencyGraph(ctx)) {
             MetaCtx finalMetaCtx = metaCtx;
+            // TODO partition these by bubble type, then merge, then push result onto MetaProgCtx,
+            //      then single context pushed for MetaProgCtx for each bubble type,
+            //      > InitBubble, > AssertBubble, etc.
             lazyMetaGraphDelegate.retrieveContextsToRun(hgNode, ctx)
                     .map(c -> {
                         HyperGraphExec<TestGraphContext<HyperGraphContext>, HyperGraphContext> hgGraphExec
