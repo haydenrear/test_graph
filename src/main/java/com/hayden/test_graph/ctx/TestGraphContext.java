@@ -29,14 +29,6 @@ public non-sealed interface TestGraphContext<H extends HyperGraphContext>
         return tree;
     }
 
-    default List<Class<? extends TestGraphContext>> dependsOnRecursive() {
-        List<Class<? extends TestGraphContext>> d = new ArrayList<>(this.dependsOn());
-        List<Class<? extends TestGraphContext>> parentDep = this.bubble().dependsOn();
-        d.addAll(parentDep) ;
-
-        return d.stream().distinct().toList();
-    }
-
     default Collection<ContextValue<?>> requiredDependencies() {
         return new ArrayList<>() ;
     }

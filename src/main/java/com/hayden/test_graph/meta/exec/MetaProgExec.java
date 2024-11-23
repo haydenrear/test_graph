@@ -1,16 +1,12 @@
 package com.hayden.test_graph.meta.exec;
 
-import com.google.common.collect.Queues;
 import com.hayden.test_graph.ctx.ContextValue;
-import com.hayden.test_graph.ctx.GraphContext;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
-import com.hayden.test_graph.graph.SubGraph;
 import com.hayden.test_graph.graph.edge.EdgeExec;
 import com.hayden.test_graph.exec.prog_bubble.ProgExec;
 import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
-import com.hayden.test_graph.graph.service.TestGraphSort;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.ctx.MetaProgCtx;
 import com.hayden.test_graph.report.ReportingValidationNode;
@@ -20,6 +16,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 @Component
 @ResettableThread
@@ -59,17 +56,14 @@ public class MetaProgExec implements ProgExec {
     @Override
     public MetaCtx exec(Class<? extends TestGraphContext> ctx, MetaCtx metaCtx) {
 //        assertDeps(ctx);
-        for (var hgNode : lazyMetaGraphDelegate.retrieveHyperGraphDependencyGraph(ctx)) {
+        for (var hgNode : lazyMetaGraphDelegate.parseHyperGraph(ctx)) {
             MetaCtx finalMetaCtx = metaCtx;
-            // TODO partition these by bubble type, then merge, then push result onto MetaProgCtx,
-            //      then single context pushed for MetaProgCtx for each bubble type,
-            //      > InitBubble, > AssertBubble, etc.
-            lazyMetaGraphDelegate.retrieveContextsToRun(hgNode, ctx)
-                    .map(c -> {
+            Stream<Class<? extends TestGraphContext>> contextsRetrieved = lazyMetaGraphDelegate.parseSubGraph(hgNode, ctx);
+            contextsRetrieved.map(c -> {
                         HyperGraphExec<TestGraphContext<HyperGraphContext>, HyperGraphContext> hgGraphExec
                                 = edgeExec.preExecHgExecEdges(hgNode, finalMetaCtx);
                         var ctxCreated = hgGraphExec.exec((Class<? extends TestGraphContext<HyperGraphContext>>) c, finalMetaCtx);
-                        var m = edgeExec.postExecMetaCtxEdges(ctxCreated.bubbleMeta(finalMetaCtx), finalMetaCtx);
+                        MetaCtx m = edgeExec.postExecMetaCtxEdges(ctxCreated.bubbleMeta(finalMetaCtx), finalMetaCtx);
                         return Map.entry(m, ctxCreated);
                     })
                     .forEach(mc -> {

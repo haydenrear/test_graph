@@ -6,5 +6,4 @@ import com.hayden.test_graph.meta.ctx.MetaCtx;
 public interface HyperGraphTestNode<H extends HyperGraphContext>
         extends HyperGraphBubbleNode<H> {
 
-
 }

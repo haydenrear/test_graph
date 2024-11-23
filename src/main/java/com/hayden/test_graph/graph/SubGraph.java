@@ -1,12 +1,8 @@
 package com.hayden.test_graph.graph;
 
-import com.hayden.test_graph.ctx.HierarchicalContext;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
-import com.hayden.test_graph.graph.service.TestGraphSort;
-import com.hayden.test_graph.meta.ctx.MetaCtx;
-import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.test_graph.thread.ResettableThreadLike;
 import com.hayden.utilitymodule.sort.GraphSort;
 import jakarta.annotation.PostConstruct;
@@ -20,6 +16,7 @@ import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -58,12 +55,9 @@ public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext
         return this.t.bubble().dependsOn();
     }
 
-    public List<Class<? extends TestGraphContext>> dependsOnRecursive() {
-        List<Class<? extends TestGraphContext>> d = new ArrayList<>(this.dependsOn());
-        List<Class<? extends TestGraphContext>> parentDep = this.t.dependsOn();
-        d.addAll(parentDep) ;
-
-        return d.stream().distinct().toList();
+    public List<TestGraphContext> dependsOnRecursive(Map<Class<? extends TestGraphContext>, TestGraphContext> graphCtxt) {
+        var parsed = parseAllDepsNotThis(graphCtxt);
+        return parsed.stream().distinct().toList();
     }
 
     public Class<? extends TestGraphContext> dependsOn(HyperGraphExec graphExec) {

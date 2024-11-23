@@ -15,6 +15,7 @@ import com.hayden.utilitymodule.proxies.ProxyUtil;
 import com.hayden.utilitymodule.sort.GraphSort;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.PropertyValues;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -85,7 +86,7 @@ public class MetaGraphDelegate {
         initializeMapNotProxy(graphCtx, c -> this.graphCtxt = c);
     }
 
-    public List<HyperGraphExec> retrieveHyperGraphDependencyGraph(Class<? extends TestGraphContext> clazz) {
+    public List<HyperGraphExec> parseHyperGraph(Class<? extends TestGraphContext> clazz) {
         return retrieve(getMatchingContext(clazz));
     }
 
@@ -101,15 +102,15 @@ public class MetaGraphDelegate {
      * @param clazz
      * @return
      */
-    public Stream<Class<? extends TestGraphContext>> retrieveContextsToRun(HyperGraphExec hg, Class<? extends TestGraphContext> clazz) {
+    public Stream<Class<? extends TestGraphContext>> parseSubGraph(HyperGraphExec<TestGraphContext<HyperGraphContext>, HyperGraphContext> hg,
+                                                                   Class<? extends TestGraphContext> clazz) {
         TestGraphContext testGraphContext = this.graphCtxt.get(clazz);
         List<TestGraphContext> matching =
                 subGraphs.stream()
                         .filter(sub -> sub.clazz().equals(testGraphContext.bubbleClazz())
                                        && sub.clazz().equals(sub.dependsOn(hg)))
                         // retrieve all dependent bubble nodes
-                        .flatMap(sub -> sub.dependsOnRecursive().stream())
-                        .map(dependsOn -> this.graphCtxt.get(dependsOn))
+                        .flatMap(sub -> dependsOnRecursive(sub).stream())
                         .distinct()
                         .collect(Collectors.toCollection(ArrayList::new));
 
@@ -128,6 +129,10 @@ public class MetaGraphDelegate {
                 .map(TestGraphContext::getClass);
     }
 
+    private List<TestGraphContext> dependsOnRecursive(SubGraph<TestGraphContext<HyperGraphContext>, HyperGraphContext> sub) {
+        return sub.dependsOnRecursive(this.graphCtxt);
+    }
+
 
     public HyperGraphExec getMatchingContext(Class<? extends TestGraphContext> clazz) {
         return metaGraph.sortedNodes().stream()
@@ -140,25 +145,6 @@ public class MetaGraphDelegate {
                 )
                 .findAny()
                 .orElse(null);
-    }
-
-    public <T extends TestGraphNode>  List<T> retrieveNodes(Function<TestGraphNode, @Nullable T> clazz) {
-        return retrieve(clazz, this.graphNodes);
-    }
-
-    public <T extends Graph>  Optional<T> retrieveGraph(Function<Graph, @Nullable T> clazz) {
-        return retrieve(clazz, this.graphs).stream().findAny();
-    }
-
-    public <T extends TestGraphContext>  List<T> retrieveCtx(Function<TestGraphContext, @Nullable T> clazz) {
-        return retrieve(clazz, this.graphCtxt);
-    }
-
-    private <T, U> List<T> retrieve(Function<U, @Nullable T> clazz,
-                                    Map<Class<? extends U>, U> graphCtxt1) {
-        return graphCtxt1.values().stream()
-                .flatMap(g -> Stream.ofNullable(clazz.apply(g)))
-                .toList();
     }
 
     private <T> void initializeMapNotProxy(List<T> graphNodes, Consumer<Map<Class<? extends T>, T>> n) {
