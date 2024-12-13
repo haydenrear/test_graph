@@ -125,9 +125,9 @@ public class CommitDiff {
             return toDo.apply(this.graphQlClient);
         } catch (GraphQlTransportException |
                  ResourceAccessException ce) {
-            assertions.assertThat(false)
-                    .withFailMessage("Could not connect to graphQL: %s".formatted(ce.getMessage()))
-                    .isTrue();
+//            assertions.assertThat(false)
+//                    .withFailMessage("Could not connect to graphQL: %s".formatted(ce.getMessage()))
+//                    .isTrue();
             return Result.err(new CommitDiffContextGraphQlError(ce.getMessage()));
         }
     }

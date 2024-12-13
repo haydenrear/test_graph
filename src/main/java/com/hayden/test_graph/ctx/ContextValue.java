@@ -1,6 +1,7 @@
 package com.hayden.test_graph.ctx;
 
 import com.hayden.utilitymodule.result.Result;
+import com.hayden.utilitymodule.result.agg.Responses;
 import lombok.experimental.Delegate;
 
 import java.util.Optional;
@@ -50,7 +51,7 @@ public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
         }
 
         public MutableContextValue(T t) {
-            this.res = Result.ok(Result.Ok.ok(t));
+            this.res = Result.ok(Responses.Ok.ok(t));
         }
 
         public static <T, E> MutableContextValue<T, E> empty() {

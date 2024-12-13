@@ -23,7 +23,7 @@ tasks.compileJava {
 }
 
 tasks.register<Copy>("copyGraphQlSchema") {
-    from(project.rootDir.toPath().resolve("commit-diff-context/src/main/resources/schema"))
+    from(project.rootDir.toPath().resolve("commit-diff-model/src/main/resources/schema"))
     into(projectDir.resolve("src/main/resources/schema"))
 }
 

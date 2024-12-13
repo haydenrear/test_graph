@@ -133,13 +133,15 @@ public class MetaGraphDelegate {
         return sub.dependsOnRecursive(this.graphCtxt);
     }
 
-
     public HyperGraphExec getMatchingContext(Class<? extends TestGraphContext> clazz) {
         return metaGraph.sortedNodes().stream()
                 .flatMap(m -> m.t().optional().stream())
-                .flatMap(h -> h instanceof HyperGraphExec hyper ? Stream.of(hyper) : Stream.empty())
+                .flatMap(h -> h instanceof HyperGraphExec hyper
+                              ? Stream.of(hyper)
+                              : Stream.empty())
                 .filter(s -> subGraphs.stream()
-                        .map(sub -> sub.clazz().equals(clazz) && Objects.equals(sub.dependsOn(s), clazz))
+                        .map(sub -> sub.clazz().equals(clazz)
+                                    && Objects.equals(sub.dependsOn(s), clazz))
                         .filter(Boolean::booleanValue)
                         .findAny().orElse(false)
                 )
