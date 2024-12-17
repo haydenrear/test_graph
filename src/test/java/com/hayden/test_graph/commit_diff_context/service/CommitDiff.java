@@ -5,7 +5,7 @@ import com.hayden.test_graph.codegen.types.GitRepoResult;
 import com.hayden.test_graph.codegen.types.NextCommit;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.result.Result;
-import com.hayden.utilitymodule.result.error.ErrorCollect;
+import com.hayden.utilitymodule.result.error.SingleError;
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +61,7 @@ public class CommitDiff {
     }
 
     @Builder
-    public record CommitDiffContextGraphQlError(List<ResponseError> errors, String error) implements ErrorCollect {
+    public record CommitDiffContextGraphQlError(List<ResponseError> errors, String error) implements SingleError {
 
         public CommitDiffContextGraphQlError(List<ResponseError> errors) {
             this(errors, null);
