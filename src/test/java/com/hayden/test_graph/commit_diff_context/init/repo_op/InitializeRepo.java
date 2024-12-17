@@ -32,6 +32,7 @@ public class InitializeRepo implements RepoOpInitNode {
                                         .build());
                     return c;
                 })
+                .one()
                 .orElseRes(c);
     }
 

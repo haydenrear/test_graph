@@ -32,8 +32,8 @@ public class RepoOpAssertCtx implements CommitDiffAssert {
     private ContextValue<CommitDiffAssertParentCtx> parent;
 
     public boolean isValidParent() {
-        return parent.res().optional()
-                .flatMap(ca -> ca.getValidated().res().optional())
+        return parent.res().one().optional()
+                .flatMap(ca -> ca.getValidated().res().one().optional())
                 .orElse(false);
     }
 
@@ -66,6 +66,7 @@ public class RepoOpAssertCtx implements CommitDiffAssert {
     public ContextValue<RepoOpInit.RepositoryData> repoUrl() {
         return this.parent
                 .res().map(CommitDiffAssertParentCtx::repoUrl)
+                .one()
                 .orElseRes(ContextValue.empty());
     }
 

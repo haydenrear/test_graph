@@ -52,7 +52,7 @@ public final class RepoOpInit implements InitCtx {
     public record BubbleData(Path clonedTo) { }
 
     public ContextValue<RepositoryData> repoData() {
-        return bubbleUnderlying.res().get().repositoryData();
+        return bubbleUnderlying.res().one().get().repositoryData();
     }
 
     public ContextValue<GraphQlQueries> graphQlQueries() {
@@ -73,13 +73,13 @@ public final class RepoOpInit implements InitCtx {
     }
 
     public RepositoryData repoDataOrThrow() {
-        return this.bubbleUnderlying.res().get().repositoryData().res().orElseThrow();
+        return this.bubbleUnderlying.res().one().get().repositoryData().res().orElseThrow();
     }
 
 
     @Override
     public RepoOpBubble bubble() {
-        return this.bubbleUnderlying.res().get();
+        return this.bubbleUnderlying.res().one().get();
     }
 
     @Override

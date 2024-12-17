@@ -45,7 +45,7 @@ public class CdMbInitCtx implements MbInitCtx {
 
     @Override
     public CdMbInitBubbleCtx bubble() {
-        return this.bubbleUnderlying.res().get();
+        return this.bubbleUnderlying.res().one().get();
     }
 
     @Override

@@ -53,8 +53,8 @@ public class BlameNodeStepDefs implements ResettableStep {
     @AssertStep(Codegen.class)
     public void assert_model_response() {
         // validate that the data exists in the context for any assertion
-        assertions.assertThat(codegen.repoUrl().res().isPresent()).isTrue();
-        assertions.assertThat(codegen.getUserCode().res().isPresent()).isTrue();
+        assertions.assertThat(codegen.repoUrl().res().one().isPresent()).isTrue();
+        assertions.assertThat(codegen.getUserCode().res().one().isPresent()).isTrue();
     }
 
     @And("the initial code response is loaded from {string}")

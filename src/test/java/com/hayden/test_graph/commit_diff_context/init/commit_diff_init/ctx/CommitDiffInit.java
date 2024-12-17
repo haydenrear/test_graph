@@ -34,7 +34,7 @@ public final class CommitDiffInit implements InitCtx {
 
     @Override
     public CommitDiffInitBubble bubble() {
-        return this.bubbleUnderlying.res().get();
+        return this.bubbleUnderlying.res().one().get();
     }
 
     @Override

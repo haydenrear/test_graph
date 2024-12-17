@@ -22,12 +22,12 @@ public class StartDockerNode implements DockerInitNode {
 
 
     public static void initializeDockerCompose(DockerInitCtx workingDirectory) {
-        File workDir = workingDirectory.composePath().res().get();
+        File workDir = workingDirectory.composePath().res().one().get();
         ExposeCompose exposeCompose = new ExposeCompose(
                 workDir,
                 DockerComposeFile.find(workDir),
-                workingDirectory.dockerProfiles().res().orElseRes(new HashSet<>()),
-                workingDirectory.host().res().orElseRes("localhost"));
+                workingDirectory.dockerProfiles().res().one().orElseRes(new HashSet<>()),
+                workingDirectory.host().res().one().orElseRes("localhost"));
 //        exposeCompose.up(workingDirectory.logLevel().res().orElseRes(LogLevel.INFO));
     }
 

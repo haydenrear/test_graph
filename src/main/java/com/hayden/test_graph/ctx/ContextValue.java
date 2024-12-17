@@ -15,15 +15,15 @@ public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
     }
 
     public boolean isEmpty() {
-        return !res.res.isPresent();
+        return !res.res.one().isPresent();
     }
 
     public Optional<T> optional() {
-        return res.optional();
+        return res.one().optional();
     }
 
     public boolean isPresent() {
-        return res.res.isPresent();
+        return res.res.one().isPresent();
     }
 
     public static <T> ContextValue<T> empty() {
@@ -77,10 +77,10 @@ public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
         }
 
         public T orElseThrow(Supplier<RuntimeException> throwable) {
-            if (!this.res.isPresent()) {
+            if (!this.res.one().isPresent()) {
                 throw throwable.get();
             }
-            return this.res.get();
+            return this.res.one().get();
         }
 
         public T orElseThrow() {
