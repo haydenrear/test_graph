@@ -1,7 +1,9 @@
 package com.hayden.test_graph.ctx;
 
+import com.hayden.utilitymodule.result.MutableResult;
 import com.hayden.utilitymodule.result.Result;
 import com.hayden.utilitymodule.result.ok.Ok;
+import graphql.Mutable;
 import lombok.experimental.Delegate;
 
 import java.util.Optional;
@@ -11,7 +13,7 @@ import java.util.function.Supplier;
 public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
 
     public void clear() {
-        res.res = Result.empty();
+        res.res = Result.mutableEmpty();
     }
 
     public boolean isEmpty() {
@@ -42,20 +44,20 @@ public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
 
     public static class MutableContextValue<T, E> {
         @Delegate
-        Result<T, E> res;
+        MutableResult<T, E> res;
 
-        Stack<Result<T, E>> old = new Stack<>();
+        Stack<MutableResult<T, E>> old = new Stack<>();
 
-        public MutableContextValue(Result<T, E> res) {
+        public MutableContextValue(MutableResult<T, E> res) {
             this.res = res;
         }
 
         public MutableContextValue(T t) {
-            this.res = Result.ok(Ok.ok(t));
+            this.res = Result.mutableOk(t);
         }
 
         public static <T, E> MutableContextValue<T, E> empty() {
-            return new MutableContextValue<>(Result.empty());
+            return new MutableContextValue<>(Result.mutableEmpty());
         }
 
         public static <T> MutableContextValue<T, ContextValueError> ofExisting(T t) {
@@ -63,10 +65,10 @@ public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
         }
 
         public void set(T t) {
-            this.res.r().set(t);
+            this.res.set(t);
         }
 
-        public void replace(Result<T, E> res) {
+        public void replace(MutableResult<T, E> res) {
             this.old.push(this.res);
             this.res = res;
         }
