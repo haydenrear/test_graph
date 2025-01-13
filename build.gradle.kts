@@ -15,6 +15,7 @@ version = "1.0.0"
 
 dependencies {
     implementation(project(":utilitymodule"))
+    implementation(project(":commit-diff-model"))
 }
 
 tasks.compileJava {
@@ -22,22 +23,11 @@ tasks.compileJava {
 //     java -javaagent:commit-diff-context/build/agent/prometheus-javaagent.jar=12345:commit-diff-context/prom-config.yaml -jar ?.jar
 }
 
-tasks.register<Copy>("copyGraphQlSchema") {
-    from(project.rootDir.toPath().resolve("commit-diff-model/src/main/resources/schema"))
-    into(projectDir.resolve("src/main/resources/schema"))
-}
-
 tasks.generateJava {
-    schemaPaths.add("${projectDir}/src/main/resources/schema")
-    packageName = "com.hayden.test_graph.codegen"
-    generateClient = true
     typeMapping = mutableMapOf(
         Pair("ByteArray", "com.hayden.test_graph.config.ByteArray")
     )
 }
-
-tasks.named("generateJava").configure { dependsOn("copyGraphQlSchema") }
-tasks.named("processResources").configure { dependsOn("copyGraphQlSchema") }
 
 tasks.acquireMountebank {
     project.logger.info("Getting mountebank!")

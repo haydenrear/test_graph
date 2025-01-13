@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.hayden.test_graph.commit_diff_context.service.GraphQlTemplates.*;
+import static com.hayden.commitdiffmodel.graphql.GraphQlTemplates.*;
 
 @Service
 public class CommitDiff {
@@ -106,13 +106,14 @@ public class CommitDiff {
             case AddCodeBranchArgs branchAdded ->
                     this.doWithGraphQl(client -> {
                         var gqlResult = client.document(ADD_CODE_BRANCH_TEMPLATE
-                                .formatted(branchAdded.branchName, branchAdded.gitRepoPath));
+                                .formatted(branchAdded.branchName, branchAdded.gitRepoPath, "", ""));
                         return toRes(gqlResult.executeSync(), graphQlQueryArgs);
                     });
             case CommitRequestArgs commitRequestArgs ->
                     this.doWithGraphQl(client -> {
                         var gqlResult = client.document(NEXT_COMMIT_GRAPH_QL_TEMPLATE
-                                .formatted(commitRequestArgs.branchName, commitRequestArgs.gitRepoPath, commitRequestArgs.commitMessage));
+                                .formatted(commitRequestArgs.branchName, commitRequestArgs.gitRepoPath,
+                                        commitRequestArgs.commitMessage, "", "", "", "", "", "", ""));
                         return toRes(gqlResult.executeSync(), graphQlQueryArgs);
                     });
             default ->
