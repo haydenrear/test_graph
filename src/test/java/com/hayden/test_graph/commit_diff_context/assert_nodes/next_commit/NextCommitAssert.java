@@ -1,0 +1,84 @@
+package com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit;
+
+import com.hayden.commitdiffmodel.codegen.types.NextCommit;
+import com.hayden.test_graph.assert_g.ctx.AssertBubble;
+import com.hayden.test_graph.commit_diff_context.assert_nodes.CommitDiffAssert;
+import com.hayden.test_graph.commit_diff_context.assert_nodes.parent.CommitDiffAssertParentCtx;
+import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
+import com.hayden.test_graph.ctx.ContextValue;
+import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.exec.single.GraphExec;
+import com.hayden.test_graph.thread.ResettableThread;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+
+
+@Component
+@ResettableThread
+@RequiredArgsConstructor
+@Getter
+public class NextCommitAssert implements CommitDiffAssert {
+
+    public record NextCommitMetadata(NextCommit nc) {}
+
+    private final ContextValue<NextCommitMetadata> nextCommitInfo;
+
+    private NextCommitBubble nextCommitBubble;
+
+    private ContextValue<CommitDiffAssertParentCtx> parent;
+
+
+    public NextCommitAssert() {
+        this(ContextValue.empty());
+    }
+
+    @Autowired
+    @ResettableThread
+    public void setNextCommitBubble(NextCommitBubble commitDiffAssertBubble) {
+        this.nextCommitBubble = commitDiffAssertBubble;
+    }
+
+    @Override
+    public NextCommitBubble bubble() {
+        return nextCommitBubble;
+    }
+
+    @Override
+    public Class<? extends AssertBubble> bubbleClazz() {
+        return NextCommitBubble.class;
+    }
+
+    @Override
+    public boolean executableFor(GraphExec.GraphExecNode n) {
+        return n instanceof NextCommitAssertNode;
+    }
+
+    @Override
+    public Optional<Class<? extends TestGraphContext>> parentTy() {
+        return Optional.of(CommitDiffAssertParentCtx.class);
+    }
+
+    public ContextValue<RepoOpInit.RepositoryData> repoUrl() {
+        return this.parent
+                .res().map(CommitDiffAssertParentCtx::repoUrl)
+                .one()
+                .orElseRes(ContextValue.empty());
+    }
+
+    @Override
+    public void doSet(TestGraphContext context) {
+        if (context instanceof CommitDiffAssertParentCtx c) {
+            assert this.parent == null || this.parent.isEmpty();
+            this.parent = ContextValue.ofExisting(c);
+        }
+    }
+
+    @Override
+    public ContextValue<CommitDiffAssertParentCtx> parent() {
+        return parent;
+    }
+}

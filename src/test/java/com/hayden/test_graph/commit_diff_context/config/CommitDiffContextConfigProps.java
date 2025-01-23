@@ -15,4 +15,8 @@ public class CommitDiffContextConfigProps {
 
     String url;
 
+    int port;
+
+    String modelServerApiKey;
+
 }

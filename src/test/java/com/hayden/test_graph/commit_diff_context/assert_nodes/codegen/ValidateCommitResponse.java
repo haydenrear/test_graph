@@ -23,7 +23,7 @@ public class ValidateCommitResponse implements CodegenAssertNode {
         c.getUserCode().res()
                 .flatMap(ud -> c.repoUrl().res().map(r -> Map.entry(ud, r)))
                 .ifPresent(ud -> {
-                    // TODO assert... only if user code data is set
+                    // TODO assert... only if user code embedding is set
                 });
         return c;
     }

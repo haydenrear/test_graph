@@ -20,9 +20,6 @@ import java.util.Map;
 @ResettableThread
 public class InitGraph implements TestGraph<InitCtx, InitBubble> {
 
-    @Lazy
-    @Autowired
-    LazyMetaGraphDelegate nodesProvider;
     @Autowired
     TestGraphSort graphSort;
 

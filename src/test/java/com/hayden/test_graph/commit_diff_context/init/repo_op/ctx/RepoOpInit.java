@@ -1,16 +1,16 @@
 package com.hayden.test_graph.commit_diff_context.init.repo_op.ctx;
 
-import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.CommitDiffInitNode;
-import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInitBubble;
-import com.hayden.test_graph.commit_diff_context.init.repo_op.RepoOpInitBubbleNode;
+import com.hayden.commitdiffmodel.codegen.types.GitRepoPromptingRequest;
+import com.hayden.commitdiffmodel.codegen.types.GitRepositoryRequest;
+import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.RepoOpInitNode;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;
-import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,11 +28,18 @@ public final class RepoOpInit implements InitCtx {
     private final ContextValue<RepoOpBubble> bubbleUnderlying;
     private final ContextValue<GraphQlQueries> queries;
 
+    @Getter
+    private final ContextValue<CommitDiffData> commitDiffData;
+
+
+    public record CommitDiffData(String sessionKey) {}
+
     @Builder
     public record GraphQlQueries(File addRepo) {}
 
     public RepoOpInit() {
-        this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty());
+        this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty(),
+                ContextValue.empty());
     }
 
     @Autowired
@@ -59,9 +66,11 @@ public final class RepoOpInit implements InitCtx {
         return queries;
     }
 
-    public CommitDiff.CommitRequestArgs toCommitRequestArgs() {
+    public CommitDiff.CommitRequestArgs toCommitRequestArgs(CdMbInitBubbleCtx bubbleCtx) {
         RepositoryData repoArgs = repoDataOrThrow();
+
         return CommitDiff.CommitRequestArgs.builder()
+                .commitDiffContextValue(bubbleCtx.getCommitDiffContextValue())
                 .commitMessage(userCodeDataOrThrow().commitMessage)
                 .gitRepoPath(repoArgs.url)
                 .branchName(repoArgs.branchName)

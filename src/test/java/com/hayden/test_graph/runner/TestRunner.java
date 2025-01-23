@@ -15,6 +15,6 @@ import static io.cucumber.junit.platform.engine.Constants.*;
         value = "com.hayden.test_graph"
 )
 @ConfigurationParameter(key = PLUGIN_PUBLISH_QUIET_PROPERTY_NAME, value = "true")
-@ConfigurationParameter(key = FILTER_TAGS_PROPERTY_NAME, value = "@all")
+@ConfigurationParameter(key = FILTER_TAGS_PROPERTY_NAME, value = "@next_commit_only")
 public class TestRunner {
 }

@@ -116,7 +116,7 @@ public class MetaGraphDelegate {
 
         matching.add(testGraphContext.bubble());
 
-        return GraphSort.sort(matching)
+        Stream<Class<? extends TestGraphContext>> sorted = GraphSort.sort(matching)
                 .stream()
                 .flatMap(tgc -> tgc instanceof HyperGraphContext<?> hgc
                                 ? Stream.of(hgc)
@@ -127,6 +127,8 @@ public class MetaGraphDelegate {
                 )
                 .filter(HierarchicalContext::isLeafNode)
                 .map(TestGraphContext::getClass);
+        List<Class<? extends TestGraphContext>> list = sorted.toList();
+        return list.stream();
     }
 
     private List<TestGraphContext> dependsOnRecursive(SubGraph<TestGraphContext<HyperGraphContext>, HyperGraphContext> sub) {

@@ -7,6 +7,8 @@ plugins {
     id("com.hayden.docker-compose")
     id("com.hayden.mb")
     id("com.hayden.cucumber")
+    id("com.hayden.jpa-persistence")
+    id("org.hibernate.orm") version "6.4.4.Final"
 }
 
 
@@ -16,6 +18,7 @@ version = "1.0.0"
 dependencies {
     implementation(project(":utilitymodule"))
     implementation(project(":commit-diff-model"))
+    implementation(project(":jpa-persistence"))
 }
 
 tasks.compileJava {
@@ -25,7 +28,7 @@ tasks.compileJava {
 
 tasks.generateJava {
     typeMapping = mutableMapOf(
-        Pair("ByteArray", "com.hayden.test_graph.config.ByteArray")
+        Pair("ByteArray", "com.hayden.commitdiffmodel.scalar.ByteArray")
     )
 }
 

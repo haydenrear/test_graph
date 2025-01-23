@@ -21,10 +21,21 @@ public class AssertAspect implements StepAspect {
     @Around("@annotation(assertStep)")
     public Object around(ProceedingJoinPoint joinPoint, AssertStep assertStep) throws Throwable {
 
+        Object ret;
+        if (assertStep.doFnFirst()) {
+            ret = joinPoint.proceed();
+            doExec(assertStep);
+        } else {
+            doExec(assertStep);
+            ret = joinPoint.proceed();
+        }
+
+        return ret;
+    }
+
+    private void doExec(AssertStep assertStep) {
         metaGraph.execAll();
         Arrays.stream(assertStep.value()).forEach(metaGraph::exec);
-
-        return joinPoint.proceed();
     }
 
 }

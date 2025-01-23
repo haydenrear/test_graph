@@ -4,6 +4,7 @@ import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.parent.CommitDiffAssertParentCtx;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
+import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.steps.AssertStep;
@@ -16,6 +17,7 @@ import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
+import java.nio.file.Paths;
 
 public class RepoOperationsStepDefs implements ResettableStep {
 
@@ -30,6 +32,8 @@ public class RepoOperationsStepDefs implements ResettableStep {
     @Autowired
     @ResettableThread
     RepoOpAssertCtx commitDiffAssert;
+    @Autowired
+    CdMbInitCtx ctx;
 
     @Autowired
     @ResettableThread
@@ -41,6 +45,22 @@ public class RepoOperationsStepDefs implements ResettableStep {
                 RepoOpInit.RepositoryData.builder()
                         .url(repoUrl)
                         .build());
+    }
+
+    /**
+     * Ok to call multiple times - will just register additional inforation
+     * @param responseType
+     * @param fileLocation
+     * @param uri
+     * @param port
+     */
+    @And("There exists a response type of {string} in the file location {string} for model server endpoint {string} on port {string}")
+    @InitStep(CdMbInitCtx.class)
+    public void addResponseType(String responseType, String fileLocation, String uri, String port) {
+        ctx.addAiServerResponse(new CdMbInitCtx.AiServerResponse.FileSourceResponse(
+                Paths.get(fileLocation),
+                CdMbInitCtx.AiServerResponse.AiServerResponseType.valueOf(responseType),
+                new CdMbInitCtx.ModelServerRequestData(uri, 200, Integer.parseInt(port))));
     }
 
     @And("the add repo GraphQl query {string}")
@@ -65,9 +85,11 @@ public class RepoOperationsStepDefs implements ResettableStep {
     }
 
     @When("the repo is added to the database by calling commit diff context")
-    @InitStep(CommitDiffInit.class)
+    @InitStep(CdMbInitCtx.class)
     public void add_repo_to_database() {
     }
+
+
 
     @Then("a branch with name {string} will be added to the database")
     @AssertStep(RepoOpAssertCtx.class)

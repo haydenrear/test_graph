@@ -1,11 +1,12 @@
 @all @commit_diff_context_repo_operations
-Feature: Add blame node context for repo
+Feature: Perform repo operations
 
-  @commit_diff_context_compose
+  @commit_diff_context_compose @all @repo_op
   Scenario Outline:
     Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
+    And There exists a response type of "EMBEDDING" in the file location "classpath:responses/embedding_response.json" for model server endpoint "/gemini_embedding" on port "9991"
     When the repo is added to the database by calling commit diff context
     Then a branch with name "<branchName>" will be added to the database
     Examples:

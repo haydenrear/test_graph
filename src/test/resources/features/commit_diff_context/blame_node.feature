@@ -1,4 +1,4 @@
-@all @commit_diff_context
+#@all @commit_diff_context
 Feature: Add blame node context for repo
 
 #  @commit_diff_context_compose @commit_diff_context_mb

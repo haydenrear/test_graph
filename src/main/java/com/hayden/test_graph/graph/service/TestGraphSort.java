@@ -8,6 +8,7 @@ import com.hayden.utilitymodule.MapFunctions;
 import com.hayden.utilitymodule.sort.GraphSort;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.util.ProxyUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -31,7 +32,10 @@ public class TestGraphSort {
 
     public <T extends GraphSort.GraphSortable> List<T> toGraphSortable(List<T> toSort) {
         List<T> out = new ArrayList<>();
-        var values = MapFunctions.CollectMap(toSort.stream().map(e -> Map.entry(e.getClass(), e)));
+        var values = MapFunctions.CollectMap(toSort.stream().filter(Objects::nonNull).map(e -> {
+            System.out.println(toSort);
+            return Map.entry(ProxyUtils.getUserClass(e.getClass()), e);
+        }));
         for (var t : toSort) {
             List dependsOnValues = t.dependsOn();
             if (!dependsOnValues.isEmpty()) {
@@ -49,6 +53,7 @@ public class TestGraphSort {
         var vals = getVals(toSort);
         return toSort.stream()
                 .flatMap(t -> {
+                    System.out.println(toSort);
                     List<G> outList = Lists.newArrayList(t) ;
                     List<G> list = (List<G>) t.dependsOn().stream().map(vals::get).collect(Collectors.toCollection(() -> outList));
                     return fn.apply(list).stream();
@@ -57,7 +62,11 @@ public class TestGraphSort {
     }
 
     private static <G extends GraphSort.GraphSortable> Map<? extends Class<? extends GraphSort.GraphSortable>, G> getVals(List<G> toSort) {
-        return MapFunctions.CollectMap(toSort.stream().map(e -> Map.entry(e.getClass(), e)));
+        return MapFunctions.CollectMap(
+                toSort.stream()
+                        .filter(Objects::nonNull)
+                .map(e -> Map.entry(
+                        (Class<? extends GraphSort.GraphSortable>) ProxyUtils.getUserClass(e.getClass()), e)));
     }
 
 }

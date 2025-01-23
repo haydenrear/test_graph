@@ -81,6 +81,11 @@ public class MetaProgExec implements ProgExec {
 
     @Override
     public void register(Class<? extends TestGraphContext> ctx) {
+        if (this.registered.contains(ctx)) {
+            // ensure idempotency of calling them
+            return;
+        }
+
         this.registered.offer(ctx);
     }
 
@@ -97,15 +102,15 @@ public class MetaProgExec implements ProgExec {
 
         while((ctx = registered.poll()) != null) {
             if (ordering.contains(ctx)) {
-                // the ordering should be last so that anything dependent will run first
-                ordering.remove(ctx);
-                assert !ordering.contains(ctx);
-                ordering.add(ctx);
+                // the ordering should be first because it's assumed that the first time it's
+                //  requested it's needed in the following
+                // don't do anything
             } else {
                 ordering.add(ctx);
             }
         }
 
+        // Is there some sort of hypergraph sorting algorithm?
         for (var o : ordering) {
             this.exec(o);
         }

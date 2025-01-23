@@ -1,5 +1,6 @@
 package com.hayden.test_graph.init.exec;
 
+import com.hayden.test_graph.assert_g.ctx.AssertCtx;
 import com.hayden.test_graph.graph.edge.EdgeExec;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitBubble;
@@ -84,7 +85,11 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
 
     @Override
     public InitBubble collectCtx(Class<? extends InitCtx> toCollect, MetaCtx metaCtx) {
-        List<? extends InitCtx> intCtx = this.initGraph.sortedCtx(toCollect);
+        List<? extends InitCtx> intCtx = this.initGraph.sortedCtx(toCollect)
+                .stream()
+                .map(ac -> this.edgeExec.preExecTestGraphEdges(ac, metaCtx))
+                .toList();
+
         if (intCtx.isEmpty()) {
             logBubbleError();
             return null;

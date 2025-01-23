@@ -1,1 +1,24 @@
-commit-diff-context.url: http://localhost:8080/graphql
+commit-diff-context:
+  url: http://localhost:8080/graphql
+  port: 8080
+
+spring:
+  profiles:
+    active: mb
+  docker:
+    compose:
+      enabled: false
+  application.name: commit-diff-context-tg
+  jpa:
+    hibernate:
+      ddl-auto: none
+      format_sql: true
+    show-sql: true
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+    jdbc-url: jdbc:postgresql://localhost:5436/postgres
+    url: jdbc:postgresql://localhost:5436/postgres
+  liquibase:
+    enabled: false

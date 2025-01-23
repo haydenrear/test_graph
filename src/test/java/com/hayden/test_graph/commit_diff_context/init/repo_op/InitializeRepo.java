@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class InitializeRepo implements RepoOpInitNode {
@@ -25,11 +26,15 @@ public class InitializeRepo implements RepoOpInitNode {
         return c.repoData().res()
                 .filterResult(rd -> rd.branchName() != null && rd.url() != null)
                 .map(rd -> {
-                        commitDiff.addCodeBranch(
-                                CommitDiff.AddCodeBranchArgs.builder()
-                                        .gitRepoPath(c.repoDataOrThrow().url())
-                                        .branchName(c.repoDataOrThrow().branchName())
-                                        .build());
+                    var key = UUID.randomUUID().toString();
+                    c.getCommitDiffData().set(new RepoOpInit.CommitDiffData(key));
+                    commitDiff.addCodeBranch(
+                            CommitDiff.AddCodeBranchArgs.builder()
+                                    .gitRepoPath(c.repoDataOrThrow().url())
+                                    .branchName(c.repoDataOrThrow().branchName())
+                                    .sessionKey(key)
+                                    .build());
+
                     return c;
                 })
                 .one()
@@ -41,8 +46,4 @@ public class InitializeRepo implements RepoOpInitNode {
         return RepoOpInit.class;
     }
 
-    @Override
-    public List<Class> dependsOn() {
-        return List.of();
-    }
 }

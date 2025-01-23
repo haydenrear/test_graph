@@ -25,7 +25,6 @@ public class InitializeAspect implements StepAspect {
         var proceeded =  joinPoint.proceed();
 
         Arrays.stream(initStep.value()).forEach(metaGraph::register);
-//        metaGraph.exec(initStep.value());
 
         return proceeded;
     }

@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - commit-diff:/var/lib/postgresql/data
+      - commit-diff:/var/lib/postgresql/embedding
     ports:
       - "5440:5432"
   commit-diff-context:

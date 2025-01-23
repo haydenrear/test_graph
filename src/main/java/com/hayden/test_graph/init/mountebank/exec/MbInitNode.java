@@ -20,20 +20,24 @@ public interface MbInitNode<T extends MbInitCtx> extends InitNode<T> {
     default T exec(T c, MetaCtx h) {
         createGetImposters(c)
                 .forEach(imposterCreated -> {
-                    try {
-                        Imposter imposter = c.client().getImposter(imposterCreated.getPort());
-                        Optional.ofNullable(imposter)
-                                .ifPresentOrElse(i -> {
-                                            imposterCreated.getStubs().forEach(i::addStub);
-                                            createDeleteImposter(c, imposterCreated);
-                                        },
-                                        () -> c.client().createImposter(imposterCreated));
-                    } catch (ParseException e) {
-                        log.error("Error creating imposter, attempting to add new imposter.");
-                        createDeleteImposter(c, imposterCreated);
-                    }
+                    createGetImposter(c, imposterCreated);
                 });
         return c;
+    }
+
+    default void createGetImposter(T c, Imposter imposterCreated) {
+        try {
+            Imposter imposter = c.client().getImposter(imposterCreated.getPort());
+            Optional.ofNullable(imposter)
+                    .ifPresentOrElse(i -> {
+                                imposterCreated.getStubs().forEach(i::addStub);
+                                createDeleteImposter(c, imposterCreated);
+                            },
+                            () -> c.client().createImposter(imposterCreated));
+        } catch (ParseException e) {
+            log.error("Error creating imposter, attempting to add new imposter.");
+            createDeleteImposter(c, imposterCreated);
+        }
     }
 
     private void createDeleteImposter(T c, Imposter imposterCreated) {

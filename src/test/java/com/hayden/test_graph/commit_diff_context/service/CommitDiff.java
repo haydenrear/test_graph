@@ -1,8 +1,8 @@
 package com.hayden.test_graph.commit_diff_context.service;
 
+import com.hayden.commitdiffmodel.codegen.types.*;
 import com.hayden.test_graph.assertions.Assertions;
-import com.hayden.test_graph.codegen.types.GitRepoResult;
-import com.hayden.test_graph.codegen.types.NextCommit;
+import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.result.Result;
 import com.hayden.utilitymodule.result.error.SingleError;
@@ -18,6 +18,8 @@ import org.springframework.web.client.ResourceAccessException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -45,15 +47,21 @@ public class CommitDiff {
     }
 
     @Builder
-    public record AddCodeBranchArgs(String branchName, String gitRepoPath) implements CallGraphQlQueryArgs<GitRepoResult> {
+    public record AddCodeBranchArgs(String branchName, String gitRepoPath, String sessionKey) implements CallGraphQlQueryArgs<GitRepoResult> {
         @Override
         public Class<GitRepoResult> clazz() {
             return GitRepoResult.class;
         }
+
+        public String sessionKey() {
+            return Optional.ofNullable(sessionKey)
+                    .orElse(UUID.randomUUID().toString());
+        }
     }
 
     @Builder
-    public record CommitRequestArgs(String branchName, String gitRepoPath, String commitMessage) implements CallGraphQlQueryArgs<NextCommit> {
+    public record CommitRequestArgs(String branchName, String gitRepoPath, String commitMessage,
+                                    CdMbInitBubbleCtx.CommitDiffContextGraphQlModel commitDiffContextValue) implements CallGraphQlQueryArgs<NextCommit> {
         @Override
         public Class<NextCommit> clazz() {
             return NextCommit.class;
@@ -99,26 +107,63 @@ public class CommitDiff {
         return switch (graphQlQueryArgs) {
             case ValidateBranchAdded branchAdded ->
                     this.doWithGraphQl(client -> {
-                        var gqlResult = client.document(RETRIEVE_CODE_BRANCH_TEMPLATE
+                        var gqlResult = client.document(RETRIEVE_CODE_BRANCH()
                                 .formatted(branchAdded.branchName, branchAdded.gitRepoPath));
                         return toRes(gqlResult.executeSync(), graphQlQueryArgs);
                     });
             case AddCodeBranchArgs branchAdded ->
                     this.doWithGraphQl(client -> {
-                        var gqlResult = client.document(ADD_CODE_BRANCH_TEMPLATE
-                                .formatted(branchAdded.branchName, branchAdded.gitRepoPath, "", ""));
+                        var gqlResult = client.document(ADD_CODE_BRANCH()
+                                .formatted("ADD_BRANCH", branchAdded.branchName, branchAdded.gitRepoPath, branchAdded.sessionKey()));
                         return toRes(gqlResult.executeSync(), graphQlQueryArgs);
                     });
             case CommitRequestArgs commitRequestArgs ->
                     this.doWithGraphQl(client -> {
-                        var gqlResult = client.document(NEXT_COMMIT_GRAPH_QL_TEMPLATE
-                                .formatted(commitRequestArgs.branchName, commitRequestArgs.gitRepoPath,
-                                        commitRequestArgs.commitMessage, "", "", "", "", "", "", ""));
+                        var gqlResult = client.document(NEXT_COMMIT_TEMPLATE()
+                                .formatted(commitRequestArgs.branchName,
+                                        commitRequestArgs.gitRepoPath,
+                                        commitRequestArgs.commitMessage,
+                                        retrieveSessionKey(commitRequestArgs),
+                                        commitRequestArgs.commitDiffContextValue.stagedDiffs()
+                                                // TODO: to graphql
+                                                .stream().map(pd -> """
+                                                        """).collect(Collectors.joining(", ")),
+                                        commitRequestArgs.commitDiffContextValue.prevDiffs().stream()
+                                                .map(pd -> "")
+                                                .collect(Collectors.joining(", ")),
+                                        commitRequestArgs.commitDiffContextValue.commitMessage()
+                                                .orElse(""),
+                                        commitRequestArgs.commitDiffContextValue.sessionKey()
+                                                .orElse(""),
+                                        commitRequestArgs.commitDiffContextValue.getContextData()
+                                                .stream().map(pd -> "")
+                                                .collect(Collectors.joining(", ")),
+                                        commitRequestArgs.commitDiffContextValue
+                                                .getPrevRequests().stream().map(pd -> "")
+                                                .collect(Collectors.joining(", "))));
                         return toRes(gqlResult.executeSync(), graphQlQueryArgs);
                     });
             default ->
                     throw new IllegalStateException("Unexpected value: " + graphQlQueryArgs);
         };
+    }
+
+    private static String retrieveSessionKey(CommitRequestArgs commitRequestArgs) {
+        return repoItem(commitRequestArgs.commitDiffContextValue.addRepo())
+                .or(() -> repoItem(commitRequestArgs.commitDiffContextValue.repositoryRequest()))
+                .orElse("");
+    }
+
+    private static @NotNull Optional<String> repoItem(GitRepoPromptingRequest value) {
+        return Optional.ofNullable(value)
+                .flatMap(g -> Optional.ofNullable(g.getSessionKey()))
+                .flatMap(sess -> Optional.ofNullable(sess.getKey()));
+    }
+
+    private static @NotNull Optional<String> repoItem(GitRepositoryRequest value) {
+        return Optional.ofNullable(value)
+                .flatMap(g -> Optional.ofNullable(g.getSessionKey()))
+                .flatMap(sess -> Optional.ofNullable(sess.getKey()));
     }
 
     public <T> Result<T, CommitDiffContextGraphQlError> doWithGraphQl(Function<HttpSyncGraphQlClient, Result<T, CommitDiffContextGraphQlError>> toDo) {

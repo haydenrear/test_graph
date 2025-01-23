@@ -8,7 +8,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ComponentScan("com.hayden.test_graph")
+@ComponentScan(basePackages = {"com.hayden.test_graph", "com.hayden.commitdiffmodel"})
 @EnableConfigurationProperties(CommitDiffContextConfigProps.class)
-@EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
 public class CucumberTestConfig { }

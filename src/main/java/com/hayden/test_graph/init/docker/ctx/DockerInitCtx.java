@@ -6,12 +6,15 @@ import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.init.docker.exec.DockerInitNode;
 import com.hayden.test_graph.init.docker.exec.StartDockerNode;
 import com.hayden.test_graph.thread.ResettableThread;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.logging.LogLevel;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -23,6 +26,11 @@ public class DockerInitCtx implements InitCtx {
     private final ContextValue<LogLevel> logLevel;
     private final ContextValue<Set<String>> dockerProfiles;
     private final ContextValue<String> host;
+
+    @Getter
+    private final List<GradleTask> gradleTasks = new ArrayList<>();
+
+    public record GradleTask(String directory, String gradleCommand) {}
 
     private DockerInitBubbleCtx dockerInitBubbleCtx;
 
