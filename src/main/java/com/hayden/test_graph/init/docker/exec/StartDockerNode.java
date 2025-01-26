@@ -1,6 +1,7 @@
 package com.hayden.test_graph.init.docker.exec;
 
 import com.hayden.test_graph.action.Idempotent;
+import com.hayden.test_graph.init.docker.config.DockerInitConfigProps;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
@@ -13,6 +14,7 @@ import org.springframework.boot.logging.LogLevel;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
 
@@ -22,14 +24,19 @@ import java.util.List;
 @Slf4j
 public class StartDockerNode implements DockerInitNode {
 
-    public static void initializeDockerCompose(DockerInitCtx workingDirectory) {
+    private final DockerInitConfigProps dockerInitConfigProps;
+
+    public static void initializeDockerCompose(DockerInitCtx workingDirectory,
+                                               DockerInitConfigProps configProps) {
         File workDir = workingDirectory.composePath().res().one().get();
         ExposeCompose exposeCompose = new ExposeCompose(
                 workDir,
                 DockerComposeFile.find(workDir),
                 workingDirectory.dockerProfiles().res().one().orElseRes(new HashSet<>()),
-                workingDirectory.host().res().one().orElseRes("localhost"));
+                workingDirectory.host().res().one().orElseRes(configProps.getHost()));
+//        exposeCompose.down(Duration.ofSeconds(10));
         exposeCompose.up(workingDirectory.logLevel().res().orElseRes(LogLevel.INFO));
+        // TODO: this should be able to wait until it sees a certain log...
     }
 
 
@@ -38,14 +45,14 @@ public class StartDockerNode implements DockerInitNode {
         c.composePath()
                 .optional()
                 .ifPresentOrElse(
-                        p -> initializeDockerCompose(c),
+                        p -> initializeDockerCompose(c, dockerInitConfigProps),
                         () -> log.info("Skipping initialization of docker compose as file was not set."));
         return c;
     }
 
     @Override
     public List<Class<? extends DockerInitNode>> dependsOn() {
-        return List.of(BuildDockerNode.class);
+        return List.of();
     }
 
     @Override

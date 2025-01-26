@@ -7,7 +7,7 @@ import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleC
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.steps.AssertStep;
-import com.hayden.test_graph.steps.InitStep;
+import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
 import io.cucumber.java.en.And;
@@ -42,7 +42,7 @@ public class BlameNodeStepDefs implements ResettableStep {
     }
 
     @Then("the initial embedding is added for commit diff context blame node")
-    @InitStep(CommitDiffInit.class) // TODO: can probably be replaced by first Then - annotating all Then then
+    @RegisterInitStep(CommitDiffInit.class) // TODO: can probably be replaced by first Then - annotating all Then then
     public void initial_commit_diff_context_blame_node() {
     }
 

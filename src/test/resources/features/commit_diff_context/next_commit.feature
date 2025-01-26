@@ -3,9 +3,10 @@ Feature: Perform next commit
 
   @commit_diff_context_compose @all @next_commit_only
   Scenario Outline:
-    Given docker-compose is started from "<composePath>"
+#    Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
+    And the embeddings for the branch should be added
     And a request for the next commit is provided for the given url and branch name provided
     And a request for the next commit is provided with the commit message being provided from "classpath:requests/commit-message.json"
     And a request for the next commit is provided with the staged information being provided from "classpath:requests/staged.json"
@@ -18,5 +19,5 @@ Feature: Perform next commit
     Then a branch with name "<branchName>" will be added to the database
     Then the response from retrieving next commit can be applied to the repository as a git diff
     Examples:
-      | repoUrl                                                                    | branchName | composePath                                                                                     | addUrlQueryPath                                                               |
-      | /Users/hayde/IdeaProjects/drools/commit-diff-context/test_repos/first/.git | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server | /Users/hayde/IdeaProjects/drools/test_graph/src/test/resource/addRepo.graphql |
+      | repoUrl                                                               | branchName | composePath                                                                                     | addUrlQueryPath                                                               |
+      | /Users/hayde/IdeaProjects/drools/commit-diff-context/test_repos/first | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server | /Users/hayde/IdeaProjects/drools/test_graph/src/test/resource/addRepo.graphql |

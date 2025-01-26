@@ -4,9 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hayden.commitdiffmodel.codegen.types.*;
 import com.hayden.commitdiffmodel.convert.CommitDiffContextMapper;
-import com.hayden.commitdiffmodel.git.RepositoryHolder;
-import com.hayden.commitdiffmodel.git_factory.DiffFactory;
-import com.hayden.commitdiffmodel.repo_actions.GitHandler;
 import com.hayden.commitdiffmodel.repo_actions.GitHandlerActions;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit.NextCommitAssert;
@@ -17,13 +14,13 @@ import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.steps.AssertStep;
-import com.hayden.test_graph.steps.InitStep;
+import com.hayden.test_graph.steps.ExecInitStep;
+import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jgit.api.Git;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
@@ -71,7 +68,7 @@ public class NextCommitStepDefs implements ResettableStep {
 
 
     @And("a request for the next commit is provided for the given url and branch name provided")
-    @InitStep(value = {CommitDiffInit.class})
+    @RegisterInitStep(value = {CommitDiffInit.class})
     public void nextCommit() {
         var gitRepoPromptingRequest = commitDiffInit.getCommitDiffContextValue().addRepo();
         var repoRequest = commitDiffInit.getCommitDiffContextValue().repositoryRequest();
@@ -94,7 +91,7 @@ public class NextCommitStepDefs implements ResettableStep {
     }
 
     @And("a request for the next commit is provided with the commit message being provided from {string}")
-    @InitStep(value = {CommitDiffInit.class})
+    @RegisterInitStep(value = {CommitDiffInit.class})
     public void setCommitMessageForRequest(String commitMessageJson) {
         try {
             var res = new PathMatchingResourcePatternResolver().getResource(commitMessageJson);
@@ -118,7 +115,7 @@ public class NextCommitStepDefs implements ResettableStep {
     }
 
     @And("a request for the next commit is provided with the staged information being provided from {string}")
-    @InitStep(value = {CommitDiffInit.class})
+    @RegisterInitStep(value = {CommitDiffInit.class})
     public void setStagedInformationFromJson(String commitMessageJson) {
         try {
             var staged = mapper.readValue(new File(commitMessageJson), Staged.class);
@@ -131,7 +128,7 @@ public class NextCommitStepDefs implements ResettableStep {
     }
 
     @And("a request for the next commit is provided with the contextData being provided from {string}")
-    @InitStep(value = {CommitDiffInit.class})
+    @RegisterInitStep(value = {CommitDiffInit.class})
     public void setContextData(String commitMessageJson) {
         try {
             var staged = mapper.readValue(new File(commitMessageJson), new TypeReference<List<ContextData>>() {});
@@ -145,7 +142,7 @@ public class NextCommitStepDefs implements ResettableStep {
     }
 
     @And("a request for the next commit is provided with the previous requests being provided from {string}")
-    @InitStep(value = {CommitDiffInit.class})
+    @RegisterInitStep(value = {CommitDiffInit.class})
     public void setPreviousRequests(String commitMessageJson) {
         try {
             var staged = mapper.readValue(new File(commitMessageJson), PrevCommit.class);
@@ -158,6 +155,7 @@ public class NextCommitStepDefs implements ResettableStep {
     }
 
     @And("a request for the next commit is sent to the server with the next commit information provided previously")
+    @ExecInitStep(value = CommitDiffInit.class)
     @AssertStep(value = NextCommitAssert.class, doFnFirst = true)
     public void nextCommitIsSentToTheServerWithTheNextCommitInformationProvidedPrevious() {
         var nextCommitRetrieved = commitDiff.requestCommit(repoOpInit.toCommitRequestArgs(bubbleCtx));

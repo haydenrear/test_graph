@@ -12,11 +12,13 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface InitStep {
+public @interface ExecInitStep {
 
     /**
      * @return The context type to be initialized
      */
     Class<? extends InitCtx>[] value();
+
+    boolean after() default false;
 
 }

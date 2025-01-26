@@ -7,6 +7,7 @@ import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.result.Result;
 import com.hayden.utilitymodule.result.error.SingleError;
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.ResponseError;
@@ -22,9 +23,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.hayden.commitdiffmodel.graphql.GraphQlTemplates.*;
 
+@Slf4j
 @Service
 public class CommitDiff {
 
@@ -48,6 +51,20 @@ public class CommitDiff {
 
     @Builder
     public record AddCodeBranchArgs(String branchName, String gitRepoPath, String sessionKey) implements CallGraphQlQueryArgs<GitRepoResult> {
+        @Override
+        public Class<GitRepoResult> clazz() {
+            return GitRepoResult.class;
+        }
+
+        public String sessionKey() {
+            return Optional.ofNullable(sessionKey)
+                    .orElse(UUID.randomUUID().toString());
+        }
+    }
+
+    @Builder
+    public record AddEmbeddingsArgs(String branchName, String gitRepoPath, String sessionKey)
+            implements CallGraphQlQueryArgs<GitRepoResult> {
         @Override
         public Class<GitRepoResult> clazz() {
             return GitRepoResult.class;
@@ -95,6 +112,10 @@ public class CommitDiff {
         return callGraphQlQuery(commitRequestArgs);
     }
 
+    public Result<GitRepoResult, CommitDiffContextGraphQlError> addEmbeddings(AddEmbeddingsArgs commitRequestArgs) {
+        return callGraphQlQuery(commitRequestArgs);
+    }
+
     public Result<NextCommit, CommitDiffContextGraphQlError> requestCommit(CommitRequestArgs commitRequestArgs) {
         return callGraphQlQuery(commitRequestArgs);
     }
@@ -112,11 +133,19 @@ public class CommitDiff {
                         return toRes(gqlResult.executeSync(), graphQlQueryArgs);
                     });
             case AddCodeBranchArgs branchAdded ->
-                    this.doWithGraphQl(client -> {
-                        var gqlResult = client.document(ADD_CODE_BRANCH()
-                                .formatted("ADD_BRANCH", branchAdded.branchName, branchAdded.gitRepoPath, branchAdded.sessionKey()));
-                        return toRes(gqlResult.executeSync(), graphQlQueryArgs);
-                    });
+                    this.doWithGraphQl(client -> doGitOp(
+                            graphQlQueryArgs,
+                            client,
+                            Stream.of(branchAdded.branchName, branchAdded.gitRepoPath, branchAdded.sessionKey())
+                                    .map(this::wrapInQuotes).collect(Collectors.toCollection(ArrayList::new)),
+                            GitOperation.ADD_BRANCH));
+            case AddEmbeddingsArgs(String branchName, String gitRepoPath, String sessionKey) ->
+                    this.doWithGraphQl(client -> doGitOp(
+                            graphQlQueryArgs,
+                            client,
+                            Stream.of(branchName, gitRepoPath, sessionKey)
+                                    .map(this::wrapInQuotes).collect(Collectors.toCollection(ArrayList::new)),
+                            GitOperation.SET_EMBEDDINGS));
             case CommitRequestArgs commitRequestArgs ->
                     this.doWithGraphQl(client -> {
                         var gqlResult = client.document(NEXT_COMMIT_TEMPLATE()
@@ -146,6 +175,23 @@ public class CommitDiff {
             default ->
                     throw new IllegalStateException("Unexpected value: " + graphQlQueryArgs);
         };
+    }
+
+    private <T> @NotNull Result<T, CommitDiffContextGraphQlError> doGitOp(CallGraphQlQueryArgs<T> graphQlQueryArgs,
+                                                                          HttpSyncGraphQlClient client,
+                                                                          List<String> addCodeBranchArgs,
+                                                                          GitOperation gitOperation) {
+        addCodeBranchArgs.addFirst(gitOperation.name());
+        String sendingCodeBranch = PERFORM_GIT_OP()
+                .formatted(addCodeBranchArgs.toArray());
+        log.info("Sending code branch: {}", sendingCodeBranch);
+        var gqlResult = client.document(sendingCodeBranch);
+        var res =  toRes(gqlResult.executeSync(), graphQlQueryArgs);
+        return res;
+    }
+
+    private String wrapInQuotes(String toWrap) {
+        return "\"%s\"".formatted(toWrap);
     }
 
     private static String retrieveSessionKey(CommitRequestArgs commitRequestArgs) {

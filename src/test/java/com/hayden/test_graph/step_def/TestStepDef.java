@@ -2,23 +2,17 @@ package com.hayden.test_graph.step_def;
 
 import com.google.common.collect.Sets;
 import com.hayden.test_graph.meta.exec.MetaProgExec;
-import com.hayden.test_graph.meta.graph.MetaGraph;
-import com.hayden.test_graph.steps.AssertStep;
-import com.hayden.test_graph.steps.InitStep;
-import com.hayden.test_graph.steps.InitializeAspect;
+import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.test_init.*;
 import com.hayden.test_graph.thread.ResettableThread;
-import com.hayden.utilitymodule.MapFunctions;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TestStepDef {
@@ -35,7 +29,7 @@ public class TestStepDef {
     }
 
     @When("the data is initialized")
-    @InitStep(TestInitChildCtx.class)
+    @RegisterInitStep(TestInitChildCtx.class)
     public void the_data_is_initialized() {
         // Write code here that turns the phrase above into concrete actions
     }

@@ -9,6 +9,7 @@ import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.thread.ResettableThread;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.*;
 
 @Component
 @ResettableThread
@@ -31,15 +33,33 @@ public final class RepoOpInit implements InitCtx {
     @Getter
     private final ContextValue<CommitDiffData> commitDiffData;
 
+    @Getter
+    private final RepoInitializations repoInitializations;
 
-    public record CommitDiffData(String sessionKey) {}
+    public record CommitDiffData(@NotNull String sessionKey) {}
+
+    public sealed interface RepoInitItem {
+
+        Comparator<RepoInitItem> c = new Comparator<RepoInitItem>() {
+            static List<Class<? extends RepoInitItem>> ordering = List.of(AddCodeBranch.class, AddEmbeddings.class);
+            @Override
+            public int compare(RepoInitItem o1, RepoInitItem o2) {
+                return Integer.compare(ordering.indexOf(o1.getClass()), ordering.indexOf(o2.getClass()));
+            }
+        };
+
+        record AddCodeBranch(RepositoryData repositoryData) implements RepoInitItem {}
+        record AddEmbeddings() implements RepoInitItem {}
+    }
+
+    public record RepoInitializations(List<RepoInitItem> initItems) {}
 
     @Builder
     public record GraphQlQueries(File addRepo) {}
 
     public RepoOpInit() {
         this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty(),
-                ContextValue.empty());
+                ContextValue.empty(), new RepoInitializations(new ArrayList<>()));
     }
 
     @Autowired
@@ -49,8 +69,7 @@ public final class RepoOpInit implements InitCtx {
 
     @Builder
     public record RepositoryData(String url,
-                                 String branchName) {
-    }
+                                 String branchName) { }
 
     @Builder
     public record UserCodeData(String commitMessage) { }
@@ -60,6 +79,20 @@ public final class RepoOpInit implements InitCtx {
 
     public ContextValue<RepositoryData> repoData() {
         return bubbleUnderlying.res().one().get().repositoryData();
+    }
+
+    public String retrieveSessionKey() {
+        if(this.commitDiffData.isPresent()) {
+            var cdd = this.commitDiffData.res().one()
+                    .orElseGet(() -> {
+                        var newKey = UUID.randomUUID().toString();
+                        return new CommitDiffData(newKey);
+                    });
+
+            this.commitDiffData.set(cdd);
+        }
+
+        return this.commitDiffData.res().get().sessionKey;
     }
 
     public ContextValue<GraphQlQueries> graphQlQueries() {

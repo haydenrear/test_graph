@@ -37,6 +37,8 @@ public class MetaProgExec implements ProgExec {
 
     private final Queue<Class<? extends TestGraphContext>> registered = new ArrayDeque<>();
 
+    private final Queue<Class<? extends TestGraphContext>> executed = new ArrayDeque<>();
+
     @Override
     public MetaCtx collectCtx() {
 //        MetaCtx metaCtx = null;
@@ -64,6 +66,8 @@ public class MetaProgExec implements ProgExec {
                                 = edgeExec.preExecHgExecEdges(hgNode, finalMetaCtx);
                         var ctxCreated = hgGraphExec.exec((Class<? extends TestGraphContext<HyperGraphContext>>) c, finalMetaCtx);
                         MetaCtx m = edgeExec.postExecMetaCtxEdges(ctxCreated.bubbleMeta(finalMetaCtx), finalMetaCtx);
+                        executed.add(c);
+                        executed.add(ctxCreated.getClass());
                         return Map.entry(m, ctxCreated);
                     })
                     .forEach(mc -> {
@@ -105,7 +109,7 @@ public class MetaProgExec implements ProgExec {
                 // the ordering should be first because it's assumed that the first time it's
                 //  requested it's needed in the following
                 // don't do anything
-            } else {
+            } else if (!executed.contains(ctx)) {
                 ordering.add(ctx);
             }
         }
