@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -63,7 +64,9 @@ public class InitializeRepo implements RepoOpInitNode {
                 addCodeBranchArgs);
 
         assertions.assertSoftly(added.isOk(), "Could not add code branch.", "Added code branch successfully");
-        added.e().ifPresent(err -> assertions.assertSoftly(false, "Error on add code branch: %s"
+        added.e()
+                .filter(cde -> Optional.ofNullable(cde.errors()).map(l -> !l.isEmpty()).orElse(false))
+                .ifPresent(err -> assertions.assertSoftly(false, "Error on add code branch: %s"
                 .formatted(added.e().get().getMessage()), "Add code branch completed successfully."));
     }
 
@@ -81,7 +84,9 @@ public class InitializeRepo implements RepoOpInitNode {
 
         assertions.assertSoftly(added.isOk(), "Could not add embeddings for code branch.",
                 "Added embeddings for code branch successfully");
-        added.e().ifPresent(err -> assertions.assertSoftly(false, "Error on add embeddings: %s"
+        added.e()
+                .filter(cde -> Optional.ofNullable(cde.errors()).map(l -> !l.isEmpty()).orElse(false))
+                .ifPresent(err -> assertions.assertSoftly(false, "Error on add embeddings: %s"
                 .formatted(added.e().get().getMessage()), "Add embeddings completed successfully."));
     }
 

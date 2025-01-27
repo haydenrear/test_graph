@@ -1,7 +1,7 @@
-@all @commit_diff_context_repo_operations
+@commit_diff_context_repo_operations @commit_diff_context_compose
 Feature: Perform repo operations
 
-  @commit_diff_context_compose @all @repo_op
+  @add_branch
   Scenario Outline:
     Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
@@ -13,7 +13,7 @@ Feature: Perform repo operations
       | repoUrl                                                                    | branchName | composePath                                                                                     | addUrlQueryPath                                                               |
       | /Users/hayde/IdeaProjects/drools/commit-diff-context/test_repos/first/.git | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server | /Users/hayde/IdeaProjects/drools/test_graph/src/test/resource/addRepo.graphql |
 
-
+  @add_embeddings
   Scenario Outline:
 #    Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"

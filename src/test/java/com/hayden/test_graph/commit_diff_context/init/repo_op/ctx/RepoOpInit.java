@@ -90,6 +90,9 @@ public final class RepoOpInit implements InitCtx {
                     });
 
             this.commitDiffData.set(cdd);
+        } else {
+            var newKey = UUID.randomUUID().toString();
+            this.commitDiffData.set(new CommitDiffData(newKey));
         }
 
         return this.commitDiffData.res().get().sessionKey;

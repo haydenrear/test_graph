@@ -1,5 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hayden.commitdiffmodel.codegen.types.*;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleCtx;
@@ -17,10 +18,8 @@ import org.springframework.graphql.client.HttpSyncGraphQlClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.io.IOException;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,9 +35,13 @@ public class CommitDiff {
     @Autowired
     @ResettableThread
     Assertions assertions;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     public interface CallGraphQlQueryArgs<T> {
         Class<T> clazz();
+
+        String key();
     }
 
     @Builder
@@ -47,6 +50,11 @@ public class CommitDiff {
         public Class<GitRepoResult> clazz() {
             return GitRepoResult.class;
         }
+
+        @Override
+        public String key() {
+            return "branch";
+        }
     }
 
     @Builder
@@ -54,6 +62,11 @@ public class CommitDiff {
         @Override
         public Class<GitRepoResult> clazz() {
             return GitRepoResult.class;
+        }
+
+        @Override
+        public String key() {
+            return "doGit";
         }
 
         public String sessionKey() {
@@ -70,6 +83,11 @@ public class CommitDiff {
             return GitRepoResult.class;
         }
 
+        @Override
+        public String key() {
+            return "doGit";
+        }
+
         public String sessionKey() {
             return Optional.ofNullable(sessionKey)
                     .orElse(UUID.randomUUID().toString());
@@ -82,6 +100,11 @@ public class CommitDiff {
         @Override
         public Class<NextCommit> clazz() {
             return NextCommit.class;
+        }
+
+        @Override
+        public String key() {
+            return "doCommit";
         }
     }
 
@@ -226,7 +249,22 @@ public class CommitDiff {
 
     private <T> @NotNull Result<T, CommitDiffContextGraphQlError> toRes(ClientGraphQlResponse gqlResult,
                                                                         CallGraphQlQueryArgs<T> args) {
-        return Result.from(gqlResult.toEntity(args.clazz()), getGraphQlError(gqlResult));
+        var res = Optional.of(gqlResult.toMap())
+                .flatMap(s -> Optional.ofNullable(s.get("data")))
+                .flatMap(o -> o instanceof Map m ? Optional.of((Map<String, Object>) m) : Optional.empty())
+                .flatMap(s -> Optional.ofNullable(s.get(args.key())))
+                .flatMap(o -> {
+                    try {
+                        var read = objectMapper.writeValueAsString(o);
+                        var written = objectMapper.readValue(read, args.clazz());
+                        return Optional.of(written);
+                    } catch (IOException e) {
+                        assertions.assertSoftly(false, "Found exception serializing %s"
+                                .formatted(args.clazz().getName()), "Successfully serialized.");
+                        return Optional.empty();
+                    }
+                });
+        return Result.from(res.orElse(null), getGraphQlError(gqlResult));
     }
 
 }
