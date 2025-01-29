@@ -78,8 +78,7 @@ public class InitializeRepo implements RepoOpInitNode {
                 .sessionKey(key)
                 .build();
 
-        var added = commitDiff.addEmbeddings(
-                addEmbeddings);
+        var added = commitDiff.addEmbeddings(addEmbeddings);
 
 
         assertions.assertSoftly(added.isOk(), "Could not add embeddings for code branch.",

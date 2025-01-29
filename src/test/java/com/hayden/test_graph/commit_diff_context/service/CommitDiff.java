@@ -1,6 +1,9 @@
 package com.hayden.test_graph.commit_diff_context.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hayden.commitdiffmodel.codegen.client.BranchGraphQLQuery;
+import com.hayden.commitdiffmodel.codegen.client.DoCommitGraphQLQuery;
+import com.hayden.commitdiffmodel.codegen.client.DoGitGraphQLQuery;
 import com.hayden.commitdiffmodel.codegen.types.*;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleCtx;
@@ -9,12 +12,11 @@ import com.hayden.utilitymodule.result.Result;
 import com.hayden.utilitymodule.result.error.SingleError;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.util.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.graphql.ResponseError;
-import org.springframework.graphql.client.ClientGraphQlResponse;
-import org.springframework.graphql.client.GraphQlTransportException;
-import org.springframework.graphql.client.HttpSyncGraphQlClient;
+import org.springframework.graphql.client.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
 
@@ -22,7 +24,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.hayden.commitdiffmodel.graphql.GraphQlTemplates.*;
 
@@ -31,7 +32,7 @@ import static com.hayden.commitdiffmodel.graphql.GraphQlTemplates.*;
 public class CommitDiff {
 
     @Autowired
-    HttpSyncGraphQlClient graphQlClient;
+    DgsGraphQlClient graphQlClient;
     @Autowired
     @ResettableThread
     Assertions assertions;
@@ -149,50 +150,35 @@ public class CommitDiff {
 
     public <T> Result<T, CommitDiffContextGraphQlError> callGraphQlQuery(CallGraphQlQueryArgs<T> graphQlQueryArgs) {
         return switch (graphQlQueryArgs) {
-            case ValidateBranchAdded branchAdded ->
+            case ValidateBranchAdded(String branchName, String gitRepoPath) ->
                     this.doWithGraphQl(client -> {
-                        var gqlResult = client.document(RETRIEVE_CODE_BRANCH()
-                                .formatted(branchAdded.branchName, branchAdded.gitRepoPath));
+                        var doGitGraphQLQuery = BranchGraphQLQuery.newRequest()
+                                .gitRepo(GitRepoQueryRequest.newBuilder()
+                                        .gitBranch(GitBranch.newBuilder().branch(branchName).build())
+                                        .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                                        .build())
+                                .build();
+                        var gqlResult = client.request(doGitGraphQLQuery);
                         return toRes(gqlResult.executeSync(), graphQlQueryArgs);
                     });
-            case AddCodeBranchArgs branchAdded ->
+            case AddCodeBranchArgs(String branchName, String gitRepoPath, String sessionKey) ->
                     this.doWithGraphQl(client -> doGitOp(
                             graphQlQueryArgs,
                             client,
-                            Stream.of(branchAdded.branchName, branchAdded.gitRepoPath, branchAdded.sessionKey())
-                                    .map(this::wrapInQuotes).collect(Collectors.toCollection(ArrayList::new)),
-                            GitOperation.ADD_BRANCH));
+                            buildRepoReq(branchName, gitRepoPath, sessionKey, GitOperation.ADD_BRANCH)));
             case AddEmbeddingsArgs(String branchName, String gitRepoPath, String sessionKey) ->
                     this.doWithGraphQl(client -> doGitOp(
                             graphQlQueryArgs,
                             client,
-                            Stream.of(branchName, gitRepoPath, sessionKey)
-                                    .map(this::wrapInQuotes).collect(Collectors.toCollection(ArrayList::new)),
-                            GitOperation.SET_EMBEDDINGS));
+                            buildRepoReq(branchName, gitRepoPath, sessionKey, GitOperation.SET_EMBEDDINGS)));
             case CommitRequestArgs commitRequestArgs ->
                     this.doWithGraphQl(client -> {
-                        var gqlResult = client.document(NEXT_COMMIT_TEMPLATE()
-                                .formatted(commitRequestArgs.branchName,
-                                        commitRequestArgs.gitRepoPath,
-                                        commitRequestArgs.commitMessage,
-                                        retrieveSessionKey(commitRequestArgs),
-                                        commitRequestArgs.commitDiffContextValue.stagedDiffs()
-                                                // TODO: to graphql
-                                                .stream().map(pd -> """
-                                                        """).collect(Collectors.joining(", ")),
-                                        commitRequestArgs.commitDiffContextValue.prevDiffs().stream()
-                                                .map(pd -> "")
-                                                .collect(Collectors.joining(", ")),
-                                        commitRequestArgs.commitDiffContextValue.commitMessage()
-                                                .orElse(""),
-                                        commitRequestArgs.commitDiffContextValue.sessionKey()
-                                                .orElse(""),
-                                        commitRequestArgs.commitDiffContextValue.getContextData()
-                                                .stream().map(pd -> "")
-                                                .collect(Collectors.joining(", ")),
-                                        commitRequestArgs.commitDiffContextValue
-                                                .getPrevRequests().stream().map(pd -> "")
-                                                .collect(Collectors.joining(", "))));
+                        var gqlResult = client.request(
+                                DoCommitGraphQLQuery.newRequest()
+                                        .gitRepoPromptingRequest(buildGitRepoPromptingRequest(commitRequestArgs))
+                                        .queryName("doCommit")
+                                        .build());
+
                         return toRes(gqlResult.executeSync(), graphQlQueryArgs);
                     });
             default ->
@@ -200,21 +186,47 @@ public class CommitDiff {
         };
     }
 
-    private <T> @NotNull Result<T, CommitDiffContextGraphQlError> doGitOp(CallGraphQlQueryArgs<T> graphQlQueryArgs,
-                                                                          HttpSyncGraphQlClient client,
-                                                                          List<String> addCodeBranchArgs,
-                                                                          GitOperation gitOperation) {
-        addCodeBranchArgs.addFirst(gitOperation.name());
-        String sendingCodeBranch = PERFORM_GIT_OP()
-                .formatted(addCodeBranchArgs.toArray());
-        log.info("Sending code branch: {}", sendingCodeBranch);
-        var gqlResult = client.document(sendingCodeBranch);
-        var res =  toRes(gqlResult.executeSync(), graphQlQueryArgs);
-        return res;
+    private static GitRepositoryRequest buildRepoReq(String branchName, String gitRepoPath, String sessionKey, GitOperation gitOperation) {
+        return GitRepositoryRequest.newBuilder()
+                .gitBranch(GitBranch.newBuilder().branch(branchName).build())
+                .operation(Lists.newArrayList(gitOperation))
+                .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
+                .build();
     }
 
-    private String wrapInQuotes(String toWrap) {
-        return "\"%s\"".formatted(toWrap);
+    private static GitRepoPromptingRequest buildGitRepoPromptingRequest(CommitRequestArgs commitRequestArgs) {
+        CommitMessage cm = CommitMessage.newBuilder().value(commitRequestArgs.commitMessage).build();
+        SessionKey session = SessionKey.newBuilder().key(retrieveSessionKey(commitRequestArgs)).build();
+        var repoRequest = GitRepoPromptingRequest.newBuilder()
+                .gitRepo(GitRepo.newBuilder()
+                        .path(commitRequestArgs.gitRepoPath)
+                        .build()
+                )
+                .staged(Staged.newBuilder().diffs(commitRequestArgs.commitDiffContextValue.stagedDiffs())
+                        .build())
+                .commitMessage(cm)
+//                                .ragOptions()
+                .sessionKey(session)
+                .prev(PrevCommit.newBuilder()
+                        .diffs(commitRequestArgs.commitDiffContextValue.prevDiffs())
+                        .commitMessage(cm)
+                        .sessionKey(session)
+                        .build())
+                .branchName(commitRequestArgs.branchName)
+                .contextData(commitRequestArgs.commitDiffContextValue.getContextData())
+                .build();
+        return repoRequest;
+    }
+
+    private <T> @NotNull Result<T, CommitDiffContextGraphQlError> doGitOp(CallGraphQlQueryArgs<T> graphQlQueryArgs,
+                                                                          DgsGraphQlClient client,
+                                                                          GitRepositoryRequest sendingCodeBranch) {
+        log.info("Sending code branch: {}", sendingCodeBranch);
+        var gqlResult = client.request(DoGitGraphQLQuery.newRequest().gitOperation(sendingCodeBranch).queryName("doGit")
+                .build());
+        var res =  toRes(gqlResult.executeSync(), graphQlQueryArgs);
+        return res;
     }
 
     private static String retrieveSessionKey(CommitRequestArgs commitRequestArgs) {
@@ -235,14 +247,13 @@ public class CommitDiff {
                 .flatMap(sess -> Optional.ofNullable(sess.getKey()));
     }
 
-    public <T> Result<T, CommitDiffContextGraphQlError> doWithGraphQl(Function<HttpSyncGraphQlClient, Result<T, CommitDiffContextGraphQlError>> toDo) {
+    public <T> Result<T, CommitDiffContextGraphQlError> doWithGraphQl(Function<DgsGraphQlClient, Result<T, CommitDiffContextGraphQlError>> toDo) {
         try {
             return toDo.apply(this.graphQlClient);
         } catch (GraphQlTransportException |
                  ResourceAccessException ce) {
-//            assertions.assertThat(false)
-//                    .withFailMessage("Could not connect to graphQL: %s".formatted(ce.getMessage()))
-//                    .isTrue();
+            assertions.assertSoftly(false, "Could not connect to graphQL: %s".formatted(ce.getMessage()),
+                    "GraphQl transport error: " + ce.getMessage());
             return Result.err(new CommitDiffContextGraphQlError(ce.getMessage()));
         }
     }
