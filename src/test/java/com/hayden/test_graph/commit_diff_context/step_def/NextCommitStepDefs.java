@@ -158,7 +158,7 @@ public class NextCommitStepDefs implements ResettableStep {
     @ExecInitStep(value = CommitDiffInit.class)
     @AssertStep(value = NextCommitAssert.class, doFnFirst = true)
     public void nextCommitIsSentToTheServerWithTheNextCommitInformationProvidedPrevious() {
-        var nextCommitRetrieved = commitDiff.requestCommit(repoOpInit.toCommitRequestArgs(bubbleCtx));
+        var nextCommitRetrieved = commitDiff.callGraphQlQuery(repoOpInit.toCommitRequestArgs(bubbleCtx));
         assertions.assertSoftly(nextCommitRetrieved.isOk(), "Next commit waws not OK: %s"
                 .formatted(nextCommitRetrieved.e().firstOptional().orElse(null)), "Next commit info present.");
         nextCommitRetrieved.r()

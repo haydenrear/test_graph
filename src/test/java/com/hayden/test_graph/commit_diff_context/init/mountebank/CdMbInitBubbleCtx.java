@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @ResettableThread
@@ -30,7 +31,9 @@ public class CdMbInitBubbleCtx implements MbInitBubbleCtx {
 
     @Builder
     public record CommitDiffContextGraphQlModel(GitRepoPromptingRequest addRepo,
-                                                GitRepositoryRequest repositoryRequest) {
+                                                GitRepositoryRequest repositoryRequest,
+                                                RagOptions ragOptions,
+                                                SessionKey sessionKey) {
 
         public List<PrevDiff> prevDiffs() {
             return Optional.ofNullable(this.addRepo())
@@ -43,15 +46,6 @@ public class CdMbInitBubbleCtx implements MbInitBubbleCtx {
             return Optional.ofNullable(addRepo)
                     .flatMap(gr -> Optional.ofNullable(gr.getCommitMessage()))
                     .flatMap(cm -> Optional.ofNullable(cm.getValue()));
-        }
-
-        public Optional<String> sessionKey() {
-            return Optional.ofNullable(addRepo)
-                    .flatMap(gr -> Optional.ofNullable(gr.getSessionKey()))
-                    .flatMap(cm -> Optional.ofNullable(cm.getKey()))
-                    .or(() -> Optional.ofNullable(repositoryRequest)
-                            .flatMap(gr -> Optional.ofNullable(gr.getSessionKey()))
-                            .flatMap(cm -> Optional.ofNullable(cm.getKey())));
         }
 
         public List<ContextData> getContextData() {
@@ -88,7 +82,13 @@ public class CdMbInitBubbleCtx implements MbInitBubbleCtx {
                 GitRepositoryRequest.newBuilder()
                         .gitRepo(GitRepo.newBuilder().build())
                         .gitBranch(GitBranch.newBuilder().build())
-                        .build());
+                        .build(),
+                RagOptions.newBuilder()
+                        .commitsPerK(3)
+                        .topK(3)
+                        .maxDepth(3)
+                        .build(),
+                SessionKey.newBuilder().key(UUID.randomUUID().toString()).build());
     }
 
     @Override

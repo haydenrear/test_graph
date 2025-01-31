@@ -52,7 +52,7 @@ public class BlameNodeStepDefs implements ResettableStep {
 
     @When("the user requests to get the next commit")
     public void user_requests_next_commit() {
-        commitDiff.requestCommit(commitDiffInit.toCommitRequestArgs(bubbleCtx));
+        commitDiff.callGraphQlQuery(commitDiffInit.toCommitRequestArgs(bubbleCtx));
     }
 
     @Then("the model responds with valid commit that is committed to the repository successfully")

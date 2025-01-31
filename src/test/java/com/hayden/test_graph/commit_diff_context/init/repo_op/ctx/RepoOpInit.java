@@ -1,10 +1,8 @@
 package com.hayden.test_graph.commit_diff_context.init.repo_op.ctx;
 
-import com.hayden.commitdiffmodel.codegen.types.GitRepoPromptingRequest;
-import com.hayden.commitdiffmodel.codegen.types.GitRepositoryRequest;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.RepoOpInitNode;
-import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
+import com.hayden.test_graph.commit_diff_context.service.CallGraphQlQueryArgs;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitCtx;
@@ -102,10 +100,10 @@ public final class RepoOpInit implements InitCtx {
         return queries;
     }
 
-    public CommitDiff.CommitRequestArgs toCommitRequestArgs(CdMbInitBubbleCtx bubbleCtx) {
+    public CallGraphQlQueryArgs.CommitRequestArgs toCommitRequestArgs(CdMbInitBubbleCtx bubbleCtx) {
         RepositoryData repoArgs = repoDataOrThrow();
 
-        return CommitDiff.CommitRequestArgs.builder()
+        return CallGraphQlQueryArgs.CommitRequestArgs.builder()
                 .commitDiffContextValue(bubbleCtx.getCommitDiffContextValue())
                 .commitMessage(userCodeDataOrThrow().commitMessage)
                 .gitRepoPath(repoArgs.url)
