@@ -15,7 +15,7 @@ services:
     networks:
       - commit-diff-network
     image: localhost:5001/commit-diff-server
-    container_name: commit-diff-server-ctx-test
+    container_name: commit-diff-server
     ports:
       - "8080:8080"
     environment:

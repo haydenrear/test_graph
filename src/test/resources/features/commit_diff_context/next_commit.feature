@@ -1,7 +1,10 @@
-@all @commit_diff_context_repo_operations
+@commit_diff_context_repo_operations
+#@all
 Feature: Perform next commit
 
-  @commit_diff_context_compose @all @next_commit_only
+  @commit_diff_context_compose
+#  @all
+  @next_commit_only
   Scenario Outline:
 #    Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"

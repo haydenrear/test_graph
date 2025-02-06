@@ -118,7 +118,7 @@ public class CommitDiff {
         log.info("Sending code branch: {}", sendingCodeBranch);
         var gqlResult = client.request(
                 DoGitGraphQLQuery.newRequest()
-                        .gitOperation(sendingCodeBranch)
+                        .repoRequest(sendingCodeBranch)
                         .queryName(graphQlQueryArgs.key())
                         .build());
         var res =  toRes(gqlResult.executeSync(), graphQlQueryArgs);

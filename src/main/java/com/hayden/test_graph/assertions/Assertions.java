@@ -29,6 +29,10 @@ public class Assertions {
                 .isTrue();
     }
 
+    public void assertSoftly(boolean v, String fail){
+        assertSoftly(v, fail, "Assertion with failure message\n%s\nhas passed.".formatted(fail));
+    }
+
     public void assertSoftly(boolean v, String fail, String success){
         softAssertions.assertThat(v)
                 .withFailMessage(fail)
