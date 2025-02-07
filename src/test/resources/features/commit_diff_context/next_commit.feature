@@ -24,3 +24,5 @@ Feature: Perform next commit
     Examples:
       | repoUrl                                                               | branchName | composePath                                                                                     | addUrlQueryPath                                                               |
       | /Users/hayde/IdeaProjects/drools/commit-diff-context/test_repos/first | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server | /Users/hayde/IdeaProjects/drools/test_graph/src/test/resource/addRepo.graphql |
+
+

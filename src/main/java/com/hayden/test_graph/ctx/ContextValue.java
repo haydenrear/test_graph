@@ -2,12 +2,11 @@ package com.hayden.test_graph.ctx;
 
 import com.hayden.utilitymodule.result.MutableResult;
 import com.hayden.utilitymodule.result.Result;
-import com.hayden.utilitymodule.result.ok.Ok;
-import graphql.Mutable;
 import lombok.experimental.Delegate;
 
 import java.util.Optional;
 import java.util.Stack;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
@@ -38,8 +37,14 @@ public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
 
     public record ContextValueError() {}
 
-    public void set(T t) {
+    public synchronized void swap(T t) {
         this.res.set(t);
+    }
+
+    public synchronized void compareAndSwap(Predicate<T> curr, T t) {
+        if (curr.test(this.optional().orElse(null))) {
+            this.res.set(t);
+        }
     }
 
     public static class MutableContextValue<T, E> {

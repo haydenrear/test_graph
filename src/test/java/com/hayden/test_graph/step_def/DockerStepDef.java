@@ -17,7 +17,7 @@ public class DockerStepDef implements ResettableStep {
 
     @Given("docker-compose is started from {string}")
     public void docker_compose_started(String composePath) {
-        dockerInitCtx.composePath().set(new File(composePath));
+        dockerInitCtx.composePath().swap(new File(composePath));
     }
 
     @And("build command {string} is added to be ran from {string}")

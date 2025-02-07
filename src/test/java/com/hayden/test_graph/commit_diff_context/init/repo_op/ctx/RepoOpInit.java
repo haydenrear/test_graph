@@ -1,5 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.init.repo_op.ctx;
 
+import com.hayden.commitdiffmodel.model.Git;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.RepoOpInitNode;
 import com.hayden.test_graph.commit_diff_context.service.CallGraphQlQueryArgs;
@@ -29,12 +30,17 @@ public final class RepoOpInit implements InitCtx {
     private final ContextValue<GraphQlQueries> queries;
 
     @Getter
+    private final ContextValue<LlmValidationCommitData> llmValidationData;
+
+    @Getter
     private final ContextValue<CommitDiffData> commitDiffData;
 
     @Getter
     private final RepoInitializations repoInitializations;
 
     public record CommitDiffData(@NotNull String sessionKey) {}
+
+    public record LlmValidationCommitData(List<Git.GitDiff> diffs) {}
 
     public sealed interface RepoInitItem {
 
@@ -57,17 +63,26 @@ public final class RepoOpInit implements InitCtx {
 
     public RepoOpInit() {
         this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty(),
-                ContextValue.empty(), new RepoInitializations(new ArrayList<>()));
+                ContextValue.empty(), ContextValue.empty(), new RepoInitializations(new ArrayList<>()));
     }
 
     @Autowired
     public void setBubble(RepoOpBubble bubble) {
-        this.bubbleUnderlying.set(bubble);
+        this.bubbleUnderlying.swap(bubble);
     }
 
     @Builder
     public record RepositoryData(String url,
-                                 String branchName) { }
+                                 String branchName,
+                                 Path clonedUri) {
+        public RepositoryData(String url, String branchName) {
+            this(url, branchName, null);
+        }
+
+        public RepositoryData withClonedUri(Path clonedUri) {
+            return new RepositoryData(url, branchName, clonedUri);
+        }
+    }
 
     @Builder
     public record UserCodeData(String commitMessage) { }
@@ -87,10 +102,10 @@ public final class RepoOpInit implements InitCtx {
                         return new CommitDiffData(newKey);
                     });
 
-            this.commitDiffData.set(cdd);
+            this.commitDiffData.swap(cdd);
         } else {
             var newKey = UUID.randomUUID().toString();
-            this.commitDiffData.set(new CommitDiffData(newKey));
+            this.commitDiffData.swap(new CommitDiffData(newKey));
         }
 
         return this.commitDiffData.res().get().sessionKey;

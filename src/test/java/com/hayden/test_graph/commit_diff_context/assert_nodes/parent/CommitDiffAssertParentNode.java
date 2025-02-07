@@ -25,7 +25,7 @@ public class CommitDiffAssertParentNode implements CommitDiffCtxParentAssertNode
     @Override
     @Idempotent(returnArg = 0)
     public CommitDiffAssertParentCtx exec(CommitDiffAssertParentCtx c, MetaCtx h) {
-        c.getValidated().set(true);
+        c.getValidated().swap(true);
         return c;
     }
 }

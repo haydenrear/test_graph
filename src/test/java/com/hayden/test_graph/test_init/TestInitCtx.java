@@ -47,9 +47,9 @@ public class TestInitCtx implements InitCtx {
     @Override
     public void doSet(TestGraphContext context) {
         if (context instanceof TestInitChildCtx c) {
-            child.set(c);
+            child.swap(c);
         } else if (context instanceof TestInitParentCtx c) {
-            parent.set(c);
+            parent.swap(c);
         }
     }
 

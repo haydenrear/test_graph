@@ -101,7 +101,7 @@ public class NextCommitStepDefs implements ResettableStep {
                 commitDiffInit.getCommitDiffContextValue()
                         .addRepo()
                         .setCommitMessage(commitMessage);
-                repoOpInit.userCodeData().set(
+                repoOpInit.userCodeData().swap(
                         RepoOpInit.UserCodeData.builder()
                                 .commitMessage(commitMessage.getValue())
                                 .build());
@@ -162,7 +162,7 @@ public class NextCommitStepDefs implements ResettableStep {
         assertions.assertSoftly(nextCommitRetrieved.isOk(), "Next commit waws not OK: %s"
                 .formatted(nextCommitRetrieved.e().firstOptional().orElse(null)), "Next commit info present.");
         nextCommitRetrieved.r()
-                .ifPresent(nc -> nextCommit.getNextCommitInfo().set(new NextCommitAssert.NextCommitMetadata(nc)));
+                .ifPresent(nc -> nextCommit.getNextCommitInfo().swap(new NextCommitAssert.NextCommitMetadata(nc)));
     }
 
     @Then("the response from retrieving next commit can be applied to the repository as a git diff")

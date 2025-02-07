@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Optional;
 
 @Component
 @ResettableThread
@@ -45,7 +44,7 @@ public class TestInitParentCtx implements InitCtx {
 
     @Override
     public void doSet(TestGraphContext context) {
-        child.set(context);
+        child.swap(context);
     }
 
     @Override

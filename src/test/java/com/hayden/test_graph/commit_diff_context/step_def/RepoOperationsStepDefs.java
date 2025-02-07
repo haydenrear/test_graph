@@ -47,7 +47,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
 
     @And("there is a repository at the url {string}")
     public void do_set_repo_given(String repoUrl) {
-        commitDiffInit.repoData().set(
+        commitDiffInit.repoData().swap(
                 RepoOpInit.RepositoryData.builder()
                         .url(repoUrl)
                         .build());
@@ -76,7 +76,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
         if (!repoFile.exists())
             assertions.assertStrongly(false, "Repository did not exist.");
 
-        commitDiffInit.graphQlQueries().set(
+        commitDiffInit.graphQlQueries().swap(
                 RepoOpInit.GraphQlQueries.builder().addRepo(repoFile).build());
     }
 
@@ -87,7 +87,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
                 .url(r.url())
                 .branchName(arg0)
                 .build();
-        commitDiffInit.repoData().set(repoData);
+        commitDiffInit.repoData().swap(repoData);
         commitDiffInit.getRepoInitializations()
                 .initItems()
                 .add(new RepoOpInit.RepoInitItem.AddCodeBranch(repoData));
@@ -107,7 +107,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
     @AssertStep(RepoOpAssertCtx.class)
     public void validate_branch_added(String branchAdded) {
         commitDiffAssert.getRepositoryAssertionDescriptor()
-                .set(new RepoOpAssertCtx.RepoOpAssertionDescriptor(branchAdded));
+                .swap(new RepoOpAssertCtx.RepoOpAssertionDescriptor(branchAdded));
         assertions.assertStrongly(commitDiffAssert.isValidParent(),
                 "Failed to set validated on parent.");
     }

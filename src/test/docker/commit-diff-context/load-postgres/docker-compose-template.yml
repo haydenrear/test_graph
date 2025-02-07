@@ -1,19 +1,21 @@
 services:
   commit-diff-postgres:
-    image: localhost:5001/postgres-pgvector
-    container_name: commit-diff-postgres-ctx-test
     networks:
-      - commit-diff-network
+      - commit-diff
+    image: localhost:5001/postgres-pgvector
+    container_name: commit-diff-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - commit-diff:/var/lib/postgresql/data
+      - type: bind
+        source: {{postgres_source}}
+        target: /var/lib/postgresql/data
     ports:
       - "5450:5432"
   commit-diff-context:
     networks:
-      - commit-diff-network
+      - commit-diff
     image: localhost:5001/commit-diff-server
     container_name: commit-diff-server
     ports:
@@ -21,6 +23,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
   model-server:
+    networks:
+      - commit-diff
     image: localhost:5001/model-server
     container_name: model-server-container
     ports:

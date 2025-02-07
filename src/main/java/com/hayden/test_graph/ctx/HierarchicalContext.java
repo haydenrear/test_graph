@@ -8,7 +8,7 @@ public sealed interface HierarchicalContext permits
 
         default void doSet(HasParentContext toSet) {
             if (toSet(toSet))
-                parent().set(toSet);
+                parent().swap(toSet);
         }
 
         default boolean toSet(HasParentContext toSet) {

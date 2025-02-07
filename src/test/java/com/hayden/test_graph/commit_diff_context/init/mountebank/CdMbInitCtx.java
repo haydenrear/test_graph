@@ -1,21 +1,16 @@
 package com.hayden.test_graph.commit_diff_context.init.mountebank;
 
-import com.hayden.commitdiffmodel.codegen.types.GitRepoPromptingRequest;
-import com.hayden.commitdiffmodel.codegen.types.GitRepositoryRequest;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.mountebank.ctx.MbInitCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.io.FileUtils;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mbtest.javabank.Client;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.testcontainers.shaded.org.apache.commons.io.IOUtils;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -90,14 +85,14 @@ public class CdMbInitCtx implements MbInitCtx {
     }
 
     public void setAiResponses(AiServerResponses serverResponses) {
-        this.serverResponses.set(serverResponses);
+        this.serverResponses.swap(serverResponses);
     }
 
     public void addAiServerResponse(AiServerResponse serverResponse) {
         AiServerResponses t;
         if (serverResponses.isEmpty()) {
             t = new AiServerResponses(new ArrayList<>());
-            serverResponses.set(t);
+            serverResponses.swap(t);
         } else {
             t = serverResponses.res().get();
         }
@@ -107,7 +102,7 @@ public class CdMbInitCtx implements MbInitCtx {
 
     @Autowired
     public void setBubble(CdMbInitBubbleCtx bubble) {
-        this.bubbleUnderlying.set(bubble);
+        this.bubbleUnderlying.swap(bubble);
     }
 
     @Override

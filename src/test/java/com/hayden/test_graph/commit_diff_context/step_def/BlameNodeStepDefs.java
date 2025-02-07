@@ -35,7 +35,7 @@ public class BlameNodeStepDefs implements ResettableStep {
 
     @And("the user requests to get the next commit with commit message {string}")
     public void do_set_user_repo_data(String commitMessage) {
-        commitDiffInit.userCodeData().set(
+        commitDiffInit.userCodeData().swap(
                 RepoOpInit.UserCodeData.builder()
                         .commitMessage(commitMessage)
                         .build());

@@ -3,13 +3,8 @@ package com.hayden.test_graph.commit_diff_context.hg;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.parent.CommitDiffAssertParentCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpBubble;
 import com.hayden.test_graph.graph.edge.FromBubbleEdgeAssert;
-import com.hayden.test_graph.graph.edge.FromBubbleEdgeInit;
-import com.hayden.test_graph.meta.ctx.MetaCtx;
-import com.hayden.test_graph.meta.ctx.MetaProgCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import org.springframework.stereotype.Component;
-
-import java.util.function.Predicate;
 
 @Component
 @ResettableThread
@@ -28,7 +23,7 @@ public class CommitDiffInitAssertTestGraphEdge implements FromBubbleEdgeAssert<C
     @Override
     public void set(CommitDiffAssertParentCtx setOn, RepoOpBubble setFrom) {
         setFrom.repositoryData().optional()
-                .ifPresent(setOn.repoUrl()::set);
+                .ifPresent(setOn.repoUrl()::swap);
     }
 
 }

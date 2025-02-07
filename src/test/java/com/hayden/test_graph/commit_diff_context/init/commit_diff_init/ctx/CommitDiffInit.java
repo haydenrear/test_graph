@@ -1,22 +1,14 @@
 package com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx;
 
-import com.hayden.commitdiffmodel.codegen.types.GitRepoPromptingRequest;
-import com.hayden.commitdiffmodel.codegen.types.GitRepositoryRequest;
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.CommitDiffInitNode;
-import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.thread.ResettableThread;
-import lombok.Builder;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.io.File;
-import java.nio.file.Path;
 
 @Component
 @ResettableThread
@@ -32,7 +24,7 @@ public final class CommitDiffInit implements InitCtx {
 
     @Autowired
     public void setBubble(CommitDiffInitBubble bubble) {
-        this.bubbleUnderlying.set(bubble);
+        this.bubbleUnderlying.swap(bubble);
     }
 
 
