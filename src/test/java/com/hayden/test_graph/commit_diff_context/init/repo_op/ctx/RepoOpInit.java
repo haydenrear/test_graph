@@ -40,7 +40,7 @@ public final class RepoOpInit implements InitCtx {
 
     public record CommitDiffData(@NotNull String sessionKey) {}
 
-    public record LlmValidationCommitData(List<Git.GitDiff> diffs) {}
+    public record LlmValidationCommitData(List<Git.GitDiff> diffs, String commitMessage) {}
 
     public sealed interface RepoInitItem {
 

@@ -12,6 +12,7 @@ import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.git.RepoUtil;
 import com.hayden.utilitymodule.io.FileUtils;
 import com.hayden.utilitymodule.result.Result;
 import com.hayden.utilitymodule.result.error.SingleError;
@@ -21,12 +22,14 @@ import org.assertj.core.util.Files;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.util.FS;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 
 public class LlmValidationNextCommit {
 
@@ -113,8 +116,18 @@ public class LlmValidationNextCommit {
                 assertions.assertSoftly(parsed.isOk(), "Was not successful in generating git commit diffs: %s."
                         .formatted(parsed.e().map(GitErrors.GitAggregateError::getMessage).orElse(null)));
 
-                parsed.map(ParseDiff.GitDiffResult::diffs)
-                        .ifPresent(gdr -> repoOpInit.getLlmValidationData().swap(new RepoOpInit.LlmValidationCommitData(gdr)));
+                var parsedC = parsed.map(ParseDiff.GitDiffResult::diffs)
+                        .flatMapResult(gd -> {
+                            return RepoUtil.getLatestCommit(rh.getGit(), repoData.branchName())
+                                    .map(RevCommit::getFullMessage)
+                                    .map(m -> Map.entry(gd, m))
+                                    .mapError(re -> new GitErrors.GitAggregateError(re.getMessage()));
+                        });
+
+                assertions.assertSoftly(parsedC.isOk(), "Was not successful in retrieving most recent commit message: %s."
+                        .formatted(parsed.e().map(GitErrors.GitAggregateError::getMessage).orElse(null)));
+
+                parsedC.ifPresent(gdr -> repoOpInit.getLlmValidationData().swap(new RepoOpInit.LlmValidationCommitData(gdr.getKey(), gdr.getValue())));
 
                 // reset it to the previous commit to predict this commit.
                 try {
