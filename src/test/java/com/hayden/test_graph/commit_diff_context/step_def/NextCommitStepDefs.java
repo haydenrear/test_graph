@@ -58,7 +58,7 @@ public class NextCommitStepDefs implements ResettableStep {
     Assertions assertions;
     @Autowired
     @ResettableThread
-    CdMbInitBubbleCtx bubbleCtx;
+    RepoOpInit bubbleCtx;
 
     @Autowired
     ObjectMapper mapper;
@@ -70,17 +70,17 @@ public class NextCommitStepDefs implements ResettableStep {
     @And("a request for the next commit is provided for the given url and branch name provided")
     @RegisterInitStep(value = {CommitDiffInit.class})
     public void nextCommit() {
-        var gitRepoPromptingRequest = commitDiffInit.getCommitDiffContextValue().addRepo();
-        var repoRequest = commitDiffInit.getCommitDiffContextValue().repositoryRequest();
+        var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
+        var repoRequest = repoOpInit.getCommitDiffContextValue().repositoryRequest();
         repoOpInit.repoData().res()
                 .optional()
                 .ifPresentOrElse(red -> {
-                    gitRepoPromptingRequest.getGitRepo().setPath(red.url());
-                    gitRepoPromptingRequest.setBranchName(red.branchName());
+                    gitRepoPromptingRequest.repositoryRequest().getGitRepo().setPath(red.url());
+                    gitRepoPromptingRequest.addRepo().setBranchName(red.branchName());
                     repoRequest.getGitRepo().setPath(red.url());
                     repoRequest.getGitBranch().setBranch(red.branchName());
                 }, () -> {
-                    if (gitRepoPromptingRequest.getGitRepo() == null) {
+                    if (gitRepoPromptingRequest.repositoryRequest().getGitRepo() == null) {
                         assertions.assertStrongly(false, "No branch information provided.");
                     }
                     if (repoRequest.getGitRepo() == null) {
@@ -94,12 +94,12 @@ public class NextCommitStepDefs implements ResettableStep {
     @RegisterInitStep(value = {CommitDiffInit.class})
     public void setCommitMessageForRequest(String commitMessageJson) {
         try {
+            var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
             var res = new PathMatchingResourcePatternResolver().getResource(commitMessageJson);
             assertions.assertStrongly(res.exists(), "Commit message file does not exist.");
             if (res.exists()) {
                 var commitMessage = mapper.readValue(res.getFile(), CommitMessage.class);
-                commitDiffInit.getCommitDiffContextValue()
-                        .addRepo()
+                gitRepoPromptingRequest.addRepo()
                         .setCommitMessage(commitMessage);
                 repoOpInit.userCodeData().swap(
                         RepoOpInit.UserCodeData.builder()
@@ -119,8 +119,8 @@ public class NextCommitStepDefs implements ResettableStep {
     public void setStagedInformationFromJson(String commitMessageJson) {
         try {
             var staged = mapper.readValue(new File(commitMessageJson), Staged.class);
-            commitDiffInit.getCommitDiffContextValue()
-                    .addRepo()
+            var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
+            gitRepoPromptingRequest.addRepo()
                     .setStaged(staged);
         } catch (IOException e) {
             assertions.assertStrongly(false, "Could not parse commit message: " + commitMessageJson);
@@ -132,7 +132,8 @@ public class NextCommitStepDefs implements ResettableStep {
     public void setContextData(String commitMessageJson) {
         try {
             var staged = mapper.readValue(new File(commitMessageJson), new TypeReference<List<ContextData>>() {});
-            commitDiffInit.getCommitDiffContextValue()
+            var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
+            gitRepoPromptingRequest
                     .addRepo()
                     .setContextData(staged);
         } catch (IOException e) {
@@ -146,7 +147,8 @@ public class NextCommitStepDefs implements ResettableStep {
     public void setPreviousRequests(String commitMessageJson) {
         try {
             var staged = mapper.readValue(new File(commitMessageJson), PrevCommit.class);
-            commitDiffInit.getCommitDiffContextValue()
+            var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
+            gitRepoPromptingRequest
                     .addRepo()
                     .setPrev(staged);
         } catch (IOException e) {
@@ -158,7 +160,7 @@ public class NextCommitStepDefs implements ResettableStep {
     @ExecInitStep(value = CommitDiffInit.class)
     @AssertStep(value = NextCommitAssert.class, doFnFirst = true)
     public void nextCommitIsSentToTheServerWithTheNextCommitInformationProvidedPrevious() {
-        var nextCommitRetrieved = commitDiff.callGraphQlQuery(repoOpInit.toCommitRequestArgs(bubbleCtx));
+        var nextCommitRetrieved = commitDiff.callGraphQlQuery(repoOpInit.toCommitRequestArgs());
         assertions.assertSoftly(nextCommitRetrieved.isOk(), "Next commit waws not OK: %s"
                 .formatted(nextCommitRetrieved.e().firstOptional().orElse(null)), "Next commit info present.");
         nextCommitRetrieved.r()
@@ -178,7 +180,7 @@ public class NextCommitStepDefs implements ResettableStep {
                     var applied = new GitHandlerActions(Paths.get(repoData.url()), commitDiffContextMapper)
                             .applyCommit(ncm);
 
-                    assertions.assertSoftly(applied.isOk(), "Applied successfully", "Applied successfully.");
+                    assertions.assertSoftly(applied.isOk(), "Failed to apply git commit.", "Applied successfully.");
                 });
     }
 

@@ -53,8 +53,8 @@ public class TestIdempotent {
         var f = v.doIWArg("whatever");
         var q = v.doIWArg("whatever");
         Assertions.assertAll(
-                () -> Assertions.assertEquals(f, "goodbye"),
-                () -> Assertions.assertEquals(q, "whatever")
+                () -> Assertions.assertEquals("goodbye", f),
+                () -> Assertions.assertEquals("whatever", q)
         );
     }
 
@@ -64,8 +64,8 @@ public class TestIdempotent {
         var q = v.doIAgainIf("whatever");
 
         Assertions.assertAll(
-                () -> Assertions.assertEquals(f, "okay"),
-                () -> Assertions.assertEquals(q, "okay")
+                () -> Assertions.assertEquals("okay", f),
+                () -> Assertions.assertEquals("okay", q)
         );
 
         v.doIAgainVIf();

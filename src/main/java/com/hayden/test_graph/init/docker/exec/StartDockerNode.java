@@ -3,16 +3,16 @@ package com.hayden.test_graph.init.docker.exec;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.LogContainerCmd;
+import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.core.DockerClientBuilder;
-import com.hayden.test_graph.action.Idempotent;
+import com.github.dockerjava.zerodep.ZerodepDockerHttpClient;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.init.docker.config.DockerInitConfigProps;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.result.Result;
-import com.hayden.utilitymodule.sort.GraphSort;
 import com.hayden.utilitymodule.waiter.AsyncWaiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,8 +24,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
+import java.net.URI;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -54,14 +55,22 @@ public class StartDockerNode implements DockerInitNode {
 
     @Override
     public DockerInitCtx exec(DockerInitCtx c, MetaCtx h) {
-        c.composePath()
-                .optional()
-                .ifPresentOrElse(
-                        p -> initializeDockerCompose(c, dockerInitConfigProps),
-                        () -> log.info("Skipping initialization of docker compose as file was not set."));
-//        Result.tryFrom(() -> DockerClientBuilder.getInstance().build())
-//                .ifPresent(dc -> awaitLogMessage(".*Tomcat started on port.*", dc,
-//                        "commit-diff-server"));
+//        c.composePath()
+//                .optional()
+//                .ifPresentOrElse(
+//                        p -> initializeDockerCompose(c, dockerInitConfigProps),
+//                        () -> log.info("Skipping initialization of docker compose as file was not set."));
+//        Result.tryFrom(() -> {
+//                    return DockerClientBuilder.getInstance()
+//                            .withDockerHttpClient(new ZerodepDockerHttpClient.Builder().dockerHost(URI.create("unix:///Users/hayde/.docker/run/docker.sock"))
+//                                    .responseTimeout(Duration.ofSeconds(30)).build())
+//                            .build();
+//                })
+//                .exceptEmpty(exc -> assertions.assertSoftly(false, "Failed to retrieve docker client for waiting for container to start: %s", exc.getMessage()))
+//                .ifPresent((DockerClient dc) -> dockerInitConfigProps.getContainers()
+//                        .forEach(container -> awaitLogMessage(container.log(), dc, container.containerName())));
+//
+        c.getStarted().swap(true);
         return c;
     }
 
@@ -75,49 +84,63 @@ public class StartDockerNode implements DockerInitNode {
         return DockerInitCtx.class;
     }
 
-    public void awaitLogMessage(@Language("regexp") String regex,
+    public void awaitLogMessage(String regex,
                                 DockerClient dockerClient,
                                 String containerName) {
-        LogContainerCmd logCmd = dockerClient.logContainerCmd(containerName);
-        logCmd.withStdOut(true);
-        logCmd.withStdErr(true);
-        logCmd.withTailAll();
+        List<Container> res = dockerClient.listContainersCmd().exec();
+        res.stream()
+                .filter(c -> Arrays.stream(c.getNames()).anyMatch(n -> n.contains(containerName)))
+                .map(Container::getId)
+                .findAny()
+                .ifPresent(containerId -> {
 
-        AtomicBoolean done = new AtomicBoolean(false);
+                    AtomicBoolean done = new AtomicBoolean(false);
+                    assertions.assertSoftly(Boolean.TRUE.equals(AsyncWaiter.Builder.doCallWaiter(
+                            () -> {
+                                LogContainerCmd logCmd = dockerClient.logContainerCmd(containerId);
+                                logCmd = logCmd.withStdOut(true);
+                                execCmd(regex, containerName, logCmd, done);
+                                return done.get();
+                            },
+                            Boolean::valueOf,
+                            Duration.ofSeconds(120),
+                            Duration.ofSeconds(3))
+                    ), "Could not wait");
+                });
 
-        logCmd.exec(new ResultCallback<Frame>() {
-            @Override
-            public void onStart(Closeable closeable) {
+    }
 
-            }
+    private void execCmd(String toMatch, String containerName, LogContainerCmd logCmd, AtomicBoolean done) {
+        var logFile = logCmd
+                .exec(new ResultCallback<Frame>() {
+                    @Override
+                    public void onStart(Closeable closeable) {
+                        log.info("Starting container '{}'", containerName);
+                    }
 
-            @Override
-            public void onNext(Frame frame) {
-                String logLine = new String(frame.getPayload());
-                if (logLine.matches(regex)) {
-                    done.set(true);
-                }
-            }
+                    @Override
+                    public void onNext(Frame frame) {
+                        String logLine = new String(frame.getPayload());
+                        if (logLine.contains(toMatch)) {
+                            done.set(true);
+                        }
+                    }
 
-            @Override
-            public void onError(Throwable throwable) {
+                    @Override
+                    public void onError(Throwable throwable) {
+                        assertions.assertSoftly(false, "Error when starting container %s.", containerName);
+                    }
 
-            }
+                    @Override
+                    public void onComplete() {
+                        assertions.assertSoftly(done.get(), "Could not wait for container '%s'", containerName);
+                    }
 
-            @Override
-            public void onComplete() {
-
-            }
-
-            @Override
-            public void close() {
-
-            }
-        });
-
-
-        assertions.assertSoftly(Boolean.TRUE.equals(AsyncWaiter.Builder.doCallWaiter(done::get, Boolean::valueOf)), "Could not wait");
-
+                    @Override
+                    public void close() {
+                        assertions.assertSoftly(done.get(), "Could not wait for container '%s'", containerName);
+                    }
+                });
     }
 
 }

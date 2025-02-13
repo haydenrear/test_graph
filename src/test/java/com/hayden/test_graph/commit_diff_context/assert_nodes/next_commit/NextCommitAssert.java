@@ -1,6 +1,8 @@
 package com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit;
 
 import com.hayden.commitdiffmodel.codegen.types.NextCommit;
+import com.hayden.commitdiffmodel.validation.entity.CommitDiffContextCommitVersion;
+import com.hayden.proto.prototyped.datasources.ai.modelserver.client.ModelServerValidationAiClient;
 import com.hayden.test_graph.assert_g.ctx.AssertBubble;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.CommitDiffAssert;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.parent.CommitDiffAssertParentCtx;
@@ -25,15 +27,24 @@ public class NextCommitAssert implements CommitDiffAssert {
 
     public record NextCommitMetadata(NextCommit nc) {}
 
+    public record NextCommitLlmValidation(ModelServerValidationAiClient.ModelServerValidationResponse response) {}
+
     private final ContextValue<NextCommitMetadata> nextCommitInfo;
+
+    @Getter
+    private final ContextValue<CommitDiffContextCommitVersion.AssertedGitDiffs> actualCommitInfo;
+
+    @Getter
+    private final ContextValue<NextCommitLlmValidation> validationResponse;
 
     private NextCommitBubble nextCommitBubble;
 
     private ContextValue<CommitDiffAssertParentCtx> parent;
 
 
+
     public NextCommitAssert() {
-        this(ContextValue.empty());
+        this(ContextValue.empty(), ContextValue.empty(),ContextValue.empty());
     }
 
     @Autowired

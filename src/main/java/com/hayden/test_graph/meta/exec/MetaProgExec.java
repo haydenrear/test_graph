@@ -1,5 +1,6 @@
 package com.hayden.test_graph.meta.exec;
 
+import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
@@ -11,6 +12,7 @@ import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.ctx.MetaProgCtx;
 import com.hayden.test_graph.report.ReportingValidationNode;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.sort.GraphSort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -31,6 +33,10 @@ public class MetaProgExec implements ProgExec {
 
     @Autowired @Lazy
     private LazyMetaGraphDelegate lazyMetaGraphDelegate;
+
+    @Autowired
+    @ResettableThread
+    private Assertions assertions;
 
     @Autowired(required = false)
     private List<ReportingValidationNode> reportingValidationNodes = new ArrayList<>();
@@ -64,6 +70,8 @@ public class MetaProgExec implements ProgExec {
             contextsRetrieved.map(c -> {
                         HyperGraphExec<TestGraphContext<HyperGraphContext>, HyperGraphContext> hgGraphExec
                                 = edgeExec.preExecHgExecEdges(hgNode, finalMetaCtx);
+                        String msg = "Executing %s".formatted(c.getName());
+                        assertions.assertSoftly(Objects.nonNull(c), msg, msg);
                         var ctxCreated = hgGraphExec.exec((Class<? extends TestGraphContext<HyperGraphContext>>) c, finalMetaCtx);
                         MetaCtx m = edgeExec.postExecMetaCtxEdges(ctxCreated.bubbleMeta(finalMetaCtx), finalMetaCtx);
                         executed.add(c);
@@ -114,8 +122,7 @@ public class MetaProgExec implements ProgExec {
             }
         }
 
-        // Is there some sort of hypergraph sorting algorithm?
-        for (var o : ordering) {
+        for (var o : lazyMetaGraphDelegate.sort(ordering)) {
             this.exec(o);
         }
     }

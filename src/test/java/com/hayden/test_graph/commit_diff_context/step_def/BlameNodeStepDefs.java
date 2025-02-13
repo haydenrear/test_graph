@@ -31,7 +31,7 @@ public class BlameNodeStepDefs implements ResettableStep {
     Assertions assertions;
     @Autowired
     @ResettableThread
-    CdMbInitBubbleCtx bubbleCtx;
+    RepoOpInit bubbleCtx;
 
     @And("the user requests to get the next commit with commit message {string}")
     public void do_set_user_repo_data(String commitMessage) {
@@ -52,7 +52,7 @@ public class BlameNodeStepDefs implements ResettableStep {
 
     @When("the user requests to get the next commit")
     public void user_requests_next_commit() {
-        commitDiff.callGraphQlQuery(commitDiffInit.toCommitRequestArgs(bubbleCtx));
+        commitDiff.callGraphQlQuery(commitDiffInit.toCommitRequestArgs());
     }
 
     @Then("the model responds with valid commit that is committed to the repository successfully")

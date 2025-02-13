@@ -19,4 +19,9 @@ public class CommitDiffContextConfigProps {
 
     String modelServerApiKey;
 
+    // TODO: run this through commit diff context server or client for option to rate the result by user.
+    String modelServerBaseUrl;
+
+    int modelServerPort;
+
 }

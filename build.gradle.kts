@@ -19,6 +19,8 @@ dependencies {
     implementation(project(":utilitymodule"))
     implementation(project(":commit-diff-model"))
     implementation(project(":jpa-persistence"))
+    implementation(project(":proto"))
+    implementation("com.github.docker-java:docker-java-transport-zerodep:3.4.1")
 }
 
 tasks.compileJava {

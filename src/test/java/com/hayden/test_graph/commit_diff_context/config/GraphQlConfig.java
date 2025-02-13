@@ -1,5 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.config;
 
+import com.netflix.graphql.dgs.internal.DefaultDgsQueryExecutor;
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -3,6 +3,7 @@ package com.hayden.test_graph.commit_diff_context.service;
 import com.hayden.commitdiffmodel.codegen.types.GitRepoResult;
 import com.hayden.commitdiffmodel.codegen.types.NextCommit;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleCtx;
+import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.utilitymodule.result.error.SingleError;
 import lombok.Builder;
 import org.springframework.graphql.ResponseError;
@@ -70,7 +71,7 @@ public interface CallGraphQlQueryArgs<T> {
 
     @Builder
     record CommitRequestArgs(String branchName, String gitRepoPath, String commitMessage,
-                             CdMbInitBubbleCtx.CommitDiffContextGraphQlModel commitDiffContextValue) implements CallGraphQlQueryArgs<NextCommit> {
+                             RepoOpInit.CommitDiffContextGraphQlModel commitDiffContextValue) implements CallGraphQlQueryArgs<NextCommit> {
         @Override
         public Class<NextCommit> clazz() {
             return NextCommit.class;
@@ -96,7 +97,7 @@ public interface CallGraphQlQueryArgs<T> {
         @Override
         public String getMessage() {
             return errors.stream()
-                    .map(re -> "%s: %s".formatted(re.getErrorType().toString(), re.getMessage()))
+                    .map(re -> "%s: %s".formatted(re.toString(), re.getMessage()))
                     .collect(Collectors.joining(", "));
         }
     }

@@ -28,6 +28,9 @@ public class DockerInitCtx implements InitCtx {
     private final ContextValue<String> host;
 
     @Getter
+    private final ContextValue<Boolean> started;
+
+    @Getter
     private final List<GradleTask> gradleTasks = new ArrayList<>();
 
     public record GradleTask(String directory, String gradleCommand) {}
@@ -41,7 +44,7 @@ public class DockerInitCtx implements InitCtx {
 
     public DockerInitCtx() {
         this(ContextValue.empty(), ContextValue.empty(),
-                ContextValue.empty(), ContextValue.empty());
+                ContextValue.empty(), ContextValue.empty(), ContextValue.empty());
     }
 
     @Override

@@ -1,6 +1,8 @@
 package com.hayden.test_graph.commit_diff_context.init.repo_op.ctx;
 
-import com.hayden.commitdiffmodel.model.Git;
+import com.hayden.commitdiffmodel.codegen.types.*;
+import com.hayden.commitdiffmodel.comittdiff.ParseDiff;
+import com.hayden.commitdiffmodel.git.RepositoryHolder;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.RepoOpInitNode;
 import com.hayden.test_graph.commit_diff_context.service.CallGraphQlQueryArgs;
@@ -8,6 +10,7 @@ import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.stream.StreamUtil;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,6 +27,104 @@ import java.util.*;
 @RequiredArgsConstructor
 public final class RepoOpInit implements InitCtx {
 
+    public sealed interface RepoInitItem {
+
+        Comparator<RepoInitItem> c = new Comparator<>() {
+            static final List<Class<? extends RepoInitItem>> REPO_INIT_ORDERING = List.of(AddCodeBranch.class, AddEmbeddings.class);
+
+            @Override
+            public int compare(RepoInitItem o1, RepoInitItem o2) {
+                return Integer.compare(REPO_INIT_ORDERING.indexOf(o1.getClass()), REPO_INIT_ORDERING.indexOf(o2.getClass()));
+            }
+        };
+
+        record AddCodeBranch(RepositoryData repositoryData) implements RepoInitItem {}
+        record AddEmbeddings() implements RepoInitItem {}
+    }
+
+    @Builder
+    public record GraphQlQueries(File addRepo) {}
+
+    public record CommitDiffData(@NotNull String sessionKey) {}
+
+    public record LlmValidationCommitData(List<ParseDiff.GitDiffResult> diffs, String commitMessage) {}
+
+    public record RepoInitializations(List<RepoInitItem> initItems) {}
+
+    @Builder
+    public record RepositoryData(String url,
+                                 String branchName,
+                                 Path clonedUri) {
+        public RepositoryData(String url, String branchName) {
+            this(url, branchName, null);
+        }
+
+        public RepositoryData unzipped(Path unzippedTo) {
+            var uz = StreamUtil.toStream(unzippedTo.toFile().listFiles()).findAny().map(File::toPath);
+            return new RepositoryData(uz.map(Path::toAbsolutePath).map(Path::toString).orElse(unzippedTo.toAbsolutePath().toString()),
+                    branchName, uz.orElse(unzippedTo));
+        }
+
+        public RepositoryData withClonedUri(Path clonedUri) {
+            return new RepositoryData(url, branchName, clonedUri);
+        }
+
+        public RepositoryHolder.RepositoryArgs toRepositoryArgs() {
+            return RepositoryHolder.RepositoryArgs.builder().repoPath(this.url)
+                    .branch(branchName)
+                    .build();
+        }
+    }
+
+    @Builder
+    public record CommitDiffContextGraphQlModel(GitRepoPromptingRequest addRepo,
+                                                GitRepositoryRequest repositoryRequest,
+                                                RagOptions ragOptions,
+                                                SessionKey sessionKey) {
+
+        public List<PrevDiff> prevDiffs() {
+            return Optional.ofNullable(this.addRepo())
+                    .flatMap(gpr -> Optional.ofNullable(gpr.getPrev()))
+                    .map(PrevCommit::getDiffs)
+                    .orElse(new ArrayList<>());
+        }
+
+        public Optional<String> commitMessage() {
+            return Optional.ofNullable(addRepo)
+                    .flatMap(gr -> Optional.ofNullable(gr.getCommitMessage()))
+                    .flatMap(cm -> Optional.ofNullable(cm.getValue()));
+        }
+
+        public List<ContextData> getContextData() {
+            return Optional.ofNullable(addRepo)
+                    .flatMap(gr -> Optional.ofNullable(gr.getContextData()))
+                    .orElse(new ArrayList<>());
+        }
+
+        public List<PrevRequests> getPrevRequests() {
+            return Optional.ofNullable(addRepo)
+                    .flatMap(gr -> Optional.ofNullable(gr.getPrevRequests()))
+                    .orElse(new ArrayList<>());
+        }
+
+        public List<PromptDiff> stagedDiffs() {
+            return Optional.ofNullable(addRepo())
+                    .flatMap(g -> Optional.ofNullable(g.getStaged()))
+                    .map(Staged::getDiffs)
+                    .orElse(new ArrayList<>());
+        }
+
+
+    }
+
+
+    @Builder
+    public record UserCodeData(String commitMessage) { }
+
+    @Builder
+    public record BubbleData(Path clonedTo) { }
+
+
     private final ContextValue<UserCodeData> userCodeData;
     private final ContextValue<BubbleData> bubbleDataContextValue;
     private final ContextValue<RepoOpBubble> bubbleUnderlying;
@@ -33,33 +134,13 @@ public final class RepoOpInit implements InitCtx {
     private final ContextValue<LlmValidationCommitData> llmValidationData;
 
     @Getter
+    private CommitDiffContextGraphQlModel commitDiffContextValue;
+
+    @Getter
     private final ContextValue<CommitDiffData> commitDiffData;
 
     @Getter
     private final RepoInitializations repoInitializations;
-
-    public record CommitDiffData(@NotNull String sessionKey) {}
-
-    public record LlmValidationCommitData(List<Git.GitDiff> diffs, String commitMessage) {}
-
-    public sealed interface RepoInitItem {
-
-        Comparator<RepoInitItem> c = new Comparator<RepoInitItem>() {
-            static List<Class<? extends RepoInitItem>> ordering = List.of(AddCodeBranch.class, AddEmbeddings.class);
-            @Override
-            public int compare(RepoInitItem o1, RepoInitItem o2) {
-                return Integer.compare(ordering.indexOf(o1.getClass()), ordering.indexOf(o2.getClass()));
-            }
-        };
-
-        record AddCodeBranch(RepositoryData repositoryData) implements RepoInitItem {}
-        record AddEmbeddings() implements RepoInitItem {}
-    }
-
-    public record RepoInitializations(List<RepoInitItem> initItems) {}
-
-    @Builder
-    public record GraphQlQueries(File addRepo) {}
 
     public RepoOpInit() {
         this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty(),
@@ -70,25 +151,6 @@ public final class RepoOpInit implements InitCtx {
     public void setBubble(RepoOpBubble bubble) {
         this.bubbleUnderlying.swap(bubble);
     }
-
-    @Builder
-    public record RepositoryData(String url,
-                                 String branchName,
-                                 Path clonedUri) {
-        public RepositoryData(String url, String branchName) {
-            this(url, branchName, null);
-        }
-
-        public RepositoryData withClonedUri(Path clonedUri) {
-            return new RepositoryData(url, branchName, clonedUri);
-        }
-    }
-
-    @Builder
-    public record UserCodeData(String commitMessage) { }
-
-    @Builder
-    public record BubbleData(Path clonedTo) { }
 
     public ContextValue<RepositoryData> repoData() {
         return bubbleUnderlying.res().one().get().repositoryData();
@@ -115,11 +177,11 @@ public final class RepoOpInit implements InitCtx {
         return queries;
     }
 
-    public CallGraphQlQueryArgs.CommitRequestArgs toCommitRequestArgs(CdMbInitBubbleCtx bubbleCtx) {
+    public CallGraphQlQueryArgs.CommitRequestArgs toCommitRequestArgs() {
         RepositoryData repoArgs = repoDataOrThrow();
 
         return CallGraphQlQueryArgs.CommitRequestArgs.builder()
-                .commitDiffContextValue(bubbleCtx.getCommitDiffContextValue())
+                .commitDiffContextValue(CommitDiffContextGraphQlModel.builder().build())
                 .commitMessage(userCodeDataOrThrow().commitMessage)
                 .gitRepoPath(repoArgs.url)
                 .branchName(repoArgs.branchName)
@@ -132,6 +194,14 @@ public final class RepoOpInit implements InitCtx {
 
     public RepositoryData repoDataOrThrow() {
         return this.bubbleUnderlying.res().one().get().repositoryData().res().orElseThrow();
+    }
+
+    public RepositoryData repoDataOrNull() {
+        return this.bubbleUnderlying.res().one()
+                .optional()
+                .map(RepoOpBubble::repositoryData)
+                .flatMap(ContextValue::optional)
+                .orElse(null);
     }
 
 

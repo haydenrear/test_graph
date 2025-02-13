@@ -6,10 +6,14 @@ import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.commit_diff_context.service.CallGraphQlQueryArgs;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
+import com.hayden.utilitymodule.io.ArchiveUtils;
+import org.assertj.core.util.Files;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 @Component
@@ -27,12 +31,21 @@ public class InitializeRepo implements RepoOpInitNode {
         // clone repo, add to context
         return c.repoData().res()
                 .filterResult(rd -> rd.branchName() != null && rd.url() != null)
-                .map(rd -> doPerformRepoInitializations(c))
+                .map(rd -> doPerformRepoInitializations(c, rd))
                 .one()
                 .orElseRes(c);
     }
 
-    private @NotNull RepoOpInit doPerformRepoInitializations(RepoOpInit c) {
+    private @NotNull RepoOpInit doPerformRepoInitializations(RepoOpInit c, RepoOpInit.RepositoryData rd) {
+        if (rd.url().endsWith(".tar")) {
+            assertions.assertSoftly(new File(rd.url()).exists(), "Repo archive did not exist.");
+            var tempDir = Files.newTemporaryFolder();
+            var unzipped = ArchiveUtils.prepareTestRepos(Paths.get(rd.url()).getParent(), tempDir.toPath(), Paths.get(rd.url()).getFileName().toString());
+            var unzippedTo = rd.unzipped(tempDir.toPath());
+            c.repoData().swap(unzippedTo);
+            assertions.assertSoftly(unzipped.isOk(), "Was unsuccessful in unzipping repositories.");
+        }
+
         c.getRepoInitializations()
                 .initItems()
                 .stream()

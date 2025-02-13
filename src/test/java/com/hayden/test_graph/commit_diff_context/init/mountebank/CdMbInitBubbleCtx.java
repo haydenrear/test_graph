@@ -26,71 +26,6 @@ import java.util.UUID;
 @ResettableThread
 public class CdMbInitBubbleCtx implements MbInitBubbleCtx {
 
-    @Getter
-    private CommitDiffContextGraphQlModel commitDiffContextValue;
-
-    @Builder
-    public record CommitDiffContextGraphQlModel(GitRepoPromptingRequest addRepo,
-                                                GitRepositoryRequest repositoryRequest,
-                                                RagOptions ragOptions,
-                                                SessionKey sessionKey) {
-
-        public List<PrevDiff> prevDiffs() {
-            return Optional.ofNullable(this.addRepo())
-                    .flatMap(gpr -> Optional.ofNullable(gpr.getPrev()))
-                    .map(PrevCommit::getDiffs)
-                    .orElse(new ArrayList<>());
-        }
-
-        public Optional<String> commitMessage() {
-            return Optional.ofNullable(addRepo)
-                    .flatMap(gr -> Optional.ofNullable(gr.getCommitMessage()))
-                    .flatMap(cm -> Optional.ofNullable(cm.getValue()));
-        }
-
-        public List<ContextData> getContextData() {
-            return Optional.ofNullable(addRepo)
-                    .flatMap(gr -> Optional.ofNullable(gr.getContextData()))
-                    .orElse(new ArrayList<>());
-        }
-
-        public List<PrevRequests> getPrevRequests() {
-            return Optional.ofNullable(addRepo)
-                    .flatMap(gr -> Optional.ofNullable(gr.getPrevRequests()))
-                    .orElse(new ArrayList<>());
-        }
-
-        public List<PromptDiff> stagedDiffs() {
-            return Optional.ofNullable(addRepo())
-                    .flatMap(g -> Optional.ofNullable(g.getStaged()))
-                    .map(Staged::getDiffs)
-                    .orElse(new ArrayList<>());
-        }
-
-
-    }
-
-    public CdMbInitBubbleCtx() {
-        this.initialize();
-    }
-
-    public void initialize() {
-        this.commitDiffContextValue = new CommitDiffContextGraphQlModel(
-                GitRepoPromptingRequest.newBuilder()
-                        .gitRepo(GitRepo.newBuilder().build())
-                        .build(),
-                GitRepositoryRequest.newBuilder()
-                        .gitRepo(GitRepo.newBuilder().build())
-                        .gitBranch(GitBranch.newBuilder().build())
-                        .build(),
-                RagOptions.newBuilder()
-                        .commitsPerK(3)
-                        .topK(3)
-                        .maxDepth(3)
-                        .build(),
-                SessionKey.newBuilder().key(UUID.randomUUID().toString()).build());
-    }
-
     @Override
     public boolean executableFor(GraphExec.GraphExecNode n) {
         return n instanceof CdMbInitBubbleNode;
@@ -103,6 +38,6 @@ public class CdMbInitBubbleCtx implements MbInitBubbleCtx {
 
     @Override
     public List<Class<? extends InitBubble>> dependsOn() {
-        return List.of(DockerInitBubbleCtx.class, RepoOpBubble.class);
+        return List.of(DockerInitBubbleCtx.class);
     }
 }

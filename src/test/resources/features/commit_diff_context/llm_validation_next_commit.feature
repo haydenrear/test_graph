@@ -10,7 +10,9 @@ Feature: Perform next commit
     When the repo is added to the database by calling commit diff context
     And a request for the next commit is sent to the server with the next commit information provided previously
     And the AI generated response is compared to the actual commit by calling the validation endpoint "<validationEndpoint>"
-    Then the validation score is saved to file for review
+    Then a branch with name "<branchName>" will be added to the database
+    Then the branches embeddings will be added to the database
+    Then the validation data is saved for review
     Examples:
       | repoUrl                                | postgresPath               | branchName | composePath                                                                        | validationEndpoint                      |
       | https://github.com/kiegroup/drools.git | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |

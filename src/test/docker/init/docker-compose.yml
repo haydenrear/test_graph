@@ -1,0 +1,9 @@
+services:
+  commit-diff-postgres:
+    image: localhost:5001/postgres-pgvector
+    container_name: commit-diff-postgres-init
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5411:5432"

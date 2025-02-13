@@ -28,7 +28,7 @@ public class CommitDiffInitBubble implements InitBubble {
 
     @Override
     public List<Class<? extends InitBubble>> dependsOn() {
-        return List.of(DockerInitBubbleCtx.class, RepoOpBubble.class, CdMbInitBubbleCtx.class);
+        return List.of(DockerInitBubbleCtx.class);
     }
 
     @Override

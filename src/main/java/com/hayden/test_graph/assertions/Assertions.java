@@ -33,6 +33,18 @@ public class Assertions {
         assertSoftly(v, fail, "Assertion with failure message\n%s\nhas passed.".formatted(fail));
     }
 
+    public void assertStronglyPattern(boolean v, String fail, Object... args){
+        if (!v) {
+            assertStrongly(v, fail.formatted(args));
+        }
+    }
+
+    public void assertSoftlyPattern(boolean v, String fail, Object... args){
+        if (!v) {
+            assertSoftly(v, fail.formatted(args));
+        }
+    }
+
     public void assertSoftly(boolean v, String fail, String success){
         softAssertions.assertThat(v)
                 .withFailMessage(fail)

@@ -29,7 +29,7 @@ public interface FromBubbleEdgeT<T extends TestGraphContext<H>, H extends HyperG
                     .toList();
 
             if (i.size() != 1)  {
-                throw new RuntimeException("Failed to find commit diff init bubble: %s.".formatted(i));
+                throw new RuntimeException("Failed to find commit diff init bubble: %s, %s.".formatted(i, this.getClass().getName()));
             }
 
             i.stream().findAny()

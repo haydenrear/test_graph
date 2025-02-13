@@ -40,21 +40,12 @@ public interface ModelServerCdMbInit {
 
         stub = stub.addResponse(res);
 
-        Predicate predicate = new Predicate(PredicateType.EQUALS);
+        Predicate header = new Predicate(PredicateType.EQUALS);
 
-        predicate = predicate.withPath(modelServerRequestData.urlPath())
+        header = header.withPath(modelServerRequestData.urlPath())
                 .addHeader(getHeaderToMatch(response), "true");
 
-
-        stub = stub.addPredicates(Lists.newArrayList(predicate));
-
-        Predicate json = new Predicate(PredicateType.EQUALS);
-
-        json = json
-                .withBody(response.responseType().name())
-                .withJsonPath("$.requestType");
-
-        stub = stub.addPredicates(Lists.newArrayList(predicate, json));
+        stub = stub.addPredicates(Lists.newArrayList(header));
 
         Imposter imposter = new Imposter();
         imposter = imposter.onPort(response.requestData().port())

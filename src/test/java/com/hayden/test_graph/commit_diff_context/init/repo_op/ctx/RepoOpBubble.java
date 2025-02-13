@@ -1,6 +1,7 @@
 package com.hayden.test_graph.commit_diff_context.init.repo_op.ctx;
 
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
+import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInitBubble;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.RepoOpInitBubbleNode;
 import com.hayden.test_graph.ctx.ContextValue;
@@ -37,7 +38,7 @@ public final class RepoOpBubble implements InitBubble {
 
     @Override
     public List<Class<? extends TestGraphContext<InitBubble>>> dependsOn() {
-        return List.of(DockerInitBubbleCtx.class);
+        return List.of(DockerInitBubbleCtx.class, CommitDiffInitBubble.class, CdMbInitBubbleCtx.class);
     }
 
     public ContextValue<RepoOpInit.RepositoryData> repositoryData() {

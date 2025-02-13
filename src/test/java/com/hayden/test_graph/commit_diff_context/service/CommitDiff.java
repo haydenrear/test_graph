@@ -1,14 +1,13 @@
 package com.hayden.test_graph.commit_diff_context.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hayden.commitdiffmodel.codegen.client.BranchGraphQLQuery;
-import com.hayden.commitdiffmodel.codegen.client.DoCommitGraphQLQuery;
-import com.hayden.commitdiffmodel.codegen.client.DoGitGraphQLQuery;
+import com.hayden.commitdiffmodel.codegen.client.*;
 import com.hayden.commitdiffmodel.codegen.types.*;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.result.Result;
+import com.netflix.graphql.dgs.client.codegen.GraphQLQueryRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +47,9 @@ public class CommitDiff {
                                                             .gitBranch(GitBranch.newBuilder().branch(branchName).build())
                                                             .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
                                                             .build())
-                                                    .build())
+                                                    .build()
+                                    )
+                                    .projection(new BranchProjectionRoot<>().branch())
                                     .executeSync(),
                             graphQlQueryArgs));
             case CallGraphQlQueryArgs.AddCodeBranchArgs(String branchName, String gitRepoPath, String sessionKey) ->
@@ -67,7 +68,8 @@ public class CommitDiff {
                                 DoCommitGraphQLQuery.newRequest()
                                         .gitRepoPromptingRequest(buildGitRepoPromptingRequest(commitRequestArgs))
                                         .queryName(commitRequestArgs.key())
-                                        .build());
+                                        .build())
+                                .projection(new DoCommitProjectionRoot<>().diffs());
 
                         return toRes(gqlResult.executeSync(), graphQlQueryArgs);
                     });
@@ -117,11 +119,14 @@ public class CommitDiff {
                                                                                                DgsGraphQlClient client,
                                                                                                GitRepositoryRequest sendingCodeBranch) {
         log.info("Sending code branch: {}", sendingCodeBranch);
-        var gqlResult = client.request(
-                DoGitGraphQLQuery.newRequest()
-                        .repoRequest(sendingCodeBranch)
-                        .queryName(graphQlQueryArgs.key())
-                        .build());
+        DoGitGraphQLQuery built = DoGitGraphQLQuery.newRequest()
+                .repoRequest(sendingCodeBranch)
+                .queryName(graphQlQueryArgs.key())
+                .build();
+        var gqlResult = client.request(built)
+                .projection(new DoGitProjectionRoot<>().branch());
+
+
         var res =  toRes(gqlResult.executeSync(), graphQlQueryArgs);
         return res;
     }

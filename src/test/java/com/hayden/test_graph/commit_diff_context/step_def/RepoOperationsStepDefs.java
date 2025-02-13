@@ -12,14 +12,20 @@ import com.hayden.test_graph.steps.AssertStep;
 import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.result.Result;
+import com.hayden.utilitymodule.result.error.SingleError;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Optional;
 
 public class RepoOperationsStepDefs implements ResettableStep {
@@ -43,7 +49,10 @@ public class RepoOperationsStepDefs implements ResettableStep {
     Assertions assertions;
 
     @Autowired
-    private CodeBranchRepository codeBranchRepository;
+    CodeBranchRepository codeBranchRepository;
+    @Autowired
+    PathMatchingResourcePatternResolver resolver;
+
 
     @And("there is a repository at the url {string}")
     public void do_set_repo_given(String repoUrl) {
@@ -61,12 +70,19 @@ public class RepoOperationsStepDefs implements ResettableStep {
      * @param port
      */
     @And("There exists a response type of {string} in the file location {string} for model server endpoint {string} on port {string}")
-    @RegisterInitStep(CdMbInitCtx.class)
+    @RegisterInitStep(RepoOpInit.class)
     public void addResponseType(String responseType, String fileLocation, String uri, String port) {
-        ctx.addAiServerResponse(new CdMbInitCtx.AiServerResponse.FileSourceResponse(
-                Paths.get(fileLocation),
-                CdMbInitCtx.AiServerResponse.AiServerResponseType.valueOf(responseType),
-                new CdMbInitCtx.ModelServerRequestData(uri, 200, Integer.parseInt(port))));
+        var responseFile = resolver.getResource(fileLocation);
+        assertions.assertStrongly(responseFile.exists(), "Response did exist.");
+        try {
+            ctx.addAiServerResponse(new CdMbInitCtx.AiServerResponse.FileSourceResponse(
+                    responseFile.getFile().toPath(),
+                    CdMbInitCtx.AiServerResponse.AiServerResponseType.valueOf(responseType),
+                    new CdMbInitCtx.ModelServerRequestData(uri, 200, Integer.parseInt(port))));
+        } catch (IOException e) {
+            assertions.assertStronglyPattern(false, "Failed to add response for %s: %s\n%s.",
+                    responseType, e.getMessage(), SingleError.parseStackTraceToString(e));
+        }
     }
 
     @And("the add repo GraphQl query {string}")
@@ -94,7 +110,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
     }
 
     @When("the repo is added to the database by calling commit diff context")
-    @RegisterInitStep(CdMbInitCtx.class)
+    @RegisterInitStep(RepoOpInit.class)
     public void add_repo_to_database() {
     }
 
@@ -114,17 +130,28 @@ public class RepoOperationsStepDefs implements ResettableStep {
 
     @Then("the branch will be added to the database")
     public void theBranchWillBeAddedToTheDatabase() {
+        assertions.assertSoftly(commitDiffInit.repoDataOrNull() != null, "Repo data was null.");
         var found = codeBranchExists();
-        found.ifPresent(cb -> {
-            // verify code branch
-        });
+        assertions.assertSoftly(found.isPresent(), "Code Branch for %s does not exist.".formatted(commitDiffInit.repoDataOrNull()));
     }
 
     @Then("the branches embeddings will be added to the database")
+    @AssertStep(RepoOpAssertCtx.class)
     public void theBranchesEmbeddingsWillBeAddedToTheDatabase() {
-        var found = codeBranchExists();
+        var repoData = commitDiffInit.repoDataOrThrow();
+        var found = codeBranchRepository.withCommitsWithDiffs(repoData.toRepositoryArgs());
+
+        assertions.assertSoftly(found.isPresent(), "Code branch did not exist.");
         found.ifPresent(cb -> {
-            // verify code branch embeddings
+            var commitDiffs = cb.parseCommitDiffs();
+            assertions.assertSoftly(commitDiffs.isOk(), "Commit diffs could not be retrieved from %s."
+                    .formatted(cb.getBranchName()));
+
+            commitDiffs.one().ifPresent(cd -> {
+                for (var cdFound : cd)
+                    assertions.assertSoftly(!Arrays.equals(cdFound.getEmbedding(), com.hayden.commitdiffmodel.entity.CommitDiff.INITIALIZED),
+                            "Commit diff %s was not initialized.".formatted(cdFound.getId()));
+            });
         });
     }
 
