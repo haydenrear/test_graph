@@ -20,10 +20,11 @@ Feature: Perform next commit
     When the repo is added to the database by calling commit diff context
     And a request for the next commit is sent to the server with the next commit information provided previously
     Then a branch with name "<branchName>" will be added to the database
+
     Then the response from retrieving next commit can be applied to the repository as a git diff
     Examples:
-      | repoUrl        | branchName | composePath                                                                                     | addUrlQueryPath                                                               |
-      | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server | /Users/hayde/IdeaProjects/drools/test_graph/src/test/resource/addRepo.graphql |
+      | repoUrl        | branchName | composePath                                                                                     |
+      | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
 
 
   @commit_diff_context_compose
@@ -46,6 +47,7 @@ Feature: Perform next commit
     When the repo is added to the database by calling commit diff context
     And a request for the next commit is sent to the server with the next commit information provided previously
     Then a branch with name "<branchName>" will be added to the database
+    Then the branches embeddings will be added to the database
     Then the response from retrieving next commit can be applied to the repository as a git diff
     Examples:
       | repoUrl        | branchName | composePath                                                                                     |
@@ -71,6 +73,7 @@ Feature: Perform next commit
     When the repo is added to the database by calling commit diff context
     And a request for the next commit is sent to the server with the next commit information provided previously
     Then a branch with name "<branchName>" will be added to the database
+    Then the branches embeddings will be added to the database
     Then the response from retrieving next commit can be applied to the repository as a git diff
     Examples:
       | repoUrl        | branchName | composePath                                                                                     |
