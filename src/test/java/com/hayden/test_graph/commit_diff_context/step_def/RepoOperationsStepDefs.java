@@ -4,7 +4,6 @@ import com.hayden.commitdiffmodel.entity.CodeBranch;
 import com.hayden.commitdiffmodel.repo.CodeBranchRepository;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
-import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
@@ -56,8 +55,9 @@ public class RepoOperationsStepDefs implements ResettableStep {
 
     @And("there is a repository at the url {string}")
     public void do_set_repo_given(String repoUrl) {
-        commitDiffInit.repoData().swap(
+        commitDiffInit.setRepoData(
                 RepoOpInit.RepositoryData.builder()
+                        .clonedUri(Paths.get(repoUrl))
                         .url(repoUrl)
                         .build());
     }
@@ -72,13 +72,24 @@ public class RepoOperationsStepDefs implements ResettableStep {
     @And("There exists a response type of {string} in the file location {string} for model server endpoint {string} on port {string}")
     @RegisterInitStep(RepoOpInit.class)
     public void addResponseType(String responseType, String fileLocation, String uri, String port) {
+        registerResponse(responseType, fileLocation, uri, port, "-1");
+    }
+
+    @And("There exists a response type of {string} in the file location {string} for model server endpoint {string} on port {string} for the {string} response")
+    @RegisterInitStep(RepoOpInit.class)
+    public void addResponseTypeWithCount(String responseType, String fileLocation, String uri, String port, String count) {
+        registerResponse(responseType, fileLocation, uri, port, count);
+    }
+
+    private void registerResponse(String responseType, String fileLocation, String uri, String port, String count) {
         var responseFile = resolver.getResource(fileLocation);
         assertions.assertStrongly(responseFile.exists(), "Response did exist.");
         try {
             ctx.addAiServerResponse(new CdMbInitCtx.AiServerResponse.FileSourceResponse(
                     responseFile.getFile().toPath(),
                     CdMbInitCtx.AiServerResponse.AiServerResponseType.valueOf(responseType),
-                    new CdMbInitCtx.ModelServerRequestData(uri, 200, Integer.parseInt(port))));
+                    new CdMbInitCtx.ModelServerRequestData(uri, 200, Integer.parseInt(port))),
+                    Integer.parseInt(count));
         } catch (IOException e) {
             assertions.assertStronglyPattern(false, "Failed to add response for %s: %s\n%s.",
                     responseType, e.getMessage(), SingleError.parseStackTraceToString(e));
@@ -86,7 +97,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
     }
 
     @And("the add repo GraphQl query {string}")
-    @RegisterInitStep(CommitDiffInit.class)
+    @RegisterInitStep(RepoOpInit.class)
     public void do_set_graph_ql_add_repo(String repoUrl) {
         var repoFile = new File(repoUrl);
         if (!repoFile.exists())
@@ -99,11 +110,8 @@ public class RepoOperationsStepDefs implements ResettableStep {
     @And("a branch should be added {string}")
     public void do_set_branch_to_add(String arg0) {
         var r = commitDiffInit.repoDataOrThrow();
-        RepoOpInit.RepositoryData repoData = RepoOpInit.RepositoryData.builder()
-                .url(r.url())
-                .branchName(arg0)
-                .build();
-        commitDiffInit.repoData().swap(repoData);
+        RepoOpInit.RepositoryData repoData = r.withBranch(arg0);
+        commitDiffInit.setRepoData(repoData);
         commitDiffInit.getRepoInitializations()
                 .initItems()
                 .add(new RepoOpInit.RepoInitItem.AddCodeBranch(repoData));

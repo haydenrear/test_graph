@@ -25,4 +25,8 @@ public class DockerStepDef implements ResettableStep {
         dockerInitCtx.getGradleTasks().add(new DockerInitCtx.GradleTask(command, composePath));
     }
 
+    @And("the docker container {string} exists")
+    public void theDockerContainerExists(String containerToAssert) {
+        dockerInitCtx.getContainers().add(new DockerInitCtx.AssertContainer(containerToAssert));
+    }
 }

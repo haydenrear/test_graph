@@ -33,7 +33,12 @@ public class DockerInitCtx implements InitCtx {
     @Getter
     private final List<GradleTask> gradleTasks = new ArrayList<>();
 
+    @Getter
+    private final List<AssertContainer> containers = new ArrayList<>();
+
     public record GradleTask(String directory, String gradleCommand) {}
+
+    public record AssertContainer(String imageName) {}
 
     private DockerInitBubbleCtx dockerInitBubbleCtx;
 

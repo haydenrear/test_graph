@@ -7,6 +7,7 @@ plugins {
     id("com.hayden.docker-compose")
     id("com.hayden.mb")
     id("com.hayden.cucumber")
+    id("com.hayden.ai")
     id("com.hayden.jpa-persistence")
     id("org.hibernate.orm") version "6.4.4.Final"
 }
@@ -20,7 +21,6 @@ dependencies {
     implementation(project(":commit-diff-model"))
     implementation(project(":jpa-persistence"))
     implementation(project(":proto"))
-    implementation("com.github.docker-java:docker-java-transport-zerodep:3.4.1")
 }
 
 tasks.compileJava {

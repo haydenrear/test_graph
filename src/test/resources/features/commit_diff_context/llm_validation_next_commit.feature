@@ -1,6 +1,7 @@
-@llm_validation
+@commit_diff_context_llm_validation @all
 Feature: Perform next commit
 
+  @all
   Scenario Outline:
     Given a postgres database to be loaded from "<postgresPath>" for docker-compose "<composePath>"
     And there is a repository at the url "<repoUrl>"

@@ -70,6 +70,7 @@ public class StartDockerNode implements DockerInitNode {
 //                .ifPresent((DockerClient dc) -> dockerInitConfigProps.getContainers()
 //                        .forEach(container -> awaitLogMessage(container.log(), dc, container.containerName())));
 //
+
         c.getStarted().swap(true);
         return c;
     }

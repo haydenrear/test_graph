@@ -4,7 +4,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hayden.commitdiffmodel.codegen.types.*;
 import com.hayden.commitdiffmodel.convert.CommitDiffContextMapper;
+import com.hayden.commitdiffmodel.model.Git;
 import com.hayden.commitdiffmodel.repo_actions.GitHandlerActions;
+import com.hayden.proto.prototyped.datasources.ai.modelserver.client.ModelServerCodingAiClient;
+import com.hayden.proto.prototyped.datasources.ai.modelserver.request.ModelContextProtocolContextRequest;
+import com.hayden.proto.prototyped.datasources.ai.modelserver.response.ModelServerResponse;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit.NextCommitAssert;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
@@ -18,16 +22,29 @@ import com.hayden.test_graph.steps.ExecInitStep;
 import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.result.agg.AggregateParamError;
+import com.hayden.utilitymodule.result.error.SingleError;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.util.Lists;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.ai.mcp.client.transport.ServerParameters;
+import org.springframework.ai.mcp.spec.McpSchema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 public class NextCommitStepDefs implements ResettableStep {
@@ -65,33 +82,11 @@ public class NextCommitStepDefs implements ResettableStep {
 
     @Autowired
     CommitDiffContextMapper commitDiffContextMapper;
-
-
-    @And("a request for the next commit is provided for the given url and branch name provided")
-    @RegisterInitStep(value = {CommitDiffInit.class})
-    public void nextCommit() {
-        var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
-        var repoRequest = repoOpInit.getCommitDiffContextValue().repositoryRequest();
-        repoOpInit.repoData().res()
-                .optional()
-                .ifPresentOrElse(red -> {
-                    gitRepoPromptingRequest.repositoryRequest().getGitRepo().setPath(red.url());
-                    gitRepoPromptingRequest.addRepo().setBranchName(red.branchName());
-                    repoRequest.getGitRepo().setPath(red.url());
-                    repoRequest.getGitBranch().setBranch(red.branchName());
-                }, () -> {
-                    if (gitRepoPromptingRequest.repositoryRequest().getGitRepo() == null) {
-                        assertions.assertStrongly(false, "No branch information provided.");
-                    }
-                    if (repoRequest.getGitRepo() == null) {
-                        assertions.assertStrongly(false, "No branch information provided.");
-                    }
-                });
-
-    }
+    @Autowired
+    PathMatchingResourcePatternResolver resourcePatternResolver;
 
     @And("a request for the next commit is provided with the commit message being provided from {string}")
-    @RegisterInitStep(value = {CommitDiffInit.class})
+    @RegisterInitStep(value = {RepoOpInit.class})
     public void setCommitMessageForRequest(String commitMessageJson) {
         try {
             var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
@@ -115,10 +110,10 @@ public class NextCommitStepDefs implements ResettableStep {
     }
 
     @And("a request for the next commit is provided with the staged information being provided from {string}")
-    @RegisterInitStep(value = {CommitDiffInit.class})
+    @RegisterInitStep(value = {RepoOpInit.class})
     public void setStagedInformationFromJson(String commitMessageJson) {
         try {
-            var staged = mapper.readValue(new File(commitMessageJson), Staged.class);
+            var staged = mapper.readValue(getFile(commitMessageJson), Staged.class);
             var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
             gitRepoPromptingRequest.addRepo()
                     .setStaged(staged);
@@ -128,10 +123,10 @@ public class NextCommitStepDefs implements ResettableStep {
     }
 
     @And("a request for the next commit is provided with the contextData being provided from {string}")
-    @RegisterInitStep(value = {CommitDiffInit.class})
+    @RegisterInitStep(value = {RepoOpInit.class})
     public void setContextData(String commitMessageJson) {
         try {
-            var staged = mapper.readValue(new File(commitMessageJson), new TypeReference<List<ContextData>>() {});
+            var staged = mapper.readValue(getFile(commitMessageJson), new TypeReference<List<ContextData>>() {});
             var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
             gitRepoPromptingRequest
                     .addRepo()
@@ -143,21 +138,21 @@ public class NextCommitStepDefs implements ResettableStep {
     }
 
     @And("a request for the next commit is provided with the previous requests being provided from {string}")
-    @RegisterInitStep(value = {CommitDiffInit.class})
+    @RegisterInitStep(value = {RepoOpInit.class})
     public void setPreviousRequests(String commitMessageJson) {
         try {
-            var staged = mapper.readValue(new File(commitMessageJson), PrevCommit.class);
+            var staged = mapper.readValue(getFile(commitMessageJson), PrevCommit.class);
             var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
             gitRepoPromptingRequest
                     .addRepo()
                     .setPrev(staged);
         } catch (IOException e) {
-            assertions.assertStrongly(false, "Could not parse commit message: " + commitMessageJson);
+            assertions.assertStrongly(false, "Could not parse commit message: " + commitMessageJson + "\n" + SingleError.parseStackTraceToString(e));
         }
     }
 
     @And("a request for the next commit is sent to the server with the next commit information provided previously")
-    @ExecInitStep(value = CommitDiffInit.class)
+    @ExecInitStep(value = RepoOpInit.class)
     @AssertStep(value = NextCommitAssert.class, doFnFirst = true)
     public void nextCommitIsSentToTheServerWithTheNextCommitInformationProvidedPrevious() {
         var nextCommitRetrieved = commitDiff.callGraphQlQuery(repoOpInit.toCommitRequestArgs());
@@ -177,11 +172,25 @@ public class NextCommitStepDefs implements ResettableStep {
                 .ifPresent(ncm -> {
                     // apply commit to the repository for observation
                     // or for then pulling that out as staged information for validation
+
+                    var req = repoOpInit.toCommitRequestArgs();
+                    assertThat(req.commitMessage()).isEqualTo(repoOpInit.getNextCommitMessageExpected());
+
                     var applied = new GitHandlerActions(Paths.get(repoData.url()), commitDiffContextMapper)
                             .applyCommit(ncm);
 
-                    assertions.assertSoftly(applied.isOk(), "Failed to apply git commit.", "Applied successfully.");
+                    assertions.assertSoftly(applied.isOk(), "Failed to apply git commit: %s.".formatted(applied.errorMessage()));
                 });
     }
 
+    private File getFile(String commitMessageJson) {
+        var f = resourcePatternResolver.getResource(commitMessageJson);
+        assertions.assertSoftly(f.exists(), "Could not find file: " + commitMessageJson);
+        try {
+            return f.getFile();
+        } catch (IOException e) {
+            assertions.assertStrongly(false, "Could not parse commit message: " + commitMessageJson + "\n" + SingleError.parseStackTraceToString(e));
+            return null;
+        }
+    }
 }

@@ -42,7 +42,7 @@ public class BlameNodeStepDefs implements ResettableStep {
     }
 
     @Then("the initial embedding is added for commit diff context blame node")
-    @RegisterInitStep(CommitDiffInit.class) // TODO: can probably be replaced by first Then - annotating all Then then
+    @RegisterInitStep(RepoOpInit.class) // TODO: can probably be replaced by first Then - annotating all Then then
     public void initial_commit_diff_context_blame_node() {
     }
 

@@ -1,1 +1,12 @@
-{}
+{
+  "type": "code",
+  "codeResult": {
+    "data": [
+      {
+        "type": "file_create",
+        "newPath": "hello11111.txt",
+        "contentChange": "hello"
+      }
+    ]
+  }
+}

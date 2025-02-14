@@ -118,7 +118,7 @@ public class LlmValidationNextCommit implements ResettableStep {
 
         var repoData = repoOpInit.repoDataOrThrow();
 
-        repoOpInit.repoData().swap(repoData.withClonedUri(temp.toPath()));
+        repoOpInit.setRepoData(repoData.withClonedUri(temp.toPath()));
 
         try (var g = Git.cloneRepository().setBranch(repoData.branchName())
                 .setURI(repoData.url())

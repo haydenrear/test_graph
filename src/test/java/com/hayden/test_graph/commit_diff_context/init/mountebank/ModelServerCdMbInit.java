@@ -25,18 +25,22 @@ public interface ModelServerCdMbInit {
                 .flatMap(a -> fromRes(a).stream());
     }
 
-    default Optional<Imposter> fromRes(CdMbInitCtx.AiServerResponse response) {
+    default Optional<Imposter> fromRes(CdMbInitCtx.AiServerResponseDescriptor response) {
 
         Stub stub = new Stub();
 
-
         CdMbInitCtx.ModelServerRequestData modelServerRequestData = response.requestData();
+
         Is res = new Is();
+
         res = res.withStatusCode(modelServerRequestData.httpStatusCode());
         res = response.getResponseAsString()
                 .map(res::withBody)
                 .or(() -> {log.info("Response string was not found for mountebank."); return Optional.empty();})
                 .orElse(null);
+
+        if (response.count() != -1)
+            res = res.withCount(response.count());
 
         stub = stub.addResponse(res);
 
@@ -54,12 +58,13 @@ public interface ModelServerCdMbInit {
         return Optional.of(imposter);
     }
 
-    static String getHeaderToMatch(CdMbInitCtx.AiServerResponse aiServerResponse) {
+    static String getHeaderToMatch(CdMbInitCtx.AiServerResponseDescriptor aiServerResponse) {
         return switch(aiServerResponse.responseType()) {
             case EMBEDDING -> "EMBEDDING";
             case CODEGEN -> "CODEGEN";
             case TOOLSET -> "TOOLSET";
             case INITIAL_CODE -> "INITIAL_CODE";
+            case VALIDATION -> "VALIDATION";
         };
     }
 }

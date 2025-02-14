@@ -28,12 +28,17 @@ public interface MbInitNode<T extends MbInitCtx> extends InitNode<T> {
     default void createGetImposter(T c, Imposter imposterCreated) {
         try {
             Imposter imposter = c.client().getImposter(imposterCreated.getPort());
-            Optional.ofNullable(imposter)
-                    .ifPresentOrElse(i -> {
-                                imposterCreated.getStubs().forEach(i::addStub);
-                                createDeleteImposter(c, imposterCreated);
-                            },
-                            () -> c.client().createImposter(imposterCreated));
+            if (imposter.getStubs().isEmpty())
+                c.client().createImposter(imposterCreated);
+            else {
+                imposterCreated.getStubs()
+                        .stream()
+                        .peek(st -> {
+                            log.info(st.toString());
+                        })
+                        .forEach(imposter::addStub);
+                createDeleteImposter(c, imposter);
+            }
         } catch (ParseException e) {
             log.error("Error creating imposter, attempting to add new imposter.");
             createDeleteImposter(c, imposterCreated);

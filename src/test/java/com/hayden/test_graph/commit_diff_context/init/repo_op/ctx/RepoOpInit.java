@@ -3,6 +3,7 @@ package com.hayden.test_graph.commit_diff_context.init.repo_op.ctx;
 import com.hayden.commitdiffmodel.codegen.types.*;
 import com.hayden.commitdiffmodel.comittdiff.ParseDiff;
 import com.hayden.commitdiffmodel.git.RepositoryHolder;
+import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.RepoOpInitNode;
 import com.hayden.test_graph.commit_diff_context.service.CallGraphQlQueryArgs;
@@ -26,6 +27,13 @@ import java.util.*;
 @ResettableThread
 @RequiredArgsConstructor
 public final class RepoOpInit implements InitCtx {
+
+    private Assertions assertions;
+
+    @Autowired
+    public void setAssertions(Assertions assertions) {
+        this.assertions = assertions;
+    }
 
     public sealed interface RepoInitItem {
 
@@ -55,8 +63,22 @@ public final class RepoOpInit implements InitCtx {
     public record RepositoryData(String url,
                                  String branchName,
                                  Path clonedUri) {
+
         public RepositoryData(String url, String branchName) {
             this(url, branchName, null);
+        }
+
+        public GitRepo toGitRepo() {
+            return GitRepo.newBuilder()
+                    .path(clonedUri.toAbsolutePath().toString()).build();
+        }
+
+        public GitBranch toGitBranch() {
+            return GitBranch.newBuilder().branch(branchName).build();
+        }
+
+        public RepositoryData withBranch(String branchName) {
+            return new RepositoryData(url, branchName, clonedUri);
         }
 
         public RepositoryData unzipped(Path unzippedTo) {
@@ -145,6 +167,13 @@ public final class RepoOpInit implements InitCtx {
     public RepoOpInit() {
         this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty(),
                 ContextValue.empty(), ContextValue.empty(), new RepoInitializations(new ArrayList<>()));
+        this.commitDiffContextValue = CommitDiffContextGraphQlModel.builder()
+                .sessionKey(SessionKey.newBuilder().build())
+                .addRepo(GitRepoPromptingRequest.newBuilder()
+                        .gitRepo(GitRepo.newBuilder().build())
+                        .build())
+                .repositoryRequest(GitRepositoryRequest.newBuilder().build())
+                .build();
     }
 
     @Autowired
@@ -152,8 +181,24 @@ public final class RepoOpInit implements InitCtx {
         this.bubbleUnderlying.swap(bubble);
     }
 
+    public void setRepoData(RepositoryData repositoryData) {
+        this.bubbleUnderlying.res().one().get().repositoryData().swap(repositoryData);
+        this.commitDiffContextValue.addRepo.setGitRepo(repositoryData.toGitRepo());
+        this.commitDiffContextValue.addRepo.setBranchName(repositoryData.branchName);
+        this.commitDiffContextValue.repositoryRequest.setGitRepo(repositoryData.toGitRepo());
+        this.commitDiffContextValue.repositoryRequest.setGitBranch(repositoryData.toGitBranch());
+    }
+
     public ContextValue<RepositoryData> repoData() {
         return bubbleUnderlying.res().one().get().repositoryData();
+    }
+
+    public String getNextCommitMessageExpected() {
+        return this.userCodeData.optional().map(UserCodeData::commitMessage).orElseGet(() -> {
+            String error = "Could not find user commit message";
+            assertions.assertSoftly(false, error);
+            return error;
+        });
     }
 
     public String retrieveSessionKey() {
@@ -181,8 +226,12 @@ public final class RepoOpInit implements InitCtx {
         RepositoryData repoArgs = repoDataOrThrow();
 
         return CallGraphQlQueryArgs.CommitRequestArgs.builder()
-                .commitDiffContextValue(CommitDiffContextGraphQlModel.builder().build())
-                .commitMessage(userCodeDataOrThrow().commitMessage)
+                .commitDiffContextValue(this.commitDiffContextValue)
+                .commitMessage(
+                        userCodeData.optional()
+                                .or(() -> Optional.of(UserCodeData.builder().build()))
+                                .map(UserCodeData::commitMessage)
+                                .orElse(null))
                 .gitRepoPath(repoArgs.url)
                 .branchName(repoArgs.branchName)
                 .build();

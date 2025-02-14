@@ -7,6 +7,7 @@ import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.io.FileUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import org.mbtest.javabank.Client;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +27,16 @@ public class CdMbInitCtx implements MbInitCtx {
 
     public record ModelServerRequestData(String urlPath, int httpStatusCode, int port) {}
 
+    public record AiServerResponseDescriptor(int count, @Delegate AiServerResponse response) {
+        public AiServerResponseDescriptor(AiServerResponse response) {
+            this(1, response);
+        }
+    }
 
     public interface AiServerResponse {
 
         enum AiServerResponseType {
-            EMBEDDING, CODEGEN, TOOLSET, INITIAL_CODE
+            EMBEDDING, CODEGEN, TOOLSET, INITIAL_CODE, VALIDATION
         }
 
         record FileSourceResponse(Path filePath, AiServerResponseType responseType,
@@ -60,10 +66,11 @@ public class CdMbInitCtx implements MbInitCtx {
         AiServerResponseType responseType();
 
         ModelServerRequestData requestData();
+
     }
 
 
-    public record AiServerResponses(List<AiServerResponse> responses) {}
+    public record AiServerResponses(List<AiServerResponseDescriptor> responses) {}
 
     Client client;
 
@@ -89,6 +96,10 @@ public class CdMbInitCtx implements MbInitCtx {
     }
 
     public void addAiServerResponse(AiServerResponse serverResponse) {
+        addAiServerResponse(serverResponse, 1);
+    }
+
+    public void addAiServerResponse(AiServerResponse serverResponse, int count) {
         AiServerResponses t;
         if (serverResponses.isEmpty()) {
             t = new AiServerResponses(new ArrayList<>());
@@ -97,7 +108,7 @@ public class CdMbInitCtx implements MbInitCtx {
             t = serverResponses.res().get();
         }
 
-        t.responses.add(serverResponse);
+        t.responses.add(new AiServerResponseDescriptor(count, serverResponse));
     }
 
     @Autowired

@@ -1,0 +1,1 @@
+{"toolsetRequest":{"jsonrpc":"2.0","method":"tools/call","id":"07c80e49-99f4-4676-90ce-a0a42e253fe8","params":{"arguments":{"sql":"SELECT * FROM commit_diff"},"name":"query"}},"serverParams":{"command":"docker","args":["run","-i","--rm","mcp/postgres","postgresql://postgres:postgres@host.docker.internal:5450/postgres"],"env":{}}}

@@ -64,18 +64,54 @@ public class CommitDiff {
                             buildRepoReq(branchName, gitRepoPath, sessionKey, GitOperation.SET_EMBEDDINGS)));
             case CallGraphQlQueryArgs.CommitRequestArgs commitRequestArgs ->
                     this.doWithGraphQl(client -> {
-                        var gqlResult = client.request(
-                                DoCommitGraphQLQuery.newRequest()
-                                        .gitRepoPromptingRequest(buildGitRepoPromptingRequest(commitRequestArgs))
-                                        .queryName(commitRequestArgs.key())
-                                        .build())
-                                .projection(new DoCommitProjectionRoot<>().diffs());
-
+                        var gqlResult = genReq(commitRequestArgs, client);
                         return toRes(gqlResult.executeSync(), graphQlQueryArgs);
                     });
             default ->
                     throw new IllegalStateException("Unexpected value: " + graphQlQueryArgs);
         };
+    }
+
+    private DgsGraphQlClient.@NotNull RequestSpec genReq(CallGraphQlQueryArgs.CommitRequestArgs commitRequestArgs, DgsGraphQlClient client) {
+        var rs =  client.request(
+                        DoCommitGraphQLQuery.newRequest()
+                                .gitRepoPromptingRequest(buildGitRepoPromptingRequest(commitRequestArgs))
+                                .queryName(commitRequestArgs.key())
+                                .build()
+                )
+                .projection(
+                        new DoCommitProjectionRoot<>()
+                                .diffs()
+                                    .diffType().parent().newPath().oldPath().newFileMode().oldFileMode()
+                                    .content()
+                                        .content()
+                                        .hunks()
+                                            .commitDiffEdits()
+                                                .editLocations()
+                                                    .locationA()
+                                                        .begin()
+                                                        .end()
+                                                    .parent()
+                                                    .locationB()
+                                                        .begin()
+                                                        .end()
+                                                    .parent()
+                                                .parent()
+                                                .contentChange()
+                                                .diffType()
+                                            .parent()
+                                         .parent()
+                                        .parent()
+                                    .parent()
+                                .parent()
+                                .commitMessage().value()
+                                .parent()
+                                .sessionKey().key()
+                                .parent()
+                                .errors().message()
+                                .parent());
+
+        return rs;
     }
 
     private GitRepositoryRequest buildRepoReq(String branchName, String gitRepoPath,
