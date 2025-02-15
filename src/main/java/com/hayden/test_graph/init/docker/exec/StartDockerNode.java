@@ -41,8 +41,30 @@ public class StartDockerNode implements DockerInitNode {
 
     private final Assertions assertions;
 
-    public static void initializeDockerCompose(DockerInitCtx workingDirectory,
-                                               DockerInitConfigProps configProps) {
+    @Override
+    public DockerInitCtx exec(DockerInitCtx c, MetaCtx h) {
+//        c.composePath()
+//                .optional()
+//                .ifPresentOrElse(
+//                        p -> initializeDockerCompose(c, dockerInitConfigProps),
+//                        () -> log.info("Skipping initialization of docker compose as file was not set."));
+//        Result.tryFrom(() -> {
+//                    return DockerClientBuilder.getInstance()
+//                            .withDockerHttpClient(new ZerodepDockerHttpClient.Builder().dockerHost(URI.create(dockerInitConfigProps.getDockerHostUri()))
+//                                    .responseTimeout(Duration.ofSeconds(dockerInitConfigProps.getDockerResponseTimeout())).build())
+//                            .build();
+//                })
+//                .exceptEmpty(exc -> assertions.assertSoftly(false, "Failed to retrieve docker client for waiting for container to start: %s", exc.getMessage()))
+//                .ifPresent((DockerClient dc) -> dockerInitConfigProps.getContainers()
+//                        .forEach(container -> awaitLogMessage(container.log(), dc, container.containerName())));
+
+
+        c.getStarted().swap(true);
+        return c;
+    }
+
+    static void initializeDockerCompose(DockerInitCtx workingDirectory,
+                                        DockerInitConfigProps configProps) {
         File workDir = workingDirectory.composePath().res().one().get();
         ExposeCompose exposeCompose = new ExposeCompose(
                 workDir,
@@ -53,67 +75,36 @@ public class StartDockerNode implements DockerInitNode {
         exposeCompose.up(workingDirectory.logLevel().res().orElseRes(LogLevel.INFO));
     }
 
-    @Override
-    public DockerInitCtx exec(DockerInitCtx c, MetaCtx h) {
-//        c.composePath()
-//                .optional()
-//                .ifPresentOrElse(
-//                        p -> initializeDockerCompose(c, dockerInitConfigProps),
-//                        () -> log.info("Skipping initialization of docker compose as file was not set."));
-//        Result.tryFrom(() -> {
-//                    return DockerClientBuilder.getInstance()
-//                            .withDockerHttpClient(new ZerodepDockerHttpClient.Builder().dockerHost(URI.create("unix:///Users/hayde/.docker/run/docker.sock"))
-//                                    .responseTimeout(Duration.ofSeconds(30)).build())
-//                            .build();
-//                })
-//                .exceptEmpty(exc -> assertions.assertSoftly(false, "Failed to retrieve docker client for waiting for container to start: %s", exc.getMessage()))
-//                .ifPresent((DockerClient dc) -> dockerInitConfigProps.getContainers()
-//                        .forEach(container -> awaitLogMessage(container.log(), dc, container.containerName())));
-//
-
-        c.getStarted().swap(true);
-        return c;
-    }
-
-    @Override
-    public List<Class<? extends DockerInitNode>> dependsOn() {
-        return List.of();
-    }
-
-    @Override
-    public Class<DockerInitCtx> clzz() {
-        return DockerInitCtx.class;
-    }
-
-    public void awaitLogMessage(String regex,
+    public void awaitLogMessage(String containerLogMatch,
                                 DockerClient dockerClient,
                                 String containerName) {
-        List<Container> res = dockerClient.listContainersCmd().exec();
-        res.stream()
+        dockerClient.listContainersCmd()
+                .exec().stream()
                 .filter(c -> Arrays.stream(c.getNames()).anyMatch(n -> n.contains(containerName)))
                 .map(Container::getId)
                 .findAny()
                 .ifPresent(containerId -> {
-
                     AtomicBoolean done = new AtomicBoolean(false);
-                    assertions.assertSoftly(Boolean.TRUE.equals(AsyncWaiter.Builder.doCallWaiter(
-                            () -> {
-                                LogContainerCmd logCmd = dockerClient.logContainerCmd(containerId);
-                                logCmd = logCmd.withStdOut(true);
-                                execCmd(regex, containerName, logCmd, done);
-                                return done.get();
-                            },
-                            Boolean::valueOf,
-                            Duration.ofSeconds(120),
-                            Duration.ofSeconds(3))
-                    ), "Could not wait");
+                    assertions.assertSoftly(
+                            Boolean.TRUE.equals(
+                                    AsyncWaiter.Builder.doCallWaiter(
+                                            () -> {
+                                                LogContainerCmd logCmd = dockerClient.logContainerCmd(containerId);
+                                                logCmd = logCmd.withStdOut(true);
+                                                execCmd(containerLogMatch, containerName, logCmd, done);
+                                                return done.get();
+                                            },
+                                            Boolean::valueOf,
+                                            Duration.ofSeconds(120),
+                                            Duration.ofSeconds(3))
+                            ),
+                            "Could not wait for container %s to start with log %s.".formatted(containerId, containerLogMatch));
                 });
 
     }
 
     private void execCmd(String toMatch, String containerName, LogContainerCmd logCmd, AtomicBoolean done) {
-        var logFile = logCmd
-                .exec(new ResultCallback<Frame>() {
+        logCmd.exec(new ResultCallback<Frame>() {
                     @Override
                     public void onStart(Closeable closeable) {
                         log.info("Starting container '{}'", containerName);
@@ -123,6 +114,7 @@ public class StartDockerNode implements DockerInitNode {
                     public void onNext(Frame frame) {
                         String logLine = new String(frame.getPayload());
                         if (logLine.contains(toMatch)) {
+                            assertions.assertSoftly(true, "Container started successfully - found log: {}", logLine);
                             done.set(true);
                         }
                     }
@@ -142,6 +134,16 @@ public class StartDockerNode implements DockerInitNode {
                         assertions.assertSoftly(done.get(), "Could not wait for container '%s'", containerName);
                     }
                 });
+    }
+
+    @Override
+    public List<Class<? extends DockerInitNode>> dependsOn() {
+        return List.of(BuildDockerNode.class);
+    }
+
+    @Override
+    public Class<DockerInitCtx> clzz() {
+        return DockerInitCtx.class;
     }
 
 }

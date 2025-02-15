@@ -1,7 +1,6 @@
 package com.hayden.test_graph.init.docker.config;
 
 import lombok.Data;
-import org.intellij.lang.annotations.Language;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +15,10 @@ public class DockerInitConfigProps {
     public record AwaitableContainer(String containerName, String log) {}
 
     String host;
+
+    String dockerHostUri;
+
+    long dockerResponseTimeout = 30;
 
     List<AwaitableContainer> containers = new ArrayList<>();
 
