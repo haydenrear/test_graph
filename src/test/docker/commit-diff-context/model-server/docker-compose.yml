@@ -36,6 +36,8 @@ services:
   model-server:
     image: localhost:5001/model-server
     container_name: model-server-container
+    networks:
+      - commit-diff-network
     ports:
       - "9991:9991"
     environment:
@@ -44,6 +46,9 @@ services:
       - type: bind
         source: /Users/hayde/IdeaProjects/drools/model_server/.models
         target: /.huggingface
+
+networks:
+  commit-diff-network:
 
 volumes:
   validation:
