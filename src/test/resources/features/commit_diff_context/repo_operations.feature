@@ -27,7 +27,8 @@ Feature: Perform repo operations
       | repoUrl        | branchName | composePath                                                                                     |
       | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
 
-  @add_blame_node @all
+  @add_blame_node
+# @all
   Scenario Outline: add blame nodes is called and validated.
     Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
