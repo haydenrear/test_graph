@@ -1,16 +1,4 @@
 services:
-#  validation-postgres:
-#    image: localhost:5001/postgres-pgvector
-#    container_name: validation-postgres
-#    networks:
-#      - commit-diff-network
-#    environment:
-#      POSTGRES_USER: postgres
-#      POSTGRES_PASSWORD: postgres
-#    volumes:
-#      - validation:/var/lib/postgresql/data
-#    ports:
-#      - "5430:5432"
   commit-diff-postgres:
     image: localhost:5001/postgres-pgvector
     container_name: commit-diff-postgres-ctx-test

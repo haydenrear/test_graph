@@ -22,12 +22,18 @@ public class DbCleanupNode implements CommitDiffInitNode {
     private CommitDiffRepository commitDiffRepository;
     @Autowired
     private CommitDiffItemRepository commitDiffItemRepository;
+    @Autowired
+    private BlameTreeRepository blameTreeRepository;
+    @Autowired
+    private CommitDiffClusterRepository commitDiffClusterRepository;
 
     @Override
     public CommitDiffInit exec(CommitDiffInit c, MetaCtx h) {
         commitDiffItemRepository.deleteAll();
         codeBranchRepository.deleteAll();
         codeRepoRepository.deleteAll();
+        commitDiffClusterRepository.deleteAll();
+        blameTreeRepository.deleteAll();
         commitRepository.deleteAll();
         commitDiffRepository.deleteAll();
         return c;
