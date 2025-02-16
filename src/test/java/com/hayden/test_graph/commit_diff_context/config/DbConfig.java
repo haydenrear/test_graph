@@ -46,11 +46,10 @@ public class DbConfig {
         resolvedDataSources.put("initialized", initializedDataSource());
         resolvedDataSources.put("init", initializationDataSource());
         d.setTargetDataSources(resolvedDataSources);
+
         d.setDefaultTargetDataSource(initializationDataSource());
 
         d.afterPropertiesSet();
-
-
         return d;
     }
 

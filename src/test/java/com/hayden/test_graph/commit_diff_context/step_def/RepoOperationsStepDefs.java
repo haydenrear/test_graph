@@ -52,7 +52,6 @@ public class RepoOperationsStepDefs implements ResettableStep {
     @Autowired
     PathMatchingResourcePatternResolver resolver;
 
-
     @And("there is a repository at the url {string}")
     public void do_set_repo_given(String repoUrl) {
         commitDiffInit.setRepoData(
@@ -79,21 +78,6 @@ public class RepoOperationsStepDefs implements ResettableStep {
     @RegisterInitStep(RepoOpInit.class)
     public void addResponseTypeWithCount(String responseType, String fileLocation, String uri, String port, String count) {
         registerResponse(responseType, fileLocation, uri, port, count);
-    }
-
-    private void registerResponse(String responseType, String fileLocation, String uri, String port, String count) {
-        var responseFile = resolver.getResource(fileLocation);
-        assertions.assertStrongly(responseFile.exists(), "Response did exist.");
-        try {
-            ctx.addAiServerResponse(new CdMbInitCtx.AiServerResponse.FileSourceResponse(
-                    responseFile.getFile().toPath(),
-                    CdMbInitCtx.AiServerResponse.AiServerResponseType.valueOf(responseType),
-                    new CdMbInitCtx.ModelServerRequestData(uri, 200, Integer.parseInt(port))),
-                    Integer.parseInt(count));
-        } catch (IOException e) {
-            assertions.assertStronglyPattern(false, "Failed to add response for %s: %s\n%s.",
-                    responseType, e.getMessage(), SingleError.parseStackTraceToString(e));
-        }
     }
 
     @And("the add repo GraphQl query {string}")
@@ -161,6 +145,21 @@ public class RepoOperationsStepDefs implements ResettableStep {
                             "Commit diff %s was not initialized.".formatted(cdFound.getId()));
             });
         });
+    }
+
+    private void registerResponse(String responseType, String fileLocation, String uri, String port, String count) {
+        var responseFile = resolver.getResource(fileLocation);
+        assertions.assertStrongly(responseFile.exists(), "Response did exist.");
+        try {
+            ctx.addAiServerResponse(new CdMbInitCtx.AiServerResponse.FileSourceResponse(
+                            responseFile.getFile().toPath(),
+                            CdMbInitCtx.AiServerResponse.AiServerResponseType.valueOf(responseType),
+                            new CdMbInitCtx.ModelServerRequestData(uri, 200, Integer.parseInt(port))),
+                    Integer.parseInt(count));
+        } catch (IOException e) {
+            assertions.assertStronglyPattern(false, "Failed to add response for %s: %s\n%s.",
+                    responseType, e.getMessage(), SingleError.parseStackTraceToString(e));
+        }
     }
 
     private @NotNull Optional<CodeBranch> codeBranchExists() {

@@ -1,5 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.init.repo_op;
 
+import com.hayden.commitdiffmodel.codegen.types.GitOperation;
 import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
@@ -53,49 +54,51 @@ public class InitializeRepo implements RepoOpInitNode {
                 .forEach(repoInit -> {
                     switch (repoInit) {
                         case RepoOpInit.RepoInitItem.AddCodeBranch addCodeBranch ->
-                                doAddCodeBranch(c);
+                                doAddCodeBranch(c, addCodeBranch);
                         case RepoOpInit.RepoInitItem.AddEmbeddings addEmbeddings ->
-                                doAddEmbeddings(c);
+                                doAddEmbeddings(c, addEmbeddings);
+                        case RepoOpInit.RepoInitItem.AddBlameNodes addBlameNode ->
+                                doAddBlameNode(c, addBlameNode);
+                        case RepoOpInit.RepoInitItem.UpdateHeadNode updateHeadNode ->
+                                doAddGitOp(c, GitOperation.UPDATE_HEAD, updateHeadNode.ctx());
                     }
                 });
 
         return c;
     }
+    private void doAddCodeBranch(RepoOpInit c, RepoOpInit.RepoInitItem.AddCodeBranch addCodeBranch) {
+        doAddGitOp(c, GitOperation.ADD_BRANCH);
+    }
 
-    private void doAddCodeBranch(RepoOpInit c) {
+    private void doAddBlameNode(RepoOpInit c, RepoOpInit.RepoInitItem.AddBlameNodes addBlameNode) {
+        doAddGitOp(c, GitOperation.PARSE_BLAME_TREE);
+    }
+
+    private void doAddEmbeddings(RepoOpInit c, RepoOpInit.RepoInitItem.AddEmbeddings addEmbeddings) {
+        doAddGitOp(c, GitOperation.SET_EMBEDDINGS);
+    }
+
+    private void doAddGitOp(RepoOpInit c, GitOperation gitOperation) {
+        doAddGitOp(c, gitOperation, null);
+    }
+
+    private void doAddGitOp(RepoOpInit c, GitOperation gitOp, Object ctx) {
         var key = c.retrieveSessionKey();
-        CallGraphQlQueryArgs.AddCodeBranchArgs addCodeBranchArgs = CallGraphQlQueryArgs.AddCodeBranchArgs.builder()
+        CallGraphQlQueryArgs.DoGitArgs addCodeBranchArgs = CallGraphQlQueryArgs.DoGitArgs.builder()
                 .gitRepoPath(c.repoDataOrThrow().url())
                 .branchName(c.repoDataOrThrow().branchName())
+                .ctx(ctx)
                 .sessionKey(key)
+                .gitOperation(gitOp)
                 .build();
 
         var added = commitDiff.callGraphQlQuery(addCodeBranchArgs);
 
-        assertions.assertSoftly(added.isOk(), "Could not add code branch.", "Added code branch successfully");
+        assertions.assertSoftly(added.isOk(), "Could not add %s.".formatted(gitOp), "%s branch successfully".formatted(gitOp));
         added.e()
                 .filter(cde -> Optional.ofNullable(cde.errors()).map(l -> !l.isEmpty()).orElse(false))
-                .ifPresent(err -> assertions.assertSoftly(false, "Error on add code branch: %s"
-                    .formatted(added.e().get().getMessage()), "Add code branch completed successfully."));
-    }
-
-    private void doAddEmbeddings(RepoOpInit c) {
-        var key = c.retrieveSessionKey();
-        CallGraphQlQueryArgs.AddEmbeddingsArgs addEmbeddings = CallGraphQlQueryArgs.AddEmbeddingsArgs.builder()
-                .gitRepoPath(c.repoDataOrThrow().url())
-                .branchName(c.repoDataOrThrow().branchName())
-                .sessionKey(key)
-                .build();
-
-        var added = commitDiff.callGraphQlQuery(addEmbeddings);
-
-
-        assertions.assertSoftly(added.isOk(), "Could not add embeddings for code branch.",
-                "Added embeddings for code branch successfully");
-        added.e()
-                .filter(cde -> Optional.ofNullable(cde.errors()).map(l -> !l.isEmpty()).orElse(false))
-                .ifPresent(err -> assertions.assertSoftly(false, "Error on add embeddings: %s"
-                    .formatted(added.e().get().getMessage()), "Add embeddings completed successfully."));
+                .ifPresent(err -> assertions.assertSoftly(false, "Error on add %s: %s"
+                    .formatted(gitOp, added.e().get().getMessage()), "%s completed successfully.".formatted(gitOp)));
     }
 
     @Override

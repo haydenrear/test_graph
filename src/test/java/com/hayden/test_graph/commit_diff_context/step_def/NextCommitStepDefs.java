@@ -73,9 +73,6 @@ public class NextCommitStepDefs implements ResettableStep {
     @Autowired
     @ResettableThread
     Assertions assertions;
-    @Autowired
-    @ResettableThread
-    RepoOpInit bubbleCtx;
 
     @Autowired
     ObjectMapper mapper;

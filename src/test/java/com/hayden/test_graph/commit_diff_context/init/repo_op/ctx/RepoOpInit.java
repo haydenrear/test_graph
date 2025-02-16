@@ -4,7 +4,6 @@ import com.hayden.commitdiffmodel.codegen.types.*;
 import com.hayden.commitdiffmodel.comittdiff.ParseDiff;
 import com.hayden.commitdiffmodel.git.RepositoryHolder;
 import com.hayden.test_graph.assertions.Assertions;
-import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.RepoOpInitNode;
 import com.hayden.test_graph.commit_diff_context.service.CallGraphQlQueryArgs;
 import com.hayden.test_graph.ctx.ContextValue;
@@ -38,7 +37,7 @@ public final class RepoOpInit implements InitCtx {
     public sealed interface RepoInitItem {
 
         Comparator<RepoInitItem> c = new Comparator<>() {
-            static final List<Class<? extends RepoInitItem>> REPO_INIT_ORDERING = List.of(AddCodeBranch.class, AddEmbeddings.class);
+            static final List<Class<? extends RepoInitItem>> REPO_INIT_ORDERING = List.of(AddCodeBranch.class, AddEmbeddings.class, AddBlameNodes.class);
 
             @Override
             public int compare(RepoInitItem o1, RepoInitItem o2) {
@@ -47,7 +46,13 @@ public final class RepoOpInit implements InitCtx {
         };
 
         record AddCodeBranch(RepositoryData repositoryData) implements RepoInitItem {}
+
         record AddEmbeddings() implements RepoInitItem {}
+
+        record AddBlameNodes() implements RepoInitItem {}
+
+        record UpdateHeadNode(UpdateHeadCtx ctx) implements RepoInitItem {}
+
     }
 
     @Builder

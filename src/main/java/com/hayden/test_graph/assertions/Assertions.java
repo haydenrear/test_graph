@@ -45,6 +45,10 @@ public class Assertions {
         }
     }
 
+    public void reportAssert(String message) {
+        assertSoftly(true, "", message);
+    }
+
     public void assertSoftly(boolean v, String fail, String success){
         softAssertions.assertThat(v)
                 .withFailMessage(fail)

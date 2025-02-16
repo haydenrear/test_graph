@@ -1,11 +1,11 @@
 package com.hayden.test_graph.commit_diff_context.service;
 
-import com.hayden.commitdiffmodel.codegen.types.GitRepoResult;
-import com.hayden.commitdiffmodel.codegen.types.NextCommit;
-import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleCtx;
+import com.hayden.commitdiffmodel.codegen.client.DoCommitProjectionRoot;
+import com.hayden.commitdiffmodel.codegen.types.*;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.utilitymodule.result.error.SingleError;
 import lombok.Builder;
+import org.assertj.core.util.Lists;
 import org.springframework.graphql.ResponseError;
 
 import java.util.ArrayList;
@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public interface CallGraphQlQueryArgs<T> {
+public sealed interface CallGraphQlQueryArgs<T> {
     Class<T> clazz();
 
     String key();
@@ -33,7 +33,20 @@ public interface CallGraphQlQueryArgs<T> {
     }
 
     @Builder
-    record AddCodeBranchArgs(String branchName, String gitRepoPath, String sessionKey) implements CallGraphQlQueryArgs<GitRepoResult> {
+    record DoGitArgs(String branchName, String gitRepoPath, String sessionKey, GitOperation gitOperation, Object ctx) implements CallGraphQlQueryArgs<GitRepoResult> {
+
+        public DoGitArgs(String branchName, String gitRepoPath, String sessionKey, GitOperation gitOperation, Object ctx) {
+            this.branchName = branchName;
+            this.gitRepoPath = gitRepoPath;
+            this.sessionKey = sessionKey(sessionKey) ;
+            this.gitOperation = gitOperation;
+            this.ctx = ctx;
+        }
+
+        public DoGitArgs(String branchName, String gitRepoPath, String sessionKey, GitOperation gitOperation) {
+            this(branchName, gitRepoPath, sessionKey, gitOperation, null);
+        }
+
         @Override
         public Class<GitRepoResult> clazz() {
             return GitRepoResult.class;
@@ -44,26 +57,7 @@ public interface CallGraphQlQueryArgs<T> {
             return "doGit";
         }
 
-        public String sessionKey() {
-            return Optional.ofNullable(sessionKey)
-                    .orElse(UUID.randomUUID().toString());
-        }
-    }
-
-    @Builder
-    record AddEmbeddingsArgs(String branchName, String gitRepoPath, String sessionKey)
-            implements CallGraphQlQueryArgs<GitRepoResult> {
-        @Override
-        public Class<GitRepoResult> clazz() {
-            return GitRepoResult.class;
-        }
-
-        @Override
-        public String key() {
-            return "doGit";
-        }
-
-        public String sessionKey() {
+        public static String sessionKey(String sessionKey) {
             return Optional.ofNullable(sessionKey)
                     .orElse(UUID.randomUUID().toString());
         }
@@ -100,5 +94,109 @@ public interface CallGraphQlQueryArgs<T> {
                     .map(re -> "%s: %s".formatted(re.toString(), re.getMessage()))
                     .collect(Collectors.joining(", "));
         }
+    }
+
+    static DoCommitProjectionRoot allProjection() {
+        return new DoCommitProjectionRoot<>()
+                .diffs()
+                .diffType().parent().newPath().oldPath().newFileMode().oldFileMode()
+                .content()
+                .content()
+                .hunks()
+                .commitDiffEdits()
+                .editLocations()
+                .locationA()
+                .begin()
+                .end()
+                .parent()
+                .locationB()
+                .begin()
+                .end()
+                .parent()
+                .parent()
+                .contentChange()
+                .diffType()
+                .parent()
+                .parent()
+                .parent()
+                .parent()
+                .parent()
+                .commitMessage().value()
+                .parent()
+                .sessionKey().key()
+                .parent()
+                .errors().message()
+                .parent();
+    }
+
+    static GitRepositoryRequest toRepoRequest(String branchName, String gitRepoPath,
+                                                     String sessionKey, GitOperation gitOperation,
+                                                     Object ctx) {
+
+        return switch (ctx) {
+            case TagContext t ->
+                    GitRepositoryRequest.newBuilder()
+                            .gitBranch(GitBranch.newBuilder().branch(branchName).build())
+                            .operation(Lists.newArrayList(gitOperation))
+                            .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
+                            .tag(t)
+                            .build();
+            case MergeContext m ->
+                    GitRepositoryRequest.newBuilder()
+                            .gitBranch(GitBranch.newBuilder().branch(branchName).build())
+                            .operation(Lists.newArrayList(gitOperation))
+                            .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
+                            .merge(m)
+                            .build();
+            case RebaseContext r ->
+                    GitRepositoryRequest.newBuilder()
+                            .gitBranch(GitBranch.newBuilder().branch(branchName).build())
+                            .operation(Lists.newArrayList(gitOperation))
+                            .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
+                            .rebase(r)
+                            .build();
+            case CherryPickContext r ->
+                    GitRepositoryRequest.newBuilder()
+                            .gitBranch(GitBranch.newBuilder().branch(branchName).build())
+                            .operation(Lists.newArrayList(gitOperation))
+                            .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
+                            .cherryPick(r)
+                            .build();
+            case ResetContext r ->
+                    GitRepositoryRequest.newBuilder()
+                            .gitBranch(GitBranch.newBuilder().branch(branchName).build())
+                            .operation(Lists.newArrayList(gitOperation))
+                            .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
+                            .reset(r)
+                            .build();
+            case DropContext r ->
+                    GitRepositoryRequest.newBuilder()
+                            .gitBranch(GitBranch.newBuilder().branch(branchName).build())
+                            .operation(Lists.newArrayList(gitOperation))
+                            .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
+                            .drop(r)
+                            .build();
+            case UpdateHeadCtx r ->
+                    GitRepositoryRequest.newBuilder()
+                            .gitBranch(GitBranch.newBuilder().branch(branchName).build())
+                            .operation(Lists.newArrayList(gitOperation))
+                            .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
+                            .updateHead(r)
+                            .build();
+            case null, default ->
+                    GitRepositoryRequest.newBuilder()
+                            .gitBranch(GitBranch.newBuilder().branch(branchName).build())
+                            .operation(Lists.newArrayList(gitOperation))
+                            .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
+                            .build();
+        };
     }
 }
