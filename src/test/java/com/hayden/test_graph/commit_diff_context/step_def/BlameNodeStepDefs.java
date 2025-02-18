@@ -1,9 +1,12 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.google.common.collect.Sets;
+import com.hayden.commitdiffmodel.entity.CommitDiffCluster;
 import com.hayden.commitdiffmodel.entity.CommitDiffContextBlameTree;
 import com.hayden.commitdiffmodel.entity.CommitDiffId;
+import com.hayden.commitdiffmodel.entity.Embedding;
 import com.hayden.commitdiffmodel.repo.BlameTreeRepository;
+import com.hayden.commitdiffmodel.repo.CommitDiffClusterRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffRepository;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.codegen.Codegen;
@@ -19,6 +22,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -34,6 +38,8 @@ public class BlameNodeStepDefs implements ResettableStep {
     private BlameTreeRepository blameTreeRepository;
     @Autowired
     private CommitDiffRepository commitDiffRepository;
+    @Autowired
+    private CommitDiffClusterRepository cluster;
 ;
 
     @And("add blame nodes is called")
@@ -68,6 +74,12 @@ public class BlameNodeStepDefs implements ResettableStep {
 
         assertions.assertSoftly(int1.equals(int2), "All commit diffs represented in blame tree.");
         assertions.assertSoftly(bt.size() == cd.size(), "All commit diffs represented in blame tree.");
+
+        var c = cluster.findAll();
+        assertions.assertSoftly(!c.isEmpty(), "Commit diff clusters were empty.");
+        assertions.assertSoftly(
+                c.stream().noneMatch(cdc -> Objects.isNull(cdc) || Arrays.equals(cdc.getEmbedding(), new float[Embedding.SIZE])),
+                "Commit diff clusters were empty.");
     }
 
 }
