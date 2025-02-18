@@ -73,13 +73,6 @@ public class NextCommitAssert implements CommitDiffAssert {
         return Optional.of(CommitDiffAssertParentCtx.class);
     }
 
-    public ContextValue<RepoOpInit.RepositoryData> repoUrl() {
-        return this.parent
-                .res().map(CommitDiffAssertParentCtx::repoUrl)
-                .one()
-                .orElseRes(ContextValue.empty());
-    }
-
     @Override
     public void doSet(TestGraphContext context) {
         if (context instanceof CommitDiffAssertParentCtx c) {

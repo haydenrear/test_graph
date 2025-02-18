@@ -6,6 +6,7 @@ import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.result.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,9 +35,10 @@ public class ValidateRepositoryAdded implements RepoOpAssertNode {
         c.getRepositoryAssertionDescriptor()
                 .res()
                 .flatMap(rad -> {
-                    return c.repoUrl().res()
-                            .filterResult(rd -> rad.branchToBeAdded() != null && rd.url() != null)
-                            .map(rd -> Map.entry(rd, rad));
+                    return Result.fromOpt(
+                            c.repoUrl()
+                                    .filter(rd -> rad.branchToBeAdded() != null && rd.url() != null)
+                                    .map(rd -> Map.entry(rd, rad)));
                 })
                 .ifPresent(radItem -> {
                     String branchName = Optional.ofNullable(radItem.getValue())

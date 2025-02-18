@@ -11,28 +11,31 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 
+/**
+ * Example parent context - share data across multiple types of contexts - data extensions through delegations.
+ */
 @Component
 @ResettableThread
 @RequiredArgsConstructor
 @Getter
 public class CommitDiffAssertParentCtx implements CommitDiffAssert {
 
-    private final ContextValue<RepoOpInit.RepositoryData> repoUrl;
     private final ContextValue<RepoOpInit.GraphQlQueries> graphQlQueries;
     private final ContextValue<Boolean> validated;
+    private final ContextValue<RepoOpInit> repoInitData;
 
     private CommitDiffCtxParentBubble commitDiffAssertBubble;
 
+    public CommitDiffAssertParentCtx() {
+        this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty());
+    }
 
     @Autowired
     @ResettableThread
-    public void setRepoOpBubble(CommitDiffCtxParentBubble commitDiffAssertBubble) {
+    public void setBubble(CommitDiffCtxParentBubble commitDiffAssertBubble) {
         this.commitDiffAssertBubble = commitDiffAssertBubble;
-    }
-
-    public CommitDiffAssertParentCtx() {
-        this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty());
     }
 
     @Override
@@ -50,8 +53,9 @@ public class CommitDiffAssertParentCtx implements CommitDiffAssert {
         return n instanceof CommitDiffCtxParentAssertNode;
     }
 
-    public ContextValue<RepoOpInit.RepositoryData> repoUrl() {
-        return repoUrl;
+    public Optional<RepoOpInit.RepositoryData> repoUrl() {
+        return this.repoInitData.optional()
+                .flatMap(r -> Optional.ofNullable(r.repoDataOrNull()));
     }
 
     @Override

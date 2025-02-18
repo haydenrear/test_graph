@@ -4,6 +4,7 @@ import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.CommitDiffAssert;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.result.Result;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -21,7 +22,7 @@ public class ValidateCommitResponse implements CodegenAssertNode {
     @Idempotent(returnArg = 0)
     public Codegen exec(Codegen c, MetaCtx h) {
         c.getUserCode().res()
-                .flatMap(ud -> c.repoUrl().res().map(r -> Map.entry(ud, r)))
+                .flatMap(ud -> Result.fromOpt(c.repoUrl().map(r -> Map.entry(ud, r))))
                 .ifPresent(ud -> {
                     // TODO assert... only if user code embedding is set
                 });

@@ -60,11 +60,12 @@ public class Codegen implements CommitDiffAssert {
         return Optional.of(CommitDiffAssertParentCtx.class);
     }
 
-    public ContextValue<RepoOpInit.RepositoryData> repoUrl() {
+    public Optional<RepoOpInit.RepositoryData> repoUrl() {
         return this.parent
-                .res().map(CommitDiffAssertParentCtx::repoUrl)
+                .res()
+                .map(CommitDiffAssertParentCtx::repoUrl)
                 .one()
-                .orElseRes(ContextValue.empty());
+                .orElseRes(Optional.empty());
     }
 
     @Override

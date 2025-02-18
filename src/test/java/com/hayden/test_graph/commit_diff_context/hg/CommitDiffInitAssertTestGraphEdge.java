@@ -20,10 +20,15 @@ public class CommitDiffInitAssertTestGraphEdge implements FromBubbleEdgeAssert<C
         return CommitDiffAssertParentCtx.class;
     }
 
+    /**
+     * Example hypergraph edge with parent ctx.
+     * @param setOn
+     * @param setFrom
+     */
     @Override
     public void set(CommitDiffAssertParentCtx setOn, RepoOpBubble setFrom) {
-        setFrom.repositoryData().optional()
-                .ifPresent(setOn.repoUrl()::swap);
+        setFrom.getRepoInit().optional()
+                .ifPresent(repoInit -> setFrom.getRepoInit().swap(repoInit));
     }
 
 }

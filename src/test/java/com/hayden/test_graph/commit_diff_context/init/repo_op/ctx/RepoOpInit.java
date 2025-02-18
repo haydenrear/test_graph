@@ -152,6 +152,7 @@ public final class RepoOpInit implements InitCtx {
     public record BubbleData(Path clonedTo) { }
 
 
+    private final ContextValue<RepoOpInit.RepositoryData> repositoryData;
     private final ContextValue<UserCodeData> userCodeData;
     private final ContextValue<BubbleData> bubbleDataContextValue;
     private final ContextValue<RepoOpBubble> bubbleUnderlying;
@@ -170,7 +171,7 @@ public final class RepoOpInit implements InitCtx {
     private final RepoInitializations repoInitializations;
 
     public RepoOpInit() {
-        this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty(),
+        this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty(),
                 ContextValue.empty(), ContextValue.empty(), new RepoInitializations(new ArrayList<>()));
         this.commitDiffContextValue = CommitDiffContextGraphQlModel.builder()
                 .sessionKey(SessionKey.newBuilder().build())
@@ -186,10 +187,11 @@ public final class RepoOpInit implements InitCtx {
     @Autowired
     public void setBubble(RepoOpBubble bubble) {
         this.bubbleUnderlying.swap(bubble);
+        this.bubbleUnderlying.res().one().get().getRepoInit().swap(this);
     }
 
     public void setRepoData(RepositoryData repositoryData) {
-        this.bubbleUnderlying.res().one().get().repositoryData().swap(repositoryData);
+        this.repositoryData.swap(repositoryData);
         this.commitDiffContextValue.addRepo.setGitRepo(repositoryData.toGitRepo());
         this.commitDiffContextValue.addRepo.setBranchName(repositoryData.branchName);
         this.commitDiffContextValue.repositoryRequest.setGitRepo(repositoryData.toGitRepo());
@@ -209,7 +211,7 @@ public final class RepoOpInit implements InitCtx {
     }
 
     public ContextValue<RepositoryData> repoData() {
-        return bubbleUnderlying.res().one().get().repositoryData();
+        return repositoryData;
     }
 
     public String getNextCommitMessageExpected() {
@@ -268,14 +270,12 @@ public final class RepoOpInit implements InitCtx {
     }
 
     public RepositoryData repoDataOrThrow() {
-        return this.bubbleUnderlying.res().one().get().repositoryData().res().orElseThrow();
+        return this.repositoryData.res().orElseThrow();
     }
 
     public RepositoryData repoDataOrNull() {
-        return this.bubbleUnderlying.res().one()
+        return this.repositoryData
                 .optional()
-                .map(RepoOpBubble::repositoryData)
-                .flatMap(ContextValue::optional)
                 .orElse(null);
     }
 

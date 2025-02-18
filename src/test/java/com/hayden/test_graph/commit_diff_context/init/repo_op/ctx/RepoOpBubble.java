@@ -10,6 +10,7 @@ import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.docker.ctx.DockerInitBubbleCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,9 @@ import java.util.List;
 @ToString
 public final class RepoOpBubble implements InitBubble {
 
-    private final ContextValue<RepoOpInit.RepositoryData> repositoryData;
+
+    @Getter
+    private final ContextValue<RepoOpInit> repoInit;
 
 
     public RepoOpBubble() {
@@ -38,10 +41,6 @@ public final class RepoOpBubble implements InitBubble {
     @Override
     public List<Class<? extends TestGraphContext<InitBubble>>> dependsOn() {
         return List.of(DockerInitBubbleCtx.class, CommitDiffInitBubble.class, CdMbInitBubbleCtx.class);
-    }
-
-    public ContextValue<RepoOpInit.RepositoryData> repositoryData() {
-        return repositoryData;
     }
 
     @Override

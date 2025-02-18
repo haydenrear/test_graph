@@ -1,6 +1,7 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.hayden.commitdiffmodel.entity.CodeBranch;
+import com.hayden.commitdiffmodel.entity.Embedding;
 import com.hayden.commitdiffmodel.repo.CodeBranchRepository;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
@@ -136,7 +137,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
 
             commitDiffs.one().ifPresent(cd -> {
                 for (var cdFound : cd)
-                    assertions.assertSoftly(!Arrays.equals(cdFound.getEmbedding(), com.hayden.commitdiffmodel.entity.CommitDiff.INITIALIZED),
+                    assertions.assertSoftly(!Arrays.equals(cdFound.getEmbedding(), Embedding.INITIALIZED),
                             "Commit diff %s was not initialized.".formatted(cdFound.getId()));
             });
         });
