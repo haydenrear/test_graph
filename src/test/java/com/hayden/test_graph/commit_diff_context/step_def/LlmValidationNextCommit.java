@@ -21,11 +21,9 @@ import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit.NextCommitAssert;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.config.CommitDiffContextConfigProps;
-import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
-import com.hayden.test_graph.steps.AssertStep;
-import com.hayden.test_graph.steps.ExecInitStep;
+import com.hayden.test_graph.steps.RegisterAssertStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.git.RepoUtil;
@@ -254,7 +252,7 @@ public class LlmValidationNextCommit implements ResettableStep {
     }
 
     @Then("the validation data is saved for review")
-    @AssertStep({RepoOpAssertCtx.class, NextCommitAssert.class})
+    @RegisterAssertStep({RepoOpAssertCtx.class, NextCommitAssert.class})
     public void theValidationScoreIsSavedToFileForReview() {
         nextCommit.getValidationResponse().optional()
                 .flatMap(res -> Optional.ofNullable(res.response()))

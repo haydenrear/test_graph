@@ -4,6 +4,7 @@ import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
+import com.hayden.test_graph.meta.ctx.MetaProgCtx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +45,7 @@ public interface ProgExec  {
 
     void register(Class<? extends TestGraphContext> ctx);
 
-    void execAll();
+    MetaCtx execAll();
 
     int didExec();
 

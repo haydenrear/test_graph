@@ -12,14 +12,14 @@ import java.util.Arrays;
 
 @Aspect
 @Component
-public class AssertAspect implements StepAspect {
+public class ExecAssertAspect implements StepAspect {
 
     @ResettableThread
     @Autowired
     private MetaProgExec metaGraph;
 
     @Around("@annotation(assertStep)")
-    public Object around(ProceedingJoinPoint joinPoint, RegisterAssertStep assertStep) throws Throwable {
+    public Object around(ProceedingJoinPoint joinPoint, ExecAssertStep assertStep) throws Throwable {
 
         Object ret;
         if (assertStep.doFnFirst()) {
@@ -33,8 +33,9 @@ public class AssertAspect implements StepAspect {
         return ret;
     }
 
-    private void doExec(RegisterAssertStep assertStep) {
+    private void doExec(ExecAssertStep assertStep) {
         Arrays.stream(assertStep.value()).forEach(metaGraph::register);
+        metaGraph.execAll();
     }
 
 }

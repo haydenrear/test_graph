@@ -1,7 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.google.common.collect.Sets;
-import com.hayden.commitdiffmodel.entity.CommitDiffCluster;
 import com.hayden.commitdiffmodel.entity.CommitDiffContextBlameTree;
 import com.hayden.commitdiffmodel.entity.CommitDiffId;
 import com.hayden.commitdiffmodel.entity.Embedding;
@@ -9,17 +8,14 @@ import com.hayden.commitdiffmodel.repo.BlameTreeRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffClusterRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffRepository;
 import com.hayden.test_graph.assertions.Assertions;
-import com.hayden.test_graph.commit_diff_context.assert_nodes.codegen.Codegen;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
-import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
-import com.hayden.test_graph.steps.AssertStep;
+import com.hayden.test_graph.steps.RegisterAssertStep;
 import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
@@ -40,7 +36,6 @@ public class BlameNodeStepDefs implements ResettableStep {
     private CommitDiffRepository commitDiffRepository;
     @Autowired
     private CommitDiffClusterRepository cluster;
-;
 
     @And("add blame nodes is called")
     @RegisterInitStep(RepoOpInit.class)
@@ -49,7 +44,7 @@ public class BlameNodeStepDefs implements ResettableStep {
     }
 
     @Then("the blame node embeddings are validated to be added to the database")
-    @AssertStep(RepoOpAssertCtx.class)
+    @RegisterAssertStep(RepoOpAssertCtx.class)
     public void initial_commit_diff_context_blame_node() {
         var blameTrees = blameTreeRepository.findAll();
         var allCommitDiffs = commitDiffRepository.findAll();
@@ -78,7 +73,8 @@ public class BlameNodeStepDefs implements ResettableStep {
         var c = cluster.findAll();
         assertions.assertSoftly(!c.isEmpty(), "Commit diff clusters were empty.");
         assertions.assertSoftly(
-                c.stream().noneMatch(cdc -> Objects.isNull(cdc) || Arrays.equals(cdc.getEmbedding(), new float[Embedding.SIZE])),
+                c.stream().noneMatch(cdc
+                        -> Objects.isNull(cdc) || Arrays.equals(cdc.getEmbedding(), new float[Embedding.SIZE])),
                 "Commit diff clusters were empty.");
     }
 

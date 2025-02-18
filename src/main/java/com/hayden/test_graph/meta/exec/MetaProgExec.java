@@ -47,18 +47,8 @@ public class MetaProgExec implements ProgExec {
 
     @Override
     public MetaCtx collectCtx() {
-//        MetaCtx metaCtx = null;
-
-
-//        for (var s : subGraphs) {
-//            metaCtx = exec(s.clazz(), metaCtx);
-//        }
-
-//        return metaCtx;
-        throw new RuntimeException("""
-                Subgraphs need to be sorted and then iterated from beginning if collectCtx() is implemented, which if idempotent then it just finishes the
-                ones not completed for this thread.
-                """);
+        // not used currently as this is the hypergraph.
+        return this.execAll();
     }
 
     @Override
@@ -107,7 +97,7 @@ public class MetaProgExec implements ProgExec {
      * assuming that it has dependencies on anything before it.
      */
     @Override
-    public void execAll() {
+    public MetaCtx execAll() {
         Class<? extends TestGraphContext> ctx;
 
         List<Class<? extends TestGraphContext>> ordering = new ArrayList<>();
@@ -123,8 +113,12 @@ public class MetaProgExec implements ProgExec {
         }
 
         for (var o : lazyMetaGraphDelegate.sort(ordering)) {
-            this.exec(o);
+            log.info("Executing {}", o.getName());
+            var next = this.exec(o);
+            log.info("Executed {} - Result: {}", o.getName(), next.bubbleClazz().getName());
         }
+
+        return this.metaProgCtx;
     }
 
     @Override
@@ -137,20 +131,22 @@ public class MetaProgExec implements ProgExec {
         return s;
     }
 
+    @Override
+    public MetaCtx exec(Class<? extends TestGraphContext> ctx) {
+        var n = exec(ctx, metaProgCtx);
+        assertDeps(ctx);
+        return n;
+    }
+
     /**
      * For false negatives
      * @param ctx
      */
     private void assertDeps(Class<? extends TestGraphContext> ctx) {
         var c = lazyMetaGraphDelegate.getGraphContext(ctx);
-        assert c.isPresent();
-        assert c.get().requiredDependencies().stream().allMatch(contextValue ->((ContextValue) contextValue).isPresent());
+        assertions.assertSoftly(c.isPresent(), "Test graph context %s existed.", ctx.getName());
+        assertions.assertSoftly(c.get().requiredDependencies().stream()
+                        .allMatch(contextValue ->((ContextValue) contextValue).isPresent()),
+                "All required dependencies were set.");
     }
-
-    @Override
-    public MetaCtx exec(Class<? extends TestGraphContext> ctx) {
-        var n = exec(ctx, metaProgCtx);
-        return n;
-    }
-
 }

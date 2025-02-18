@@ -18,6 +18,7 @@ public class AssertionHook {
 
     @After
     public void after() {
+        metaProgExec.execAll();
         int numGraphExecutions = metaProgExec.didExec();
         assertions.assertSoftly(numGraphExecutions > 0, "Meta Program did not execute any computation graphs: %s.".formatted(numGraphExecutions),
                 "Meta Program did execute this many computation graphs: %s.".formatted(numGraphExecutions));

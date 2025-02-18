@@ -12,7 +12,7 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface AssertStep {
+public @interface RegisterAssertStep {
 
     /**
      * @return The context type to be initialized

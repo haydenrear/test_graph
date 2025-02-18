@@ -7,11 +7,11 @@ import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAsse
 import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
-import com.hayden.test_graph.steps.AssertStep;
+import com.hayden.test_graph.steps.ExecAssertStep;
+import com.hayden.test_graph.steps.RegisterAssertStep;
 import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
-import com.hayden.utilitymodule.result.Result;
 import com.hayden.utilitymodule.result.error.SingleError;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
@@ -22,7 +22,6 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
@@ -53,6 +52,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
     PathMatchingResourcePatternResolver resolver;
 
     @And("there is a repository at the url {string}")
+    @RegisterInitStep(RepoOpInit.class)
     public void do_set_repo_given(String repoUrl) {
         commitDiffInit.setRepoData(
                 RepoOpInit.RepositoryData.builder()
@@ -92,6 +92,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
     }
 
     @And("a branch should be added {string}")
+    @RegisterInitStep(RepoOpInit.class)
     public void do_set_branch_to_add(String arg0) {
         var r = commitDiffInit.repoDataOrThrow();
         RepoOpInit.RepositoryData repoData = r.withBranch(arg0);
@@ -112,7 +113,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
     }
 
     @Then("a branch with name {string} will be added to the database")
-    @AssertStep(RepoOpAssertCtx.class)
+    @ExecAssertStep(RepoOpAssertCtx.class)
     public void validate_branch_added(String branchAdded) {
         commitDiffAssert.getRepositoryAssertionDescriptor()
                 .swap(new RepoOpAssertCtx.RepoOpAssertionDescriptor(branchAdded));
@@ -128,7 +129,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
     }
 
     @Then("the branches embeddings will be added to the database")
-    @AssertStep(RepoOpAssertCtx.class)
+    @ExecAssertStep(RepoOpAssertCtx.class)
     public void theBranchesEmbeddingsWillBeAddedToTheDatabase() {
         var repoData = commitDiffInit.repoDataOrThrow();
         var found = codeBranchRepository.withCommitsWithDiffs(repoData.toRepositoryArgs());

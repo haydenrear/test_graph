@@ -234,7 +234,8 @@ public final class RepoOpInit implements InitCtx {
                 .commitDiffContextValue(this.commitDiffContextValue)
                 .commitMessage(
                         userCodeData.optional()
-                                .or(() -> Optional.of(UserCodeData.builder().build()))
+                                .or(() -> Optional.of(UserCodeData.builder()
+                                        .build()))
                                 .map(UserCodeData::commitMessage)
                                 .orElse(null))
                 .gitRepoPath(repoArgs.url)
