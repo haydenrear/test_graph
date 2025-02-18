@@ -9,6 +9,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -24,6 +25,7 @@ import java.util.Optional;
  * @param <T>
  * @param <H>
  */
+@Slf4j
 @RequiredArgsConstructor
 public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext>
         implements Graph, ApplicationContextAware, ResettableThreadLike, GraphSort.GraphSortable {
@@ -87,11 +89,9 @@ public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext
         // have to do this because of resettable ThreadScope
         this.preReset();
         Optional<TestGraphContext> next = Optional.ofNullable(this.t);
-        TestGraphContext prev = null;
         while (next.isPresent()) {
-            var nextValue = next.get();
+            log.info("Setting parent: {} for subgraph {}.", next.get(), this.t);
             next = setParent(ctx, next.get());
-            prev = nextValue;
         }
     }
 
