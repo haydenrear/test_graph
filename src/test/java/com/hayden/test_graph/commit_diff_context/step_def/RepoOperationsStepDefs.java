@@ -133,8 +133,8 @@ public class RepoOperationsStepDefs implements ResettableStep {
         assertions.assertSoftly(found.isPresent(), "Code branch did not exist.");
         found.ifPresent(cb -> {
             var commitDiffs = cb.parseCommitDiffs();
-            assertions.assertSoftly(commitDiffs.isOk(), "Commit diffs could not be retrieved from %s."
-                    .formatted(cb.getBranchName()));
+            assertions.assertSoftly(commitDiffs.isOk(), "Commit diffs could not be retrieved from %s with err: %s."
+                    .formatted(cb.getBranchName(), commitDiffs.errorMessage()));
 
             commitDiffs.one().ifPresent(cd -> {
                 for (var cdFound : cd)

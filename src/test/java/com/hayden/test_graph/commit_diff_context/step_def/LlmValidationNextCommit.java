@@ -99,7 +99,8 @@ public class LlmValidationNextCommit implements ResettableStep {
                 })
                 .one();
 
-        assertions.assertSoftly(written.isOk(), "Was not successfuly generating docker-compose");
+        assertions.assertSoftly(written.isOk(), "Was not successfuly generating docker-compose with err: %s"
+                .formatted(written.errorMessage()));
         written.ifPresent(b -> {
             assertions.assertSoftly(b, "Was not successfuly generating docker-compose");
             assertions.assertSoftly(dockerComposeFile.toFile().exists(), "docker-compose file did not exist.");
@@ -147,7 +148,7 @@ public class LlmValidationNextCommit implements ResettableStep {
 
             assertions.assertSoftly(secondTo.isOk(),
                     "Could not parse repo, did not have enough commits for validation: %s."
-                            .formatted(secondTo.e().map(GitErrors.GitError::getMessage).orElse(null)));
+                            .formatted(secondTo.errorMessage()));
 
             secondTo.ifPresent(nrc -> {
                 // parse backwards, get second from back, get commit hash for this
@@ -167,7 +168,8 @@ public class LlmValidationNextCommit implements ResettableStep {
                 assertions.assertSoftly(!lst.results().isEmpty(), "Was not successful in retrieving most recent commit message: %s."
                         .formatted(s));
 
-                assertions.assertSoftly(latestCommit.isOk(), "Could not retreive latest commit.");
+                assertions.assertSoftly(latestCommit.isOk(), "Could not retreive latest commit: %s."
+                        .formatted(latestCommit.errorMessage()));
 
                 var lc = latestCommit.orElseRes(null);
 
@@ -245,7 +247,8 @@ public class LlmValidationNextCommit implements ResettableStep {
                                                 .build())
                                 .one();
 
-                        assertions.assertSoftly(sent.isOk(), "Validation was not received from server.");
+                        assertions.assertSoftly(sent.isOk(), "Validation was not received from server: %s."
+                                .formatted(sent.errorMessage()));
 
                         sent.ifPresent(mrc -> nextCommit.getValidationResponse().swap(new NextCommitAssert.NextCommitLlmValidation(mrc)));
                     } catch (JsonProcessingException e) {

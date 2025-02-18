@@ -8,6 +8,8 @@ import org.assertj.core.api.SoftAssertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.function.Supplier;
+
 @ResettableThread
 @Component
 @Slf4j
@@ -55,6 +57,15 @@ public class Assertions {
                 .isTrue();
         if (v)
             reporter.info(success);
+
+    }
+
+    public void assertSoftly(boolean v, String fail, Supplier<String> success){
+        softAssertions.assertThat(v)
+                .withFailMessage(fail)
+                .isTrue();
+        if (v)
+            reporter.info(success.get());
 
     }
 

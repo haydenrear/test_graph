@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
@@ -49,10 +50,11 @@ public class InitializeRepo implements RepoOpInitNode {
         if (rd.url().endsWith(".tar")) {
             assertions.assertSoftly(new File(rd.url()).exists(), "Repo archive did not exist.");
             var tempDir = Files.newTemporaryFolder();
-            var unzipped = ArchiveUtils.prepareTestRepos(Paths.get(rd.url()).getParent(), tempDir.toPath(), Paths.get(rd.url()).getFileName().toString());
-            var unzippedTo = rd.unzipped(tempDir.toPath());
-            c.repoData().swap(unzippedTo);
-            assertions.assertSoftly(unzipped.isOk(), "Was unsuccessful in unzipping repositories.");
+            Path tarPath = Paths.get(rd.url());
+            Path unzippedPath = tempDir.toPath();
+            var unzipped = ArchiveUtils.prepareTestRepos(tarPath.getParent(), unzippedPath, tarPath.getFileName().toString());
+            c.repoData().swap(rd.unzipped(unzippedPath));
+            assertions.assertSoftly(unzipped.isOk(), "Was unsuccessful in unzipping repositories: %s.".formatted(unzipped.errorMessage()));
         }
 
         c.getRepoInitializations()
@@ -92,12 +94,9 @@ public class InitializeRepo implements RepoOpInitNode {
 
         var added = commitDiff.callGraphQlQuery(addCodeBranchArgs);
 
-        assertions.assertSoftly(added.isOk(), "Could not add %s.".formatted(gitOp), "%s branch successfully".formatted(gitOp));
-        added.e().filter(cde -> Optional.ofNullable(cde.errors())
-                        .map(l -> !l.isEmpty())
-                        .orElse(false))
-                .ifPresent(err -> assertions.assertSoftly(false, "Error on add %s: %s"
-                    .formatted(gitOp, added.e().get().getMessage()), "%s completed successfully.".formatted(gitOp)));
+        assertions.assertSoftly(added.isOk(),
+                "Could not perform git operation %s. Error message: %s.".formatted(gitOp, added.errorMessage()),
+                () -> "Git operation %s performed successfully. Response: %s".formatted(gitOp, added.r().get()));
     }
 
     @Override

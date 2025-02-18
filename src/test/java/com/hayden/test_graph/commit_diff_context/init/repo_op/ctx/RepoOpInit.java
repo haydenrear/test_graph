@@ -175,9 +175,11 @@ public final class RepoOpInit implements InitCtx {
         this.commitDiffContextValue = CommitDiffContextGraphQlModel.builder()
                 .sessionKey(SessionKey.newBuilder().build())
                 .addRepo(GitRepoPromptingRequest.newBuilder()
-                        .gitRepo(GitRepo.newBuilder().build())
+                        .sessionKey(SessionKey.newBuilder().build())
                         .build())
-                .repositoryRequest(GitRepositoryRequest.newBuilder().build())
+                .repositoryRequest(GitRepositoryRequest.newBuilder()
+                        .sessionKey(SessionKey.newBuilder().build())
+                        .build())
                 .build();
     }
 
@@ -192,6 +194,18 @@ public final class RepoOpInit implements InitCtx {
         this.commitDiffContextValue.addRepo.setBranchName(repositoryData.branchName);
         this.commitDiffContextValue.repositoryRequest.setGitRepo(repositoryData.toGitRepo());
         this.commitDiffContextValue.repositoryRequest.setGitBranch(repositoryData.toGitBranch());
+    }
+
+    public void setSessionKey(SessionKey sessionKey) {
+        this.commitDiffData.swap(new CommitDiffData(sessionKey.getKey()));
+        addSessionKeyToRequests();
+    }
+
+    private void addSessionKeyToRequests() {
+        var sessionKey = this.retrieveSessionKey();
+        this.commitDiffContextValue.sessionKey.setKey(sessionKey);
+        this.commitDiffContextValue.repositoryRequest.getSessionKey().setKey(sessionKey);
+        this.commitDiffContextValue.addRepo.getSessionKey().setKey(sessionKey);
     }
 
     public ContextValue<RepositoryData> repoData() {
@@ -227,9 +241,15 @@ public final class RepoOpInit implements InitCtx {
         return queries;
     }
 
+    public void setCommitMessage(CommitMessage commitMessage) {
+        this.commitDiffContextValue.addRepo()
+                .setCommitMessage(commitMessage);
+        this.userCodeData.swap(new UserCodeData(commitMessage.getValue()));
+    }
+
     public CallGraphQlQueryArgs.CommitRequestArgs toCommitRequestArgs() {
         RepositoryData repoArgs = repoDataOrThrow();
-
+        addSessionKeyToRequests();
         return CallGraphQlQueryArgs.CommitRequestArgs.builder()
                 .commitDiffContextValue(this.commitDiffContextValue)
                 .commitMessage(

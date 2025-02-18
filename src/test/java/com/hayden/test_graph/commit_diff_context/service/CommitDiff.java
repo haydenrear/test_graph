@@ -79,14 +79,18 @@ public class CommitDiff {
         return rs;
     }
 
-    private DgsGraphQlClient.@NotNull RequestSpec doCreateRequestSpec(DgsGraphQlClient client,
-                                                                             GraphQLQuery query,
-                                                                             BaseProjectionNode projection) {
-        var serializedQuery = new GraphQLQueryRequest(query, projection).serialize();
-        assertions.reportAssert("GraphQl query sent: %s".formatted(serializedQuery));
-        var rs = client.request(query)
-                .projection(projection);
-        return rs;
+    private <T> @NotNull Result<T, CallGraphQlQueryArgs.CommitDiffContextGraphQlError> doGitOp(CallGraphQlQueryArgs<T> graphQlQueryArgs,
+                                                                                               DgsGraphQlClient client,
+                                                                                               GitRepositoryRequest sendingCodeBranch) {
+        log.info("Sending code branch: {}", sendingCodeBranch);
+        DoGitGraphQLQuery built = DoGitGraphQLQuery.newRequest()
+                .repoRequest(sendingCodeBranch)
+                .queryName(graphQlQueryArgs.key())
+                .build();
+        var projectionNode = new DoGitProjectionRoot<>().branch();
+        var req = doCreateRequestSpec(client, built, projectionNode);
+        var res = createGraphQlQueryResponse(req.executeSync(), graphQlQueryArgs);
+        return res;
     }
 
     private GitRepositoryRequest buildRepoReq(String branchName, String gitRepoPath,
@@ -98,6 +102,16 @@ public class CommitDiff {
                 "Session key existed as %s".formatted(sessionKey));
         return toRepoRequest(branchName, gitRepoPath, sessionKey, gitOperation, ctx);
     }
+
+    private DgsGraphQlClient.@NotNull RequestSpec doCreateRequestSpec(DgsGraphQlClient client,
+                                                                      GraphQLQuery query,
+                                                                      BaseProjectionNode projection) {
+        var serializedQuery = new GraphQLQueryRequest(query, projection).serialize();
+        assertions.reportAssert("GraphQl query serialized for %s\n%s".formatted(query.getClass().getName(), serializedQuery));
+        var rs = client.request(query).projection(projection);
+        return rs;
+    }
+
 
     private GitRepoPromptingRequest buildGitRepoPromptingRequest(CallGraphQlQueryArgs.CommitRequestArgs commitRequestArgs) {
         CommitMessage cm = CommitMessage.newBuilder().value(commitRequestArgs.commitMessage()).build();
@@ -121,20 +135,6 @@ public class CommitDiff {
                 .contextData(commitRequestArgs.commitDiffContextValue().getContextData())
                 .build();
         return repoRequest;
-    }
-
-    private <T> @NotNull Result<T, CallGraphQlQueryArgs.CommitDiffContextGraphQlError> doGitOp(CallGraphQlQueryArgs<T> graphQlQueryArgs,
-                                                                                               DgsGraphQlClient client,
-                                                                                               GitRepositoryRequest sendingCodeBranch) {
-        log.info("Sending code branch: {}", sendingCodeBranch);
-        DoGitGraphQLQuery built = DoGitGraphQLQuery.newRequest()
-                .repoRequest(sendingCodeBranch)
-                .queryName(graphQlQueryArgs.key())
-                .build();
-        var projectionNode = new DoGitProjectionRoot<>().branch();
-        var req = doCreateRequestSpec(client, built, projectionNode);
-        var res = createGraphQlQueryResponse(req.executeSync(), graphQlQueryArgs);
-        return res;
     }
 
     public <T> Result<T, CallGraphQlQueryArgs.CommitDiffContextGraphQlError> doWithGraphQl(Function<DgsGraphQlClient, Result<T, CallGraphQlQueryArgs.CommitDiffContextGraphQlError>> toDo) {

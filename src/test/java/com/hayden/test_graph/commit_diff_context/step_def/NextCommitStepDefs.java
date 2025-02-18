@@ -61,17 +61,11 @@ public class NextCommitStepDefs implements ResettableStep {
     @RegisterInitStep(value = {RepoOpInit.class})
     public void setCommitMessageForRequest(String commitMessageJson) {
         try {
-            var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
             var res = new PathMatchingResourcePatternResolver().getResource(commitMessageJson);
             assertions.assertStrongly(res.exists(), "Commit message file does not exist.");
             if (res.exists()) {
                 var commitMessage = mapper.readValue(res.getFile(), CommitMessage.class);
-                gitRepoPromptingRequest.addRepo()
-                        .setCommitMessage(commitMessage);
-                repoOpInit.userCodeData().swap(
-                        RepoOpInit.UserCodeData.builder()
-                                .commitMessage(commitMessage.getValue())
-                                .build());
+                repoOpInit.setCommitMessage(commitMessage);
             } else {
                 // do something
                 log.info("Commit message file {} does not exist.", commitMessageJson);
@@ -99,14 +93,14 @@ public class NextCommitStepDefs implements ResettableStep {
     public void setContextData(String commitMessageJson) {
         try {
             var staged = mapper.readValue(getFile(commitMessageJson), new TypeReference<List<ContextData>>() {});
-            var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
+            var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs()
+                    .commitDiffContextValue();
             gitRepoPromptingRequest
                     .addRepo()
                     .setContextData(staged);
         } catch (IOException e) {
             assertions.assertStrongly(false, "Could not parse commit message: " + commitMessageJson);
         }
-
     }
 
     @And("a request for the next commit is provided with the previous requests being provided from {string}")
@@ -129,7 +123,7 @@ public class NextCommitStepDefs implements ResettableStep {
     public void nextCommitIsSentToTheServerWithTheNextCommitInformationProvidedPrevious() {
         var nextCommitRetrieved = commitDiff.callGraphQlQuery(repoOpInit.toCommitRequestArgs());
         assertions.assertSoftly(nextCommitRetrieved.isOk(), "Next commit waws not OK: %s"
-                .formatted(nextCommitRetrieved.e().firstOptional().orElse(null)), "Next commit info present.");
+                .formatted(nextCommitRetrieved.errorMessage()), "Next commit info present.");
         nextCommitRetrieved.r()
                 .ifPresent(nc -> nextCommit.getNextCommitInfo().swap(new NextCommitAssert.NextCommitMetadata(nc)));
     }
@@ -138,7 +132,8 @@ public class NextCommitStepDefs implements ResettableStep {
     @RegisterAssertStep(value = {NextCommitAssert.class})
     public void nextCommitCanBeAppliedToGitDiff() {
         var repoData = repoOpInit.repoDataOrThrow();
-        assertions.assertSoftly(nextCommit.getNextCommitInfo().isPresent(), "Not present", "Next commit info present.");
+        assertions.assertSoftly(nextCommit.getNextCommitInfo().isPresent(), "Next commit info was not set.",
+                "Next commit info present: %s.".formatted(nextCommit.getNextCommitInfo()));
         nextCommit.getNextCommitInfo().res()
                 .map(NextCommitAssert.NextCommitMetadata::nc)
                 .ifPresent(ncm -> {
