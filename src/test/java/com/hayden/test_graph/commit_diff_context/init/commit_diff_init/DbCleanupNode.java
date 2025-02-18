@@ -1,9 +1,9 @@
-package com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx;
+package com.hayden.test_graph.commit_diff_context.init.commit_diff_init;
 
+import com.hayden.commitdiffmodel.entity.CommitDiffContextBlameTree;
 import com.hayden.commitdiffmodel.repo.*;
-import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.CommitDiffInitNode;
+import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,8 +32,8 @@ public class DbCleanupNode implements CommitDiffInitNode {
         commitDiffItemRepository.deleteAll();
         codeBranchRepository.deleteAll();
         codeRepoRepository.deleteAll();
-        commitDiffClusterRepository.deleteAll();
         blameTreeRepository.deleteAll();
+        commitDiffClusterRepository.deleteAll();
         commitRepository.deleteAll();
         commitDiffRepository.deleteAll();
         return c;
