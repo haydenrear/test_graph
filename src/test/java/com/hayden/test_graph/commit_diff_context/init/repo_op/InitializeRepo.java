@@ -99,9 +99,4 @@ public class InitializeRepo implements RepoOpInitNode {
                 () -> "Git operation %s performed successfully. Response: %s".formatted(gitOp, added.r().get()));
     }
 
-    @Override
-    public Class<RepoOpInit> clzz() {
-        return RepoOpInit.class;
-    }
-
 }

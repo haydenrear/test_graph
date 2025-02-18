@@ -15,11 +15,6 @@ public class ValidateNextCommitResponse implements NextCommitAssertNode {
     private Assertions assertions;
 
     @Override
-    public Class<? extends NextCommitAssert> clzz() {
-        return NextCommitAssert.class;
-    }
-
-    @Override
     @Idempotent(returnArg = 0)
     public NextCommitAssert exec(NextCommitAssert c, MetaCtx h) {
         var res = c.getNextCommitInfo().res();

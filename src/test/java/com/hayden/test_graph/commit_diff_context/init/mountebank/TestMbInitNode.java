@@ -1,6 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.init.mountebank;
 
-import com.hayden.test_graph.init.mountebank.ctx.MbInitCtx;
+import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import org.mbtest.javabank.http.core.Stub;
 import org.mbtest.javabank.http.imposters.Imposter;
@@ -28,11 +28,6 @@ public class TestMbInitNode implements CdMbInitNode {
         response.put("hello", "goodbye");
         stub.addResponse(response);
         return Stream.of(Imposter.anImposter().onPort(2525).withStub(stub));
-    }
-
-    @Override
-    public Class<CdMbInitCtx> clzz() {
-        return CdMbInitCtx.class;
     }
 
 }

@@ -1,22 +1,16 @@
 package com.hayden.test_graph.commit_diff_context.init.mountebank;
 
-import com.hayden.proto.prototyped.datasources.ai.modelserver.client.ModelContextProtocolClientAdapter;
+import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.mbtest.javabank.http.imposters.Imposter;
-import org.springframework.ai.mcp.client.transport.ServerParameters;
-import org.springframework.ai.mcp.client.transport.StdioClientTransport;
-import org.springframework.ai.mcp.spec.ClientMcpTransport;
-import org.springframework.ai.mcp.spec.McpSchema;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 @Component

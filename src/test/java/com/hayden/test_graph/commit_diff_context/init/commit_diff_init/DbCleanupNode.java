@@ -1,6 +1,5 @@
 package com.hayden.test_graph.commit_diff_context.init.commit_diff_init;
 
-import com.hayden.commitdiffmodel.entity.CommitDiffContextBlameTree;
 import com.hayden.commitdiffmodel.repo.*;
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
@@ -39,8 +38,4 @@ public class DbCleanupNode implements CommitDiffInitNode {
         return c;
     }
 
-    @Override
-    public Class<CommitDiffInit> clzz() {
-        return CommitDiffInit.class;
-    }
 }
