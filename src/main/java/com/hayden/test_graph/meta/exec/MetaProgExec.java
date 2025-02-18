@@ -31,7 +31,8 @@ public class MetaProgExec implements ProgExec {
     @Autowired
     private EdgeExec edgeExec;
 
-    @Autowired @Lazy
+    @Autowired
+    @Lazy
     private LazyMetaGraphDelegate lazyMetaGraphDelegate;
 
     @Autowired

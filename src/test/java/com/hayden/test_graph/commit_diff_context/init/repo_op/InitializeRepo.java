@@ -52,30 +52,20 @@ public class InitializeRepo implements RepoOpInitNode {
                 .stream()
                 .sorted(RepoOpInit.RepoInitItem.c)
                 .forEach(repoInit -> {
+                    assertions.reportAssert("Executing repo init task: %s".formatted(repoInit.getClass().getName()));
                     switch (repoInit) {
-                        case RepoOpInit.RepoInitItem.AddCodeBranch addCodeBranch ->
-                                doAddCodeBranch(c, addCodeBranch);
-                        case RepoOpInit.RepoInitItem.AddEmbeddings addEmbeddings ->
-                                doAddEmbeddings(c, addEmbeddings);
-                        case RepoOpInit.RepoInitItem.AddBlameNodes addBlameNode ->
-                                doAddBlameNode(c, addBlameNode);
+                        case RepoOpInit.RepoInitItem.AddCodeBranch ignored ->
+                                doAddGitOp(c, GitOperation.ADD_BRANCH);
+                        case RepoOpInit.RepoInitItem.AddEmbeddings ignored ->
+                                doAddGitOp(c, GitOperation.SET_EMBEDDINGS);
+                        case RepoOpInit.RepoInitItem.AddBlameNodes ignored ->
+                                doAddGitOp(c, GitOperation.PARSE_BLAME_TREE);
                         case RepoOpInit.RepoInitItem.UpdateHeadNode updateHeadNode ->
                                 doAddGitOp(c, GitOperation.UPDATE_HEAD, updateHeadNode.ctx());
                     }
                 });
 
         return c;
-    }
-    private void doAddCodeBranch(RepoOpInit c, RepoOpInit.RepoInitItem.AddCodeBranch addCodeBranch) {
-        doAddGitOp(c, GitOperation.ADD_BRANCH);
-    }
-
-    private void doAddBlameNode(RepoOpInit c, RepoOpInit.RepoInitItem.AddBlameNodes addBlameNode) {
-        doAddGitOp(c, GitOperation.PARSE_BLAME_TREE);
-    }
-
-    private void doAddEmbeddings(RepoOpInit c, RepoOpInit.RepoInitItem.AddEmbeddings addEmbeddings) {
-        doAddGitOp(c, GitOperation.SET_EMBEDDINGS);
     }
 
     private void doAddGitOp(RepoOpInit c, GitOperation gitOperation) {
