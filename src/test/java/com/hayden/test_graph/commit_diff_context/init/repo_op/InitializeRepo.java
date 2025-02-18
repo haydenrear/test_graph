@@ -37,6 +37,14 @@ public class InitializeRepo implements RepoOpInitNode {
                 .orElseRes(c);
     }
 
+    /**
+     * There are many steps that use this, each one building the context object - @Then is called and it executes for all of them,
+     * and executes other things it depends on, dynamically determined at runtime.
+     * So... the graph IS used.
+     * @param c
+     * @param rd
+     * @return
+     */
     private @NotNull RepoOpInit doPerformRepoInitializations(RepoOpInit c, RepoOpInit.RepositoryData rd) {
         if (rd.url().endsWith(".tar")) {
             assertions.assertSoftly(new File(rd.url()).exists(), "Repo archive did not exist.");
@@ -85,8 +93,9 @@ public class InitializeRepo implements RepoOpInitNode {
         var added = commitDiff.callGraphQlQuery(addCodeBranchArgs);
 
         assertions.assertSoftly(added.isOk(), "Could not add %s.".formatted(gitOp), "%s branch successfully".formatted(gitOp));
-        added.e()
-                .filter(cde -> Optional.ofNullable(cde.errors()).map(l -> !l.isEmpty()).orElse(false))
+        added.e().filter(cde -> Optional.ofNullable(cde.errors())
+                        .map(l -> !l.isEmpty())
+                        .orElse(false))
                 .ifPresent(err -> assertions.assertSoftly(false, "Error on add %s: %s"
                     .formatted(gitOp, added.e().get().getMessage()), "%s completed successfully.".formatted(gitOp)));
     }

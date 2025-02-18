@@ -36,21 +36,12 @@ public class NextCommitStepDefs implements ResettableStep {
 
     @Autowired
     @ResettableThread
-    CdMbInitBubbleCtx commitDiffInit;
-    @Autowired
-    @ResettableThread
     RepoOpInit repoOpInit;
 
     @Autowired
     @ResettableThread
     CommitDiff commitDiff;
 
-    @Autowired
-    @ResettableThread
-    RepoOpAssertCtx commitDiffAssert;
-    @Autowired
-    @ResettableThread
-    CdMbInitCtx ctx;
     @Autowired
     @ResettableThread
     NextCommitAssert nextCommit;
@@ -61,7 +52,6 @@ public class NextCommitStepDefs implements ResettableStep {
 
     @Autowired
     ObjectMapper mapper;
-
     @Autowired
     CommitDiffContextMapper commitDiffContextMapper;
     @Autowired

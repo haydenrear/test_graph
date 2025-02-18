@@ -30,6 +30,7 @@ public class BlameNodeStepDefs implements ResettableStep {
     @Autowired
     @ResettableThread
     private Assertions assertions;
+
     @Autowired
     private BlameTreeRepository blameTreeRepository;
     @Autowired
@@ -40,7 +41,8 @@ public class BlameNodeStepDefs implements ResettableStep {
     @And("add blame nodes is called")
     @RegisterInitStep(RepoOpInit.class)
     public void add_commit_diff_context_blame_node() {
-        commitDiffInit.getRepoInitializations().initItems().add(new RepoOpInit.RepoInitItem.AddBlameNodes());
+        commitDiffInit.getRepoInitializations().initItems()
+                .add(new RepoOpInit.RepoInitItem.AddBlameNodes());
     }
 
     @Then("the blame node embeddings are validated to be added to the database")

@@ -8,6 +8,7 @@ import com.hayden.commitdiffmodel.convert.CommitDiffContextMapper;
 import com.hayden.commitdiffmodel.entity.CommitDiffId;
 import com.hayden.commitdiffmodel.entity.GitDiffs;
 import com.hayden.commitdiffmodel.git.GitErrors;
+import com.hayden.commitdiffmodel.git.GitFactory;
 import com.hayden.commitdiffmodel.git.RepoOperations;
 import com.hayden.commitdiffmodel.git.RepositoryHolder;
 import com.hayden.commitdiffmodel.git_factory.DiffFactory;
@@ -80,6 +81,8 @@ public class LlmValidationNextCommit implements ResettableStep {
     ObjectMapper objectMapper;
     @Autowired
     CommitDiffContextVersionRepo versionRepo;
+    @Autowired
+    GitFactory gitFactory;
 
     @Given("a postgres database to be loaded from {string} for docker-compose {string}")
     public void startPostgresDatabase(String postgresSource, String dockerCompose) {
@@ -123,7 +126,7 @@ public class LlmValidationNextCommit implements ResettableStep {
                 .setDirectory(repoData.clonedUri().toFile())
                 .setFs(FS.detect())
                 .call();
-             var rh = new RepositoryHolder(g, mapper)
+             var rh = gitFactory.repositoryHolder(g)
         ) {
             var secondTo = RepoOperations.walkBackwardFromBranch(repoData.branchName(), g)
                     .flatMapResult(iter -> {

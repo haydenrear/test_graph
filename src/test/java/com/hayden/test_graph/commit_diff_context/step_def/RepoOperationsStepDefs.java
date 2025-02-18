@@ -34,13 +34,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
 
     @Autowired
     @ResettableThread
-    CommitDiff commitDiff;
-
-    @Autowired
-    @ResettableThread
     RepoOpAssertCtx commitDiffAssert;
-    @Autowired
-    CdMbInitCtx ctx;
 
     @Autowired
     @ResettableThread
@@ -50,6 +44,8 @@ public class RepoOperationsStepDefs implements ResettableStep {
     CodeBranchRepository codeBranchRepository;
     @Autowired
     PathMatchingResourcePatternResolver resolver;
+    @Autowired
+    CdMbInitCtx ctx;
 
     @And("there is a repository at the url {string}")
     @RegisterInitStep(RepoOpInit.class)
