@@ -11,6 +11,7 @@ import org.mbtest.javabank.http.responses.Is;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -21,9 +22,13 @@ public interface ModelServerCdMbInit {
     default @NotNull Stream<Imposter> getAiServerImposter(CdMbInitCtx ctx,
                                                           CdMbInitCtx.AiServerResponse.AiServerResponseType aiServerResponseType) {
         var responses = ctx.getServerResponses();
-        return responses.responses().stream()
+        var res = responses.responses().stream()
                 .filter(ai -> ai.responseType() == aiServerResponseType)
-                .flatMap(a -> fromRes(a).stream());
+                .sorted(Comparator.comparing(CdMbInitCtx.AiServerResponseDescriptor::count))
+                .flatMap(a -> fromRes(a).stream())
+                .toList();
+
+        return res.stream();
     }
 
     default Optional<Imposter> fromRes(CdMbInitCtx.AiServerResponseDescriptor response) {
@@ -40,8 +45,9 @@ public interface ModelServerCdMbInit {
                 .or(() -> {log.info("Response string was not found for mountebank."); return Optional.empty();})
                 .orElse(null);
 
-        if (response.count() != -1)
-            res = res.withCount(response.count());
+        if (response.count() != -1) {
+            res = res.withRepeat(response.repeat());
+        }
 
         stub = stub.addResponse(res);
 
@@ -54,6 +60,7 @@ public interface ModelServerCdMbInit {
 
         Imposter imposter = new Imposter();
         imposter = imposter.onPort(response.requestData().port())
+                .withRequestsRecorded(true)
                 .addStub(stub);
 
         return Optional.of(imposter);

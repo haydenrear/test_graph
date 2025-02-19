@@ -28,9 +28,9 @@ public class CdMbInitCtx implements MbInitCtx {
 
     public record ModelServerRequestData(String urlPath, int httpStatusCode, int port) {}
 
-    public record AiServerResponseDescriptor(int count, @Delegate AiServerResponse response) {
+    public record AiServerResponseDescriptor(int count, int repeat, @Delegate AiServerResponse response) {
         public AiServerResponseDescriptor(AiServerResponse response) {
-            this(1, response);
+            this(-1, 1, response);
         }
     }
 
@@ -97,7 +97,7 @@ public class CdMbInitCtx implements MbInitCtx {
     }
 
     public void addAiServerResponse(AiServerResponse serverResponse) {
-        addAiServerResponse(serverResponse, 1);
+        addAiServerResponse(serverResponse, -1);
     }
 
     public void addAiServerResponse(AiServerResponse serverResponse, int count) {
@@ -109,7 +109,7 @@ public class CdMbInitCtx implements MbInitCtx {
             t = serverResponses.res().get();
         }
 
-        t.responses.add(new AiServerResponseDescriptor(count, serverResponse));
+        t.responses.add(new AiServerResponseDescriptor(count, 1, serverResponse));
     }
 
     @Autowired

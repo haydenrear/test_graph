@@ -3,10 +3,13 @@ package com.hayden.test_graph.commit_diff_context.step_def;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hayden.commitdiffmodel.codegen.types.*;
+import com.hayden.commitdiffmodel.config.ModelServerRequestConfigProps;
 import com.hayden.commitdiffmodel.convert.CommitDiffContextMapper;
 import com.hayden.commitdiffmodel.repo_actions.GitHandlerActions;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit.NextCommitAssert;
+import com.hayden.test_graph.commit_diff_context.config.CommitDiffContextConfigProps;
+import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.steps.RegisterAssertStep;
@@ -18,6 +21,7 @@ import com.hayden.utilitymodule.result.error.SingleError;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import lombok.extern.slf4j.Slf4j;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
@@ -48,11 +52,17 @@ public class NextCommitStepDefs implements ResettableStep {
     Assertions assertions;
 
     @Autowired
+    @ResettableThread
+    CdMbInitCtx cdMbInitCtx;
+
+    @Autowired
     ObjectMapper mapper;
     @Autowired
     CommitDiffContextMapper commitDiffContextMapper;
     @Autowired
     PathMatchingResourcePatternResolver resourcePatternResolver;
+    @Autowired
+    CommitDiffContextConfigProps contextConfigProps;
 
     @And("a request for the next commit is provided with the commit message being provided from {string}")
     @RegisterInitStep(value = {RepoOpInit.class})
@@ -155,6 +165,20 @@ public class NextCommitStepDefs implements ResettableStep {
         } catch (IOException e) {
             assertions.assertStrongly(false, "Could not parse commit message: " + commitMessageJson + "\n" + SingleError.parseStackTraceToString(e));
             return null;
+        }
+    }
+
+    @Then("the mountebank requests for the toolset existed")
+    public void theMountebankRequestsForTheToolsetExisted() {
+        try {
+            var i = cdMbInitCtx.client().getImposter(contextConfigProps.getModelServerPort());
+            for (var req : i.getRequests()) {
+                System.out.println(req.getBody());
+                System.out.println();
+            }
+        } catch (ParseException e) {
+            assertions.assertSoftly(false, "Could not retrieve imposter for model server: %s",
+                    SingleError.parseStackTraceToString(e));
         }
     }
 }

@@ -22,7 +22,9 @@ public class ModelServerResponseNode implements CdMbInitNode, ModelServerCdMbIni
     private static final Comparator<CdMbInitCtx.AiServerResponse.AiServerResponseType> RES = new Comparator<>() {
 
         List<CdMbInitCtx.AiServerResponse.AiServerResponseType> SERVER = List.of(
-                CdMbInitCtx.AiServerResponse.AiServerResponseType.TOOLSET
+                CdMbInitCtx.AiServerResponse.AiServerResponseType.EMBEDDING,
+                CdMbInitCtx.AiServerResponse.AiServerResponseType.INITIAL_CODE,
+                CdMbInitCtx.AiServerResponse.AiServerResponseType.CODEGEN
         );
 
         @Override
@@ -35,17 +37,6 @@ public class ModelServerResponseNode implements CdMbInitNode, ModelServerCdMbIni
     @SneakyThrows
     @Override
     public Stream<Imposter> createGetImposters(CdMbInitCtx ctx) {
-//        var s = new ModelContextProtocolClientAdapter();
-//        var m = Map.of("name", "query", "arguments", Map.of("sql", "SELECT * FROM commit_diff"));
-//        var r = new McpSchema.JSONRPCRequest("2.0", "tools/call", "whatever!", m);
-//        var called = s.doCallClient(
-//                new ModelContextProtocolClientAdapter.CallClientParams(ServerParameters.builder("docker")
-//                        .args("run", "-i", "--rm", "mcp/postgres", "postgresql://postgres:postgres@host.docker.internal:5450/postgres")
-//                        .build(),
-//                        r)
-//                )
-//                .block();
-//        Thread.sleep(20000);
         return Arrays.stream(CdMbInitCtx.AiServerResponse.AiServerResponseType.values())
                 .sorted(RES)
                 .flatMap(n -> getAiServerImposter(ctx, n));
