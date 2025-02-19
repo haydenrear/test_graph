@@ -42,21 +42,29 @@ public class StartDockerNode implements DockerInitNode {
     private final Assertions assertions;
 
     @Override
+    public boolean skip(DockerInitCtx initCtx) {
+        if (dockerInitConfigProps.isSkipStartDocker()) {
+            initCtx.getStarted().swap(true);
+        }
+        return dockerInitConfigProps.isSkipStartDocker();
+    }
+
+    @Override
     public DockerInitCtx exec(DockerInitCtx c, MetaCtx h) {
-//        c.composePath()
-//                .optional()
-//                .ifPresentOrElse(
-//                        p -> initializeDockerCompose(c, dockerInitConfigProps),
-//                        () -> log.info("Skipping initialization of docker compose as file was not set."));
-//        Result.tryFrom(() -> {
-//                    return DockerClientBuilder.getInstance()
-//                            .withDockerHttpClient(new ZerodepDockerHttpClient.Builder().dockerHost(URI.create(dockerInitConfigProps.getDockerHostUri()))
-//                                    .responseTimeout(Duration.ofSeconds(dockerInitConfigProps.getDockerResponseTimeout())).build())
-//                            .build();
-//                })
-//                .exceptEmpty(exc -> assertions.assertSoftly(false, "Failed to retrieve docker client for waiting for container to start: %s", exc.getMessage()))
-//                .ifPresent((DockerClient dc) -> dockerInitConfigProps.getContainers()
-//                        .forEach(container -> awaitLogMessage(container.log(), dc, container.containerName())));
+        c.composePath()
+                .optional()
+                .ifPresentOrElse(
+                        p -> initializeDockerCompose(c, dockerInitConfigProps),
+                        () -> log.info("Skipping initialization of docker compose as file was not set."));
+        Result.tryFrom(() -> {
+                    return DockerClientBuilder.getInstance()
+                            .withDockerHttpClient(new ZerodepDockerHttpClient.Builder().dockerHost(URI.create(dockerInitConfigProps.getDockerHostUri()))
+                                    .responseTimeout(Duration.ofSeconds(dockerInitConfigProps.getDockerResponseTimeout())).build())
+                            .build();
+                })
+                .exceptEmpty(exc -> assertions.assertSoftly(false, "Failed to retrieve docker client for waiting for container to start: %s", exc.getMessage()))
+                .ifPresent((DockerClient dc) -> dockerInitConfigProps.getContainers()
+                        .forEach(container -> awaitLogMessage(container.log(), dc, container.containerName())));
 
 
         c.getStarted().swap(true);

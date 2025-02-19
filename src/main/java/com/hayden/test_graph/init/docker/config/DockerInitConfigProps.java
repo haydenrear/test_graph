@@ -14,6 +14,12 @@ public class DockerInitConfigProps {
 
     public record AwaitableContainer(String containerName, String log) {}
 
+    boolean skipDocker;
+
+    boolean skipStartDocker;
+
+    boolean skipBuildDocker;
+
     String host;
 
     String dockerHostUri;

@@ -14,4 +14,6 @@ public interface TestGraphNode<T extends TestGraphContext<H>, H extends HyperGra
      */
     Class<? extends T> clzz();
 
+
+
 }

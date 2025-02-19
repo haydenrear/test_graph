@@ -18,6 +18,10 @@ public non-sealed interface TestGraphContext<H extends HyperGraphContext>
 
     boolean executableFor(GraphExec.GraphExecNode n);
 
+    default boolean skip() {
+        return false;
+    }
+
     default Optional<Class<? extends TestGraphContext>> parentTy() {
         return Optional.empty();
     }

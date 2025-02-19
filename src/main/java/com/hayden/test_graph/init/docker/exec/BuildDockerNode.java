@@ -42,26 +42,31 @@ public class BuildDockerNode implements DockerInitNode {
     private final Assertions assertions;
 
     @Override
+    public boolean skip(DockerInitCtx dockerInitCtx) {
+        return dockerInitConfigProps.isSkipBuildDocker();
+    }
+
+    @Override
     public DockerInitCtx exec(DockerInitCtx c, MetaCtx h) {
-//        Result.tryFrom(() -> {
-//                    return DockerClientBuilder.getInstance()
-//                            .withDockerHttpClient(new ZerodepDockerHttpClient.Builder().dockerHost(URI.create(dockerInitConfigProps.getDockerHostUri()))
-//                                    .responseTimeout(Duration.ofSeconds(dockerInitConfigProps.getDockerResponseTimeout())).build())
-//                            .build();
-//                })
-//                .exceptEmpty(exc -> assertions.assertSoftly(false, "Failed to retrieve docker client for waiting for container to start: %s", exc.getMessage()))
-//                .ifPresent((DockerClient dc) -> {
-//                    var allImages = dc.listImagesCmd().withShowAll(true).exec();
-//                    for (var toAsserImage : c.getContainers()) {
-//                        if (allImages.stream()
-//                                .noneMatch(img -> Arrays.stream(img.getRepoTags())
-//                                    .anyMatch(tag -> Objects.equals(toAsserImage.imageName(), tag)))) {
-//                            assertions.assertSoftly(false, "%s image did not exist in Docker.".formatted(toAsserImage.imageName()));
-//                        } else {
-//                            assertions.assertSoftly(true, "%s image existed.".formatted(toAsserImage.imageName()));
-//                        }
-//                    }
-//                });
+        Result.tryFrom(() -> {
+                    return DockerClientBuilder.getInstance()
+                            .withDockerHttpClient(new ZerodepDockerHttpClient.Builder().dockerHost(URI.create(dockerInitConfigProps.getDockerHostUri()))
+                                    .responseTimeout(Duration.ofSeconds(dockerInitConfigProps.getDockerResponseTimeout())).build())
+                            .build();
+                })
+                .exceptEmpty(exc -> assertions.assertSoftly(false, "Failed to retrieve docker client for waiting for container to start: %s", exc.getMessage()))
+                .ifPresent((DockerClient dc) -> {
+                    var allImages = dc.listImagesCmd().withShowAll(true).exec();
+                    for (var toAsserImage : c.getContainers()) {
+                        if (allImages.stream()
+                                .noneMatch(img -> Arrays.stream(img.getRepoTags())
+                                    .anyMatch(tag -> Objects.equals(toAsserImage.imageName(), tag)))) {
+                            assertions.assertSoftly(false, "%s image did not exist in Docker.".formatted(toAsserImage.imageName()));
+                        } else {
+                            assertions.assertSoftly(true, "%s image existed.".formatted(toAsserImage.imageName()));
+                        }
+                    }
+                });
 
 
         return c;

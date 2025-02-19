@@ -5,12 +5,16 @@ commit-diff-context:
   model-server-port: 9991
 
 docker-init-ctx:
+  skip-docker: true
+  skip-build-docker: true
+  skip-start-docker: true
   host: localhost
   containers:
     - container-name: "commit-diff-server"
       log: "Tomcat started on port"
   docker-host-uri: "unix:///Users/hayde/.docker/run/docker.sock"
   docker-response-timeout: 30
+
 
 
 #db.validation:

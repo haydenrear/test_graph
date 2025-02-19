@@ -61,6 +61,8 @@ public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble>
     @Idempotent
     public AssertBubble exec(Class<? extends AssertCtx> ctx, MetaCtx prev) {
         var collected = this.initExec.collectCtx(ctx, prev);
+        if (collected.skip())
+            return collected;
         var c = edgeExec.postReducePreExecTestGraph(this, collected, prev);
         prev = edgeExec.postReducePreExecMetaCtx(this, collected, prev);
         collected = c.preMap(collected, prev);
@@ -93,7 +95,7 @@ public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble>
 
     private AssertBubble execInner(AssertBubble c, MetaCtx metaCtx) {
         for (var b : bubbleGraph.sortedNodes()) {
-            if (c.executableFor(b))
+            if (c.executableFor(b) && !c.skip())
                 c = b.exec(c, metaCtx);
         }
         return c;

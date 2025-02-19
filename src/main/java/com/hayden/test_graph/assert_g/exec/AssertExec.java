@@ -42,9 +42,8 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
     AssertGraph initGraph;
 
     @Override
-    public AssertBubble exec(AssertCtx initCtx, AssertBubble prev, MetaCtx metaCtx) {
-        var nodes = Optional.ofNullable(this.initGraph.sortedNodes().get(initCtx.getClass()))
-                .orElse(new ArrayList<>());
+    public AssertBubble execInner(AssertCtx initCtx, AssertBubble prev, MetaCtx metaCtx) {
+        var nodes = this.initGraph.toRunSortedNodes(initCtx);
         var toExec = retrieveToExec(initCtx, prev, metaCtx);
         initCtx = toExec.preMap(initCtx, metaCtx, nodes);
         initCtx = toExec.exec(initCtx, metaCtx, nodes);
@@ -60,11 +59,6 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
         return Optional.ofNullable(prev)
                 .map(ib -> edgeExec.edges(this, initCtx, ib, metaCtx))
                 .orElseGet(() -> edgeExec.edges(this, initCtx, metaCtx));
-    }
-
-    @Override
-    public AssertBubble exec(AssertCtx initCtx, MetaCtx metaCtx) {
-        return exec(initCtx, null, metaCtx);
     }
 
     @Override

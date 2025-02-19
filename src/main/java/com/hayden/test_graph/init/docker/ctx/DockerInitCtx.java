@@ -3,6 +3,7 @@ package com.hayden.test_graph.init.docker.ctx;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitCtx;
+import com.hayden.test_graph.init.docker.config.DockerInitConfigProps;
 import com.hayden.test_graph.init.docker.exec.DockerInitNode;
 import com.hayden.test_graph.init.docker.exec.StartDockerNode;
 import com.hayden.test_graph.thread.ResettableThread;
@@ -41,6 +42,17 @@ public class DockerInitCtx implements InitCtx {
     public record AssertContainer(String imageName) {}
 
     private DockerInitBubbleCtx dockerInitBubbleCtx;
+
+    @Autowired
+    private DockerInitConfigProps dockerInitConfigProps;
+
+    @Override
+    public boolean skip() {
+        if (dockerInitConfigProps.isSkipDocker()) {
+            getStarted().swap(true);
+        }
+        return dockerInitConfigProps.isSkipDocker();
+    }
 
     @Autowired
     public void setDockerInitBubbleCtx(DockerInitBubbleCtx dockerInitBubbleCtx) {

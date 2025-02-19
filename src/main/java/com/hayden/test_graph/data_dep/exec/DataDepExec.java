@@ -60,9 +60,8 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
     DataDepGraph dataDepGraph;
 
     @Override
-    public DataDepBubble exec(DataDepCtx initCtx, DataDepBubble prev, MetaCtx metaCtx) {
-        var nodes = Optional.ofNullable(this.dataDepGraph.sortedNodes().get(initCtx.getClass()))
-                .orElse(new ArrayList<>());
+    public DataDepBubble execInner(DataDepCtx initCtx, DataDepBubble prev, MetaCtx metaCtx) {
+        var nodes = this.dataDepGraph.toRunSortedNodes(initCtx);
         var toExec = retrieveToExec(initCtx, prev, metaCtx);
         initCtx = toExec.preMap(initCtx, metaCtx, nodes);
         initCtx = toExec.exec(initCtx, metaCtx, nodes);
@@ -80,10 +79,7 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
                 .orElseGet(() -> edgeExec.edges(this, initCtx, metaCtx));
     }
 
-    @Override
-    public DataDepBubble exec(DataDepCtx initCtx, MetaCtx metaCtx) {
-        return exec(initCtx, null, metaCtx);
-    }
+
 
     @Override
     public List<DataDepExec.DataDepReducer> reducers() {
@@ -102,7 +98,10 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
 
     @Override
     public DataDepBubble collectCtx(Class<? extends DataDepCtx> toCollect, MetaCtx metaCtx) {
-        List<? extends DataDepCtx> intCtx = this.dataDepGraph.sortedCtx(toCollect);
+        List<? extends DataDepCtx> intCtx = this.dataDepGraph.sortedCtx(toCollect)
+                .stream()
+                .map(ac -> this.edgeExec.preExecTestGraphEdges(ac, metaCtx))
+                .toList();
         if (intCtx.isEmpty()) {
             logBubbleError();
             return null;
@@ -113,7 +112,7 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
             return GraphExec.chainCtx(
                             this.reducers(),
                             intCtx,
-                            p -> doExec(metaCtx, p, prev)
+                            p ->doExec(metaCtx, p, prev)
                     )
                     .orElseGet(() -> {
                         logBubbleError();

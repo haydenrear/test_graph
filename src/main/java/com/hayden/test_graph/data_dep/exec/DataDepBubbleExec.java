@@ -58,6 +58,8 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
     @Idempotent
     public DataDepBubble exec(Class<? extends DataDepCtx> ctx, MetaCtx prev) {
         DataDepBubble collected = this.initExec.collectCtx(ctx, prev);
+        if (collected.skip())
+            return collected;
         var c = edgeExec.postReducePreExecTestGraph(this, collected, prev);
         prev = edgeExec.postReducePreExecMetaCtx(this, collected, prev);
         collected = c.preMap(collected, prev);
@@ -92,7 +94,7 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
 
     private DataDepBubble execInner(DataDepBubble c, MetaCtx metaCtx) {
         for (var b : bubbleGraph.sortedNodes()) {
-            if (c.executableFor(b))
+            if (c.executableFor(b) && !c.skip())
                 c = b.exec(c, metaCtx);
         }
         return c;

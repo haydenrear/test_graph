@@ -60,6 +60,9 @@ public class InitBubbleExec implements HyperGraphExec<InitCtx, InitBubble> {
     @Idempotent
     public InitBubble exec(Class<? extends InitCtx> ctx, MetaCtx prev) {
         var collected = this.initExec.collectCtx(ctx, prev);
+        if (collected.skip())
+            return collected;
+
         var c = edgeExec.postReducePreExecTestGraph(this, collected, prev);
         prev = edgeExec.postReducePreExecMetaCtx(this, collected, prev);
         collected = c.preMap(collected, prev);
@@ -94,7 +97,7 @@ public class InitBubbleExec implements HyperGraphExec<InitCtx, InitBubble> {
 
     private InitBubble execInner(InitBubble c, MetaCtx metaCtx) {
         for (var b : bubbleGraph.sortedNodes()) {
-            if (c.executableFor(b))
+            if (c.executableFor(b) && !c.skip())
                 c = b.exec(c, metaCtx);
         }
         return c;

@@ -52,5 +52,4 @@ public class InitGraph implements TestGraph<InitCtx, InitBubble> {
     }
 
 
-
 }

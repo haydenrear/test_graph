@@ -2,6 +2,9 @@ package com.hayden.test_graph.exec.single;
 
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
+import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
+import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.utilitymodule.fn.Reducer;
 import org.jetbrains.annotations.NotNull;
@@ -22,20 +25,45 @@ public interface GraphExec<CTX extends TestGraphContext> {
 
     interface ExecNode<CTX extends TestGraphContext<H>, H extends HyperGraphContext> extends GraphExec<CTX> {
 
-        H collectCtx(Class<? extends CTX> toCollect, @Nullable MetaCtx h) ;
+        default H exec(CTX initCtx, MetaCtx metaCtx) {
+            return this.exec(initCtx, null, metaCtx);
+        }
 
         default H collectCtx(Class<? extends CTX> toCollect) {
             return collectCtx(toCollect, null);
         }
 
-        H exec(CTX c, MetaCtx metaCtx);
+        default H exec(CTX c, H prev, MetaCtx metaCtx) {
+            if (c.skip()) {
+                log.info("Skipping exec {}", c.getClass().getName());
+                return c.bubble();
+            }
+            return execInner(c, prev, metaCtx);
+        }
 
-        H exec(CTX c, H prev, MetaCtx metaCtx);
+        H collectCtx(Class<? extends CTX> toCollect, @Nullable MetaCtx h) ;
+
+        H execInner(CTX c, H prev, MetaCtx metaCtx);
+
+
+        default boolean skipFilter(CTX i) {
+            if (i.skip()) {
+                log.info("Skipping exec of {}.", i.getClass().getSimpleName());
+                return false;
+            }
+
+            return true;
+        }
+
 
     }
 
 
     interface GraphExecNode<CTX extends TestGraphContext> extends GraphExec<CTX> {
+
+        default boolean skip(CTX t) {
+            return false;
+        }
 
         default CTX preMap(CTX c, MetaCtx h) {
             return c;

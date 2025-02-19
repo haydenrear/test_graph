@@ -1,6 +1,5 @@
 package com.hayden.test_graph.init.exec;
 
-import com.hayden.test_graph.assert_g.ctx.AssertCtx;
 import com.hayden.test_graph.graph.edge.EdgeExec;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitBubble;
@@ -43,9 +42,8 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
     InitGraph initGraph;
 
     @Override
-    public InitBubble exec(InitCtx initCtx, InitBubble prev, MetaCtx metaCtx) {
-        var nodes = Optional.ofNullable(this.initGraph.sortedNodes().get(initCtx.getClass()))
-                .orElse(new ArrayList<>());
+    public InitBubble execInner(InitCtx initCtx, InitBubble prev, MetaCtx metaCtx) {
+        var nodes = this.initGraph.toRunSortedNodes(initCtx);
         var toExec = retrieveToExec(initCtx, prev, metaCtx);
         initCtx = toExec.preMap(initCtx, metaCtx, nodes);
         initCtx = toExec.exec(initCtx, metaCtx, nodes);
@@ -61,11 +59,6 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
         return Optional.ofNullable(prev)
                 .map(ib -> edgeExec.edges(this, initCtx, ib, metaCtx))
                 .orElseGet(() -> edgeExec.edges(this, initCtx, metaCtx));
-    }
-
-    @Override
-    public InitBubble exec(InitCtx initCtx, MetaCtx metaCtx) {
-        return exec(initCtx, null, metaCtx);
     }
 
     @Override
