@@ -25,7 +25,7 @@ import java.util.*;
 @Component
 @ResettableThread
 @RequiredArgsConstructor
-public final class RepoOpInit implements InitCtx {
+public class RepoOpInit implements InitCtx {
 
     private Assertions assertions;
 

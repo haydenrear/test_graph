@@ -1,5 +1,7 @@
 package com.hayden.test_graph.action;
 
+import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.test_graph.thread.ResettableThreadLike;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -29,7 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @Aspect
 @Component
 @Slf4j
-public class IdempotentAspect implements ApplicationContextAware {
+public class IdempotentAspect implements ApplicationContextAware, ResettableThreadLike {
 
     private final ConcurrentHashMap<CacheValue, DelayedAction> delays = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Class<? extends DoRunAgain>, DoRunAgain> runAgain = new ConcurrentHashMap<>();
@@ -101,6 +103,12 @@ public class IdempotentAspect implements ApplicationContextAware {
         );
 
         return r.ret == voidObj ? null : r.ret;
+    }
+
+    @Override
+    public void preReset() {
+        this.delays.clear();
+        this.runAgain.clear();
     }
 
     private void addRunAgain(Idempotent idempotent) {

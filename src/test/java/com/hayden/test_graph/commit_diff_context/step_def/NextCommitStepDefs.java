@@ -1,9 +1,9 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hayden.commitdiffmodel.codegen.types.*;
-import com.hayden.commitdiffmodel.config.ModelServerRequestConfigProps;
 import com.hayden.commitdiffmodel.convert.CommitDiffContextMapper;
 import com.hayden.commitdiffmodel.repo_actions.GitHandlerActions;
 import com.hayden.test_graph.assertions.Assertions;
@@ -21,6 +21,7 @@ import com.hayden.utilitymodule.result.error.SingleError;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.util.Lists;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -28,7 +29,8 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -172,13 +174,39 @@ public class NextCommitStepDefs implements ResettableStep {
     public void theMountebankRequestsForTheToolsetExisted() {
         try {
             var i = cdMbInitCtx.client().getImposter(contextConfigProps.getModelServerPort());
+            List<String> tyHeaders = new ArrayList<>();
             for (var req : i.getRequests()) {
-                System.out.println(req.getBody());
-                System.out.println();
+                var h = req.getHeaders();
+                addHeaderIfExists(h, tyHeaders, "EMBEDDING");
+                addHeaderIfExists(h, tyHeaders, "CODEGEN");
+                addHeaderIfExists(h, tyHeaders, "INITIAL_CODE");
+                var read = mapper.readValue(req.getBody(), new TypeReference<Map<String, Object>>() {});
+                assertions.reportAssert("Found response for %s", read);
             }
-        } catch (ParseException e) {
+
+            assertions.assertSoftly(tyHeaders.containsAll(Lists.newArrayList("EMBEDDING", "CODEGEN", "INITIAL_CODE")),
+                    "Ty headers %s did not exist.".formatted(tyHeaders));
+            var res = cdMbInitCtx.getServerResponses().responses().stream()
+                    .collect(Collectors.groupingBy(CdMbInitCtx.AiServerResponseDescriptor::responseType));
+
+            res.keySet().forEach(ai -> {
+                var c = tyHeaders.stream()
+                        .filter(a -> a.equals(ai.name())).count();
+                assertions.assertSoftly(c >= res.get(ai).size(), "Correct number of requests received: %s, %s.".formatted(c, res.get(ai).size()));
+            });
+
+            res.keySet().forEach(ai -> assertions.assertSoftly(!res.get(ai).isEmpty(), "No request received for %s."
+                    .formatted(ai)));
+        } catch (ParseException | JsonProcessingException e) {
             assertions.assertSoftly(false, "Could not retrieve imposter for model server: %s",
                     SingleError.parseStackTraceToString(e));
         }
+    }
+
+    private void addHeaderIfExists(Map<String, Object> h, List<String> tyHeaders, String embedding) {
+        Optional.ofNullable(h.get(embedding))
+                .map(s -> embedding)
+                .map(Object::toString)
+                .ifPresent(tyHeaders::add);
     }
 }

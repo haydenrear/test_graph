@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ResettableThread
 @RequiredArgsConstructor
-public final class CommitDiffInit implements InitCtx {
+public class CommitDiffInit implements InitCtx {
 
     private final ContextValue<CommitDiffInitBubble> bubbleUnderlying;
 

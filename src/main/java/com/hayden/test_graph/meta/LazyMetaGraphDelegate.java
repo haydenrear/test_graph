@@ -8,6 +8,7 @@ import com.hayden.test_graph.graph.Graph;
 import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.meta.graph.MetaGraph;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.test_graph.thread.ResettableThreadLike;
 import com.hayden.utilitymodule.sort.GraphSort;
 import lombok.Getter;
 import lombok.experimental.Delegate;

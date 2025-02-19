@@ -11,55 +11,64 @@ import org.mbtest.javabank.http.responses.Is;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Comparator;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 public interface ModelServerCdMbInit {
 
     Logger log = LoggerFactory.getLogger(ModelServerCdMbInit.class);
 
-    default @NotNull Stream<Imposter> getAiServerImposter(CdMbInitCtx ctx,
-                                                          CdMbInitCtx.AiServerResponse.AiServerResponseType aiServerResponseType) {
-        var responses = ctx.getServerResponses();
-        var res = responses.responses().stream()
-                .filter(ai -> ai.responseType() == aiServerResponseType)
-                .sorted(Comparator.comparing(CdMbInitCtx.AiServerResponseDescriptor::count))
-                .flatMap(a -> fromRes(a).stream())
-                .toList();
-
-        return res.stream();
+    default @NotNull Stream<Imposter> getAiServerImposter(List<CdMbInitCtx.AiServerResponseDescriptor> aiServerResponseType) {
+        return fromRes(aiServerResponseType).stream();
     }
 
-    default Optional<Imposter> fromRes(CdMbInitCtx.AiServerResponseDescriptor response) {
+    default Optional<Imposter> fromRes(List<CdMbInitCtx.AiServerResponseDescriptor> aiResponses) {
+
+        if (aiResponses.isEmpty())
+            return Optional.empty();
+
+        var nextResponse = aiResponses.getFirst();
+        var next = nextResponse.requestData();
+
+        aiResponses.sort(Comparator.comparing(CdMbInitCtx.AiServerResponseDescriptor::count));
 
         Stub stub = new Stub();
 
-        CdMbInitCtx.ModelServerRequestData modelServerRequestData = response.requestData();
+        for (CdMbInitCtx.AiServerResponseDescriptor nextAiResponse : aiResponses) {
+            assert nextAiResponse != null;
+            assert nextAiResponse.requestData().port() == next.port();
+            assert Objects.equals(nextAiResponse.requestData().urlPath(), next.urlPath());
 
-        Is res = new Is();
+            CdMbInitCtx.ModelServerRequestData modelServerRequestData = nextAiResponse.requestData();
 
-        res = res.withStatusCode(modelServerRequestData.httpStatusCode());
-        res = response.getResponseAsString()
-                .map(res::withBody)
-                .or(() -> {log.info("Response string was not found for mountebank."); return Optional.empty();})
-                .orElse(null);
+            Is res = new Is();
 
-        if (response.count() != -1) {
-            res = res.withRepeat(response.repeat());
+            res = res.withStatusCode(modelServerRequestData.httpStatusCode());
+            res = nextAiResponse.getResponseAsString()
+                    .map(res::withBody)
+                    .or(() -> {
+                        log.info("Response string was not found for mountebank.");
+                        return Optional.empty();
+                    })
+                    .orElse(null);
+
+            if (nextAiResponse.count() != -1) {
+                res = res.withRepeat(nextAiResponse.repeat());
+            }
+
+            stub.addResponse(res);
         }
 
-        stub = stub.addResponse(res);
 
         Predicate header = new Predicate(PredicateType.EQUALS);
 
-        header = header.withPath(modelServerRequestData.urlPath())
-                .addHeader(getHeaderToMatch(response), "true");
+        header = header.withPath(next.urlPath())
+                .addHeader(getHeaderToMatch(nextResponse), "true");
 
         stub = stub.addPredicates(Lists.newArrayList(header));
 
         Imposter imposter = new Imposter();
-        imposter = imposter.onPort(response.requestData().port())
+        imposter = imposter.onPort(nextResponse.requestData().port())
                 .withRequestsRecorded(true)
                 .addStub(stub);
 

@@ -4,6 +4,7 @@ Feature: Perform next commit
 
   @commit_diff_context_compose
   @all
+  @next_commit_only_no_toolset
   @next_commit_only
   Scenario Outline: generate next commit without toolset.
 #    Given docker-compose is started from "<composePath>"
@@ -20,15 +21,16 @@ Feature: Perform next commit
     When the repo is added to the database by calling commit diff context
     And a request for the next commit is sent to the server with the next commit information provided previously
     Then a branch with name "<branchName>" will be added to the database
-
+    Then the blame node embeddings are validated to be added to the database
     Then the response from retrieving next commit can be applied to the repository as a git diff
     Examples:
       | repoUrl        | branchName | composePath                                                                                     |
       | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
 
 
-#  @commit_diff_context_compose
-#  @all
+  @commit_diff_context_compose
+  @all
+  @next_commit_only
   @next_commit_only_retry_initial
   Scenario Outline: generate next commit with toolset request when asking for initial code to match on.
 #    Given docker-compose is started from "<composePath>"
@@ -57,6 +59,7 @@ Feature: Perform next commit
 
   @commit_diff_context_compose
   @all
+  @next_commit_only
   @next_commit_only_retry_codegen
   Scenario Outline: generate next commit with toolset request when asking for next commit code.
 #    Given docker-compose is started from "<composePath>"

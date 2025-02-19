@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Optional;
 
+
 public class RepoOperationsStepDefs implements ResettableStep {
 
     @Autowired
@@ -40,11 +41,19 @@ public class RepoOperationsStepDefs implements ResettableStep {
     Assertions assertions;
 
     @Autowired
+    @ResettableThread
+    CdMbInitCtx ctx;
+
+    @Autowired
     CodeBranchRepository codeBranchRepository;
     @Autowired
     PathMatchingResourcePatternResolver resolver;
+
     @Autowired
-    CdMbInitCtx ctx;
+    @ResettableThread
+    public void setCommitDiffInit(RepoOpInit commitDiffInit) {
+        this.commitDiffInit = commitDiffInit;
+    }
 
     @And("there is a repository at the url {string}")
     @RegisterInitStep(RepoOpInit.class)

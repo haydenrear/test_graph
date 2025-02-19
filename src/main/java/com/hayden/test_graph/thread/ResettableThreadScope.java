@@ -21,12 +21,12 @@ public class ResettableThreadScope implements Scope {
             "SimpleThreadScope", HashMap::new);
 
     public void reset() {
-        threadScope.remove();
+        threadScope.get().clear();
     }
 
     @Override
     public Object get(String name, ObjectFactory<?> objectFactory) {
-        Map<String, Object> scope = this.threadScope.get();
+        Map<String, Object> scope = threadScope.get();
         // NOTE: Do NOT modify the following to use Map::computeIfAbsent. For details,
         // see https://github.com/spring-projects/spring-framework/issues/25801.
         Object scopedObject = scope.get(name);
