@@ -3,7 +3,7 @@ Feature: Perform repo operations
 
   @add_branch @all
   Scenario Outline: add branch is called and validated.
-#    Given docker-compose is started from "<composePath>"
+    Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
     And There exists a response type of "EMBEDDING" in the file location "classpath:responses/embedding_response.json" for model server endpoint "/ai_suite_gemini_embedding" on port "9991"
@@ -15,7 +15,7 @@ Feature: Perform repo operations
 
   @add_embeddings @all
   Scenario Outline: add embeddings is called and validated.
-#    Given docker-compose is started from "<composePath>"
+    Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
     And the embeddings for the branch should be added
@@ -30,7 +30,7 @@ Feature: Perform repo operations
   @add_blame_node
   @all
   Scenario Outline: add blame nodes is called and validated.
-#    Given docker-compose is started from "<composePath>"
+    Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
     And the embeddings for the branch should be added

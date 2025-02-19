@@ -33,7 +33,7 @@ Feature: Perform next commit
   @next_commit_only
   @next_commit_only_retry_initial
   Scenario Outline: generate next commit with toolset request when asking for initial code to match on.
-#    Given docker-compose is started from "<composePath>"
+    Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
     And the embeddings for the branch should be added
@@ -62,7 +62,7 @@ Feature: Perform next commit
   @next_commit_only
   @next_commit_only_retry_codegen
   Scenario Outline: generate next commit with toolset request when asking for next commit code.
-#    Given docker-compose is started from "<composePath>"
+    Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
     And the embeddings for the branch should be added
