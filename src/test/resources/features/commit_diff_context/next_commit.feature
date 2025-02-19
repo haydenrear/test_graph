@@ -39,10 +39,10 @@ Feature: Perform next commit
     And a request for the next commit is provided with the staged information being provided from "classpath:responses/staged.json"
     And a request for the next commit is provided with the contextData being provided from "classpath:responses/context-data.json"
     And a request for the next commit is provided with the previous requests being provided from "classpath:responses/previous-requests.json"
+    And There exists a response type of "EMBEDDING" in the file location "classpath:responses/embedding_response.json" for model server endpoint "/ai_suite_gemini_embedding" on port "9991"
     And There exists a response type of "INITIAL_CODE" in the file location "classpath:responses/toolset_response.json" for model server endpoint "/ai_suite_gemini_flash_model" on port "9991" for the "1" response
     And There exists a response type of "INITIAL_CODE" in the file location "classpath:responses/initial_code_response.json" for model server endpoint "/ai_suite_gemini_flash_model" on port "9991" for the "2" response
     And There exists a response type of "CODEGEN" in the file location "classpath:responses/codegen_response.json" for model server endpoint "/ai_suite_gemini_flash_model" on port "9991" for the "1" response
-    And There exists a response type of "EMBEDDING" in the file location "classpath:responses/embedding_response.json" for model server endpoint "/ai_suite_gemini_embedding" on port "9991"
     And the docker container "mpc/postgres" exists
     When the repo is added to the database by calling commit diff context
     And a request for the next commit is sent to the server with the next commit information provided previously
