@@ -34,7 +34,6 @@ public class SubGraph<T extends TestGraphContext<H>, H extends HyperGraphContext
     @Getter
     private T t;
 
-
     private ApplicationContext ctx;
 
     public SubGraph(T t) {

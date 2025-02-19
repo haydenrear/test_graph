@@ -9,6 +9,7 @@ import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.BeforeAll;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +22,10 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Slf4j
 public class ThreadHooks {
 
-    @Autowired
-    ResettableThreadScope resettableThreadScope;
+
     @Autowired
     ApplicationContext applicationContext;
     @Autowired
@@ -44,11 +45,12 @@ public class ThreadHooks {
                 prev.set(new AtomicInteger(0));
             else {
                 resettables.stream()
+                        // subgraphs wired after because initialization to be completed
                         .sorted(Comparator.comparing(e -> e instanceof SubGraph<?,?> ? 1: -1))
                         .peek(ResettableThreadLike::preReset)
-                        .forEach(r -> {
-                            applicationContext.getAutowireCapableBeanFactory().autowireBean(r);
-                        });
+                        .peek(r -> applicationContext.getAutowireCapableBeanFactory().autowireBean(r))
+                        .peek(ResettableThreadLike::postWire)
+                        .forEach(r -> log.info("Resettable thread wired: {}", r.getClass().getSimpleName()));
             }
 
             return prev;
