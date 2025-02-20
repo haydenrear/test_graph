@@ -20,7 +20,7 @@ public class ModelServerResponseNode implements CdMbInitNode, ModelServerCdMbIni
 
     private static final Comparator<CdMbInitCtx.AiServerResponse.AiServerResponseType> RES = new Comparator<>() {
 
-        List<CdMbInitCtx.AiServerResponse.AiServerResponseType> SERVER = List.of(
+        final List<CdMbInitCtx.AiServerResponse.AiServerResponseType> SERVER = List.of(
                 CdMbInitCtx.AiServerResponse.AiServerResponseType.EMBEDDING,
                 CdMbInitCtx.AiServerResponse.AiServerResponseType.INITIAL_CODE,
                 CdMbInitCtx.AiServerResponse.AiServerResponseType.CODEGEN

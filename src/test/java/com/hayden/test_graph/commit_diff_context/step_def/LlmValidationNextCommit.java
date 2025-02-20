@@ -10,7 +10,6 @@ import com.hayden.commitdiffmodel.entity.GitDiffs;
 import com.hayden.commitdiffmodel.git.GitErrors;
 import com.hayden.commitdiffmodel.git.GitFactory;
 import com.hayden.commitdiffmodel.git.RepoOperations;
-import com.hayden.commitdiffmodel.git.RepositoryHolder;
 import com.hayden.commitdiffmodel.git_factory.DiffFactory;
 import com.hayden.commitdiffmodel.model.GitRefModel;
 import com.hayden.commitdiffmodel.validation.entity.CommitDiffContextCommitVersion;
@@ -53,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 @Slf4j
@@ -286,28 +284,31 @@ public class LlmValidationNextCommit implements ResettableStep {
                             assertions.assertSoftly(false, "Actual commit infor was not set.");
                             return Optional.empty();
                         })
-                        .map(nmm -> Map.entry(nmm, vrc)))
+                        .map(assertedGitDiffs -> Map.entry(assertedGitDiffs, vrc)))
                 .ifPresentOrElse(nextCommitMrc -> {
-                            var asserted = nextCommitMrc.getKey();
-                            var mrc = nextCommitMrc.getValue();
-                            this.dbDataSourceTrigger.doWithKey(setKey -> {
+                            CommitDiffContextCommitVersion.AssertedGitDiffs asserted = nextCommitMrc.getKey();
+                            Map.Entry<ModelServerValidationAiClient.ValidationResult, RepoOpInit.RepositoryData> mrc = nextCommitMrc.getValue();
+                            var dataSourceKey = this.dbDataSourceTrigger.doWithKey(setKey -> {
                                 setKey.setInitialized();
                                 var saved = doSaveVersionRepo(mrc, asserted);
                                 setKey.setInit();
                                 var savedValidation = doSaveVersionRepo(mrc, asserted);
-                                setKey.setInitialized();
                             });
+                            assertions.assertSoftly(Objects.equals(dataSourceKey, DbDataSourceTrigger.APP_DB_KEY),
+                                    "DataSource trigger produced the wrong key.");
                         },
                         () -> assertions.assertSoftly(false, "Validation was not received from server."));
     }
 
-    private @NotNull CommitDiffContextCommitVersion doSaveVersionRepo(Map.Entry<ModelServerValidationAiClient.ValidationResult, RepoOpInit.RepositoryData> mrc, CommitDiffContextCommitVersion.AssertedGitDiffs asserted) {
-        var saved = versionRepo.save(CommitDiffContextCommitVersion.builder()
-                .branch(mrc.getValue().branchName())
-                .repo(mrc.getValue().url())
-                .parsed(asserted)
-                .validationScore(mrc.getKey().validationScore())
-                .build());
+    private @NotNull CommitDiffContextCommitVersion doSaveVersionRepo(Map.Entry<ModelServerValidationAiClient.ValidationResult, RepoOpInit.RepositoryData> mrc,
+                                                                      CommitDiffContextCommitVersion.AssertedGitDiffs asserted) {
+        var saved = versionRepo.save(
+                CommitDiffContextCommitVersion.builder()
+                        .branch(mrc.getValue().branchName())
+                        .repo(mrc.getValue().url())
+                        .parsed(asserted)
+                        .validationScore(mrc.getKey().validationScore())
+                        .build());
         assertions.assertSoftly(Objects.nonNull(saved.getUuid()),
                 "Validation score as not saved for %s."
                         .formatted(mrc.getValue()),

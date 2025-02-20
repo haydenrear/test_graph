@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-// TODO: add edge and embedding so it sets embedding to call imposters
 @Slf4j
 @Component
 @ResettableThread
@@ -47,7 +46,7 @@ public class CdMbInitCtx implements MbInitCtx {
                 return FileUtils.readToString(filePath.toFile())
                         .one()
                         .mapError(se -> {
-                            log.error("Error when reading %s.".formatted(filePath.toFile()));
+                            log.error("Error when reading {}.", filePath.toFile());
                             return se;
                         })
                         .optional();
@@ -73,13 +72,11 @@ public class CdMbInitCtx implements MbInitCtx {
 
     public record AiServerResponses(List<AiServerResponseDescriptor> responses) {}
 
-    Client client;
+    private Client client;
 
     private final ContextValue<CdMbInitBubbleCtx> bubbleUnderlying;
 
-    @Getter
     private final ContextValue<AiServerResponses> serverResponses;
-
 
     public CdMbInitCtx() {
         this(ContextValue.empty(), ContextValue.empty());
@@ -100,7 +97,7 @@ public class CdMbInitCtx implements MbInitCtx {
         addAiServerResponse(serverResponse, -1);
     }
 
-    public void addAiServerResponse(AiServerResponse serverResponse, int count) {
+    public void addAiServerResponse(AiServerResponse serverResponse, int count, int numRepetitions) {
         AiServerResponses t;
         if (serverResponses.isEmpty()) {
             t = new AiServerResponses(new ArrayList<>());
@@ -109,7 +106,11 @@ public class CdMbInitCtx implements MbInitCtx {
             t = serverResponses.res().get();
         }
 
-        t.responses.add(new AiServerResponseDescriptor(count, 1, serverResponse));
+        t.responses.add(new AiServerResponseDescriptor(count, numRepetitions, serverResponse));
+    }
+
+    public void addAiServerResponse(AiServerResponse serverResponse, int count) {
+        this.addAiServerResponse(serverResponse, count, 1);
     }
 
     @Autowired
