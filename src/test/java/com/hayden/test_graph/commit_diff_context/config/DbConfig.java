@@ -18,13 +18,13 @@ public class DbConfig {
 
 
     @Bean
-    @ConfigurationProperties("spring.datasource.init")
+    @ConfigurationProperties("spring.datasource.validation")
     public DataSource initializationDataSource() {
         return DataSourceBuilder.create().build();
     }
 
     @Bean
-    @ConfigurationProperties("spring.datasource.initialized")
+    @ConfigurationProperties("spring.datasource.app")
     public DataSource initializedDataSource() {
         return DataSourceBuilder.create().build();
     }
@@ -39,17 +39,14 @@ public class DbConfig {
                 return dockerInitCtx.getStarted()
                         .optional()
                         .filter(Boolean::booleanValue)
-                        .map(b -> {
-                            dbDataSourceTrigger.countDown();
-                            return dbDataSourceTrigger.currentKey();
-                        })
-                        .orElse("init");
+                        .map(b -> dbDataSourceTrigger.initializeGetKey())
+                        .orElse(DbDataSourceTrigger.VALIDATION_DB_KEY);
             }
         };
 
         Map<Object, Object> resolvedDataSources = new HashMap<>();
-        resolvedDataSources.put("initialized", initializedDataSource());
-        resolvedDataSources.put("init", initializationDataSource());
+        resolvedDataSources.put(DbDataSourceTrigger.APP_DB_KEY, initializedDataSource());
+        resolvedDataSources.put(DbDataSourceTrigger.VALIDATION_DB_KEY, initializationDataSource());
         d.setTargetDataSources(resolvedDataSources);
 
         d.setDefaultTargetDataSource(initializationDataSource());

@@ -6,11 +6,14 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 @Slf4j
 @Component
 public class DbDataSourceTrigger {
+
+    public static final String APP_DB_KEY = "app_db_key";
+
+    public static final String VALIDATION_DB_KEY = "validation_db_key";
 
     public interface SetKey {
 
@@ -22,7 +25,8 @@ public class DbDataSourceTrigger {
 
     }
 
-    private String currentKey = "init";
+
+    private String currentKey = VALIDATION_DB_KEY;
 
     private final CountDownLatch countDownLatch = new CountDownLatch(1);
 
@@ -30,17 +34,19 @@ public class DbDataSourceTrigger {
 
     private final Object lock = new Object();
 
-    public void countDown() {
+    public String initializeGetKey() {
         if (countDownLatch.getCount() > 0) {
             synchronized (lock) {
                 if (countDownLatch.getCount() > 0) {
-                    doWithWriteLock(() -> {
+                    return doWithWriteLock(() -> {
                         countDownLatch.countDown();
                         this.setInitializedInner();
                     });
                 }
             }
         }
+
+        return this.currentKey();
     }
 
     /**
@@ -63,7 +69,7 @@ public class DbDataSourceTrigger {
                 setKeyConsumer.accept(new SetKey() {
                     @Override
                     public void setInit() {
-                        setInitInner();
+                        setValidationInner();
                     }
 
                     @Override
@@ -82,21 +88,22 @@ public class DbDataSourceTrigger {
         });
     }
 
-    public void doWithWriteLock(Runnable toDo) {
+    public String doWithWriteLock(Runnable toDo) {
         reentrantReadWriteLock.writeLock().lock();
         try {
             toDo.run();
+            return this.currentKey();
         } finally {
             reentrantReadWriteLock.writeLock().unlock();
         }
     }
 
-    private void setInitInner() {
-        this.currentKey = "init";
+    private void setValidationInner() {
+        this.currentKey = VALIDATION_DB_KEY;
     }
 
     private void setInitializedInner() {
-        this.currentKey = "initialized";
+        this.currentKey = APP_DB_KEY;
     }
 
 }
