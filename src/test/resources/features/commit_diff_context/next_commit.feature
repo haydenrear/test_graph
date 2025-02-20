@@ -26,8 +26,9 @@ Feature: Perform next commit
     Then the response from retrieving next commit can be applied to the repository as a git diff
     Then the mountebank requests for the toolset existed
     Examples:
-      | repoUrl        | branchName | composePath                                                                                     |
-      | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+      | repoUrl                                   | branchName | composePath                                                                                     |
+      | /Users/hayde/IdeaProjects/test_graph_next | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+#      | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
 
 
   @commit_diff_context_compose
@@ -56,8 +57,9 @@ Feature: Perform next commit
     Then the response from retrieving next commit can be applied to the repository as a git diff
     Then the mountebank requests for the toolset existed
     Examples:
-      | repoUrl        | branchName | composePath                                                                                     |
-      | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+      | repoUrl                                | branchName | composePath                                                                                     |
+      | work/first.tar                         | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+#      | https://github.com/kiegroup/drools.git | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
 
   @commit_diff_context_compose
   @all

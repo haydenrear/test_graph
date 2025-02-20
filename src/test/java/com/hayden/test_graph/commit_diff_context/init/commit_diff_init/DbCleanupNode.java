@@ -51,8 +51,8 @@ public class DbCleanupNode implements CommitDiffInitNode {
             blameTreeRepository.deleteAll();
             blameNodeRepository.deleteAll();
             commitRepository.deleteAll();
-            commitDiffRepository.deleteAll();
             commitDiffClusterRepository.deleteAll();
+            commitDiffRepository.deleteAll();
             return null;
         });
         return c;
