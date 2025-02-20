@@ -6,6 +6,7 @@ import com.hayden.commitdiffmodel.repo.CodeBranchRepository;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
+import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoInitItem;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.steps.ExecAssertStep;
 import com.hayden.test_graph.steps.RegisterInitStep;
@@ -103,7 +104,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
         commitDiffInit.setRepoData(repoData);
         commitDiffInit.getRepoInitializations()
                 .initItems()
-                .add(new RepoOpInit.RepoInitItem.AddCodeBranch(repoData));
+                .add(new RepoInitItem.AddCodeBranch(repoData));
     }
 
     @When("the repo is added to the database by calling commit diff context")
@@ -113,7 +114,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
 
     @And("the embeddings for the branch should be added")
     public void addEmbeddings() {
-        commitDiffInit.getRepoInitializations().initItems().add(new RepoOpInit.RepoInitItem.AddEmbeddings());
+        commitDiffInit.getRepoInitializations().initItems().add(new RepoInitItem.AddEmbeddings());
     }
 
     @Then("a branch with name {string} will be added to the database")

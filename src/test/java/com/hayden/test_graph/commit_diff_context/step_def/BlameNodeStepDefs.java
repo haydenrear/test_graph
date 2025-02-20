@@ -10,6 +10,7 @@ import com.hayden.commitdiffmodel.repo.CommitDiffRepository;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
+import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoInitItem;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.steps.RegisterAssertStep;
 import com.hayden.test_graph.steps.RegisterInitStep;
@@ -17,7 +18,6 @@ import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
-import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
@@ -47,7 +47,7 @@ public class BlameNodeStepDefs implements ResettableStep {
     @RegisterInitStep(RepoOpInit.class)
     public void add_commit_diff_context_blame_node() {
         commitDiffInit.getRepoInitializations().initItems()
-                .add(new RepoOpInit.RepoInitItem.AddBlameNodes());
+                .add(new RepoInitItem.AddBlameNodes());
     }
 
     @Then("the blame node embeddings are validated to be added to the database")

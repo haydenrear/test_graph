@@ -6,6 +6,7 @@ import com.hayden.commitdiffmodel.codegen.types.*;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.test_graph.thread.ResettableThreadLike;
 import com.hayden.utilitymodule.result.Result;
 import com.hayden.utilitymodule.result.error.SingleError;
 import com.netflix.graphql.dgs.client.codegen.BaseProjectionNode;
@@ -26,7 +27,7 @@ import static com.hayden.test_graph.commit_diff_context.service.CallGraphQlQuery
 
 @Slf4j
 @Service
-public class CommitDiff {
+public class CommitDiff implements ResettableThreadLike {
 
     @Autowired
     DgsGraphQlClient graphQlClient;

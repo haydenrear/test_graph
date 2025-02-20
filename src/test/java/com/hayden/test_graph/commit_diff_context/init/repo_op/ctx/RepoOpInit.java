@@ -34,33 +34,11 @@ public class RepoOpInit implements InitCtx {
         this.assertions = assertions;
     }
 
-    public sealed interface RepoInitItem {
-
-        Comparator<RepoInitItem> c = new Comparator<>() {
-            static final List<Class<? extends RepoInitItem>> REPO_INIT_ORDERING = List.of(AddCodeBranch.class, AddEmbeddings.class, AddBlameNodes.class);
-
-            @Override
-            public int compare(RepoInitItem o1, RepoInitItem o2) {
-                return Integer.compare(REPO_INIT_ORDERING.indexOf(o1.getClass()), REPO_INIT_ORDERING.indexOf(o2.getClass()));
-            }
-        };
-
-        record AddCodeBranch(RepositoryData repositoryData) implements RepoInitItem {}
-
-        record AddEmbeddings() implements RepoInitItem {}
-
-        record AddBlameNodes() implements RepoInitItem {}
-
-        record UpdateHeadNode(UpdateHeadCtx ctx) implements RepoInitItem {}
-
-    }
-
     @Builder
     public record GraphQlQueries(File addRepo) {}
 
     public record CommitDiffData(@NotNull String sessionKey) {}
 
-    public record LlmValidationCommitData(List<ParseDiff.GitDiffResult> diffs, String commitMessage) {}
 
     public record RepoInitializations(List<RepoInitItem> initItems) {}
 
@@ -146,22 +124,17 @@ public class RepoOpInit implements InitCtx {
 
     }
 
-
     @Builder
     public record UserCodeData(String commitMessage) { }
 
     @Builder
     public record BubbleData(Path clonedTo) { }
 
-
     private final ContextValue<RepoOpInit.RepositoryData> repositoryData;
     private final ContextValue<UserCodeData> userCodeData;
     private final ContextValue<BubbleData> bubbleDataContextValue;
     private final ContextValue<RepoOpBubble> bubbleUnderlying;
     private final ContextValue<GraphQlQueries> queries;
-
-    @Getter
-    private final ContextValue<LlmValidationCommitData> llmValidationData;
 
     @Getter
     private CommitDiffContextGraphQlModel commitDiffContextValue;
@@ -173,7 +146,7 @@ public class RepoOpInit implements InitCtx {
     private final RepoInitializations repoInitializations;
 
     public RepoOpInit() {
-        this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty(),
+        this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty(),
                 ContextValue.empty(), ContextValue.empty(), new RepoInitializations(new ArrayList<>()));
         this.commitDiffContextValue = CommitDiffContextGraphQlModel.builder()
                 .sessionKey(SessionKey.newBuilder().build())

@@ -26,21 +26,15 @@ public class DbDataSourceTrigger {
 
     }
 
-
-    private final ThreadLocal<String> threadKey = new ThreadLocal<>();
-
     private String currentKey = VALIDATION_DB_KEY;
 
+    private final ThreadLocal<String> threadKey = new ThreadLocal<>();
     private final CountDownLatch countDownLatch = new CountDownLatch(1);
-
     private final ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();
-
     private final Object lock = new Object();
 
     public String setGlobalCurrentKey(String globalCurrent) {
-        return doWithWriteLock(() -> {
-            this.currentKey = globalCurrent;
-        });
+        return doWithWriteLock(() -> this.currentKey = globalCurrent);
     }
 
     public String initializeGetKey() {

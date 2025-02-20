@@ -22,9 +22,12 @@ import com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit.NextCo
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.config.CommitDiffContextConfigProps;
 import com.hayden.test_graph.commit_diff_context.config.DbDataSourceTrigger;
+import com.hayden.test_graph.commit_diff_context.init.llm_validation.ctx.ValidateLlmInit;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
+import com.hayden.test_graph.steps.ExecAssertStep;
 import com.hayden.test_graph.steps.RegisterAssertStep;
+import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.git.RepoUtil;
@@ -69,9 +72,10 @@ public class LlmValidationNextCommit implements ResettableStep {
     @Autowired
     @ResettableThread
     NextCommitAssert nextCommit;
-
     @Autowired
-    ParseDiff parseDiff;
+    @ResettableThread
+    ValidateLlmInit validateLlmInit;
+
     @Autowired
     CommitDiffContextMapper mapper;
     @Autowired
@@ -83,11 +87,10 @@ public class LlmValidationNextCommit implements ResettableStep {
     @Autowired
     CommitDiffContextVersionRepo versionRepo;
     @Autowired
-    GitFactory gitFactory;
-    @Autowired
     DbDataSourceTrigger dbDataSourceTrigger;
 
     @Given("a postgres database to be loaded from {string} for docker-compose {string}")
+    @RegisterInitStep(RepoOpInit.class)
     public void startPostgresDatabase(String postgresSource, String dockerCompose) {
         var postgresSrcDir = Paths.get(postgresSource).toFile();
         assertions.assertSoftly(postgresSrcDir.exists() || postgresSrcDir.mkdirs(),
@@ -120,91 +123,17 @@ public class LlmValidationNextCommit implements ResettableStep {
      * Add git diffs to memory for current most recent commit, then reset to previous commit to prepare for prediction of that commit being removed.
      */
     @And("the most recent commit is saved to memory and removed from the repository")
+    @RegisterInitStep(ValidateLlmInit.class)
     public void addMostRecentCommitInfo() {
-        var temp = Files.newTemporaryFolder();
-
-        var repoData = repoOpInit.repoDataOrThrow();
-
-        repoOpInit.setRepoData(repoData.withClonedUri(temp.toPath()));
-
-        try (var g = Git.cloneRepository().setBranch(repoData.branchName())
-                .setURI(repoData.url())
-                .setDirectory(repoData.clonedUri().toFile())
-                .setFs(FS.detect())
-                .call();
-             var rh = gitFactory.repositoryHolder(g)
-        ) {
-            var secondTo = RepoOperations.walkBackwardFromBranch(repoData.branchName(), g)
-                    .flatMapResult(iter -> {
-                        var iterator = iter.iterator();
-                        GitRefModel.NextRevCommit parent;
-                        if (iterator.hasNext()) {
-                            parent = iterator.next();
-                        } else {
-                            return Result.err(new GitErrors.GitError("Failed to get second commit."));
-                        }
-                        if (iterator.hasNext()) {
-                            var child = iterator.next();
-                            return Result.ok(CommitDiffId.builder().parentHash(parent.getName()).childHash(child.getName()).build());
-                        } else {
-                            return Result.err(new GitErrors.GitError("Failed to get second commit."));
-                        }
-                    });
-
-            assertions.assertSoftly(secondTo.isOk(),
-                    "Could not parse repo, did not have enough commits for validation: %s."
-                            .formatted(secondTo.errorMessage()));
-
-            secondTo.ifPresent(nrc -> {
-                // parse backwards, get second from back, get commit hash for this
-                var parsed = parseDiff.parseDiffItemsToGitDiff(rh, nrc);
-
-                var latestCommit = RepoUtil.getLatestCommit(rh.getGit(), repoData.branchName())
-                        .map(RevCommit::getFullMessage)
-                        .mapError(re -> new GitErrors.GitAggregateError(re.getMessage()));
-
-                var lst = parsed.toList();
-
-                String s = GitErrors.GitAggregateError.from(parsed.e().toList()).getMessage();
-                List<GitErrors.GitError> allErrs = lst.errsList().stream().flatMap(gae -> gae.errors().stream()).toList();
-
-                assertions.assertSoftly(allErrs.isEmpty(), "Was not successful in generating git commit diffs: %s.".formatted(s));
-
-                assertions.assertSoftly(!lst.results().isEmpty(), "Was not successful in retrieving most recent commit message: %s."
-                        .formatted(s));
-
-                assertions.assertSoftly(latestCommit.isOk(), "Could not retreive latest commit: %s."
-                        .formatted(latestCommit.errorMessage()));
-
-                var lc = latestCommit.orElseRes(null);
-
-                repoOpInit.getLlmValidationData().swap(new RepoOpInit.LlmValidationCommitData(lst.results(), lc));
-
-                // reset it to the previous commit to predict this commit.
-                try {
-                    var reset = rh.reset().setMode(ResetCommand.ResetType.HARD)
-                            .setRef(nrc.getChildHash())
-                            .call();
-                    assertions.assertSoftly(true, "Could not reset.", "Resetted to %s".formatted(reset));
-                } catch (GitAPIException e) {
-                    assertions.assertSoftly(false, "Could not reset: %s."
-                            .formatted(SingleError.parseStackTraceToString(e)));
-                }
-            });
-        } catch (GitAPIException |
-                 IOException e) {
-            assertions.assertSoftly(false, "Could not clone repository %s\n%s."
-                    .formatted(repoData.url(), SingleError.parseStackTraceToString(e)));
-        }
-
-
+        log.info("Registered to save most recent commit and reset to previous.");
     }
 
     @And("the AI generated response is compared to the actual commit by calling the validation endpoint {string}")
+    @ExecAssertStep({RepoOpAssertCtx.class, NextCommitAssert.class})
     public void theAIGeneratedResponseIsComparedToTheActualCommitByCallingTheValidationEndpoint(String endpoint) {
         this.nextCommit.getNextCommitInfo().optional()
                 .map(NextCommitAssert.NextCommitMetadata::nc)
-                .flatMap(nc -> repoOpInit.getLlmValidationData().optional()
+                .flatMap(nc -> validateLlmInit.getLlmValidationData().optional()
                         .map(llm -> Map.entry(nc, llm)))
                 .ifPresent(ncLlm -> {
                     var nc = ncLlm.getKey();
@@ -255,7 +184,8 @@ public class LlmValidationNextCommit implements ResettableStep {
                         assertions.assertSoftly(sent.isOk(), "Validation was not received from server: %s."
                                 .formatted(sent.errorMessage()));
 
-                        sent.ifPresent(mrc -> nextCommit.getValidationResponse().swap(new NextCommitAssert.NextCommitLlmValidation(mrc)));
+                        sent.ifPresent(mrc -> nextCommit.getValidationResponse()
+                                .swap(new NextCommitAssert.NextCommitLlmValidation(mrc)));
                     } catch (JsonProcessingException e) {
                         assertions.assertSoftly(false, "Could not serialize response to %s".formatted(llmProvidedCommit));
                     }
@@ -263,7 +193,7 @@ public class LlmValidationNextCommit implements ResettableStep {
     }
 
     @Then("the validation data is saved for review")
-    @RegisterAssertStep({RepoOpAssertCtx.class, NextCommitAssert.class})
+    @ExecAssertStep({RepoOpAssertCtx.class, NextCommitAssert.class})
     public void theValidationScoreIsSavedToFileForReview() {
         nextCommit.getValidationResponse().optional()
                 .flatMap(res -> Optional.ofNullable(res.response()))
