@@ -22,7 +22,7 @@ public class DbDataSourceTrigger {
 
     }
 
-    private volatile String currentKey = "init";
+    private String currentKey = "init";
 
     private final CountDownLatch countDownLatch = new CountDownLatch(1);
 
