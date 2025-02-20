@@ -88,12 +88,14 @@ public class RepoOpInit implements InitCtx {
 
         public RepositoryData unzipped(Path unzippedTo) {
             var uz = StreamUtil.toStream(unzippedTo.toFile().listFiles()).findAny().map(File::toPath);
-            return new RepositoryData(uz.map(Path::toAbsolutePath).map(Path::toString).orElse(unzippedTo.toAbsolutePath().toString()),
-                    branchName, uz.orElse(unzippedTo));
+            return new RepositoryData(
+                    uz.map(Path::toAbsolutePath).map(Path::toString).orElse(unzippedTo.toAbsolutePath().toString()),
+                    branchName,
+                    uz.orElse(unzippedTo));
         }
 
-        public RepositoryData withClonedUri(Path clonedUri) {
-            return new RepositoryData(url, branchName, clonedUri);
+        public RepositoryData withClonedUri(Path clonedPath) {
+            return new RepositoryData(url, branchName, clonedPath);
         }
 
         public RepositoryHolder.RepositoryArgs toRepositoryArgs() {

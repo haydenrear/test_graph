@@ -22,6 +22,7 @@ import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit.NextCommitAssert;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.config.CommitDiffContextConfigProps;
+import com.hayden.test_graph.commit_diff_context.config.DbDataSourceTrigger;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.steps.RegisterAssertStep;
@@ -41,6 +42,7 @@ import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.util.FS;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 
@@ -51,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 @Slf4j
@@ -83,6 +86,8 @@ public class LlmValidationNextCommit implements ResettableStep {
     CommitDiffContextVersionRepo versionRepo;
     @Autowired
     GitFactory gitFactory;
+    @Autowired
+    DbDataSourceTrigger dbDataSourceTrigger;
 
     @Given("a postgres database to be loaded from {string} for docker-compose {string}")
     public void startPostgresDatabase(String postgresSource, String dockerCompose) {
@@ -101,18 +106,20 @@ public class LlmValidationNextCommit implements ResettableStep {
 
         assertions.assertSoftly(written.isOk(), "Was not successfuly generating docker-compose with err: %s"
                 .formatted(written.errorMessage()));
-        written.ifPresent(b -> {
-            assertions.assertSoftly(b, "Was not successfuly generating docker-compose");
+        written.ifPresent(didSuccessfullyWriteDockerCompose -> {
+            assertions.assertSoftly(didSuccessfullyWriteDockerCompose, "Was not successfuly generating docker-compose");
             assertions.assertSoftly(dockerComposeFile.toFile().exists(), "docker-compose file did not exist.");
 
-            if (b)
+            if (didSuccessfullyWriteDockerCompose) {
+                assertions.reportAssert("Wrote docker-compose file to %s", dockerComposeFile);
                 dockerInitCtx.composePath().swap(dockerComposeFile.toFile());
+            }
         });
 
     }
 
     /**
-     * Add git diffs to memory for current most recent commit, then reset to previous commit to prepare for prediction.
+     * Add git diffs to memory for current most recent commit, then reset to previous commit to prepare for prediction of that commit being removed.
      */
     @And("the most recent commit is saved to memory and removed from the repository")
     public void addMostRecentCommitInfo() {
@@ -283,18 +290,29 @@ public class LlmValidationNextCommit implements ResettableStep {
                 .ifPresentOrElse(nextCommitMrc -> {
                             var asserted = nextCommitMrc.getKey();
                             var mrc = nextCommitMrc.getValue();
-                            var saved = versionRepo.save(CommitDiffContextCommitVersion.builder()
-                                    .branch(mrc.getValue().branchName())
-                                    .repo(mrc.getValue().url())
-                                    .parsed(asserted)
-                                    .validationScore(mrc.getKey().validationScore())
-                                    .build());
-                            assertions.assertSoftly(Objects.nonNull(saved.getUuid()),
-                                    "Validation score as not saved for %s."
-                                            .formatted(mrc.getValue()),
-                                    "Validation score was set for %s."
-                                            .formatted(mrc.getValue()));
+                            this.dbDataSourceTrigger.doWithKey(setKey -> {
+                                setKey.setInitialized();
+                                var saved = doSaveVersionRepo(mrc, asserted);
+                                setKey.setInit();
+                                var savedValidation = doSaveVersionRepo(mrc, asserted);
+                                setKey.setInitialized();
+                            });
                         },
                         () -> assertions.assertSoftly(false, "Validation was not received from server."));
+    }
+
+    private @NotNull CommitDiffContextCommitVersion doSaveVersionRepo(Map.Entry<ModelServerValidationAiClient.ValidationResult, RepoOpInit.RepositoryData> mrc, CommitDiffContextCommitVersion.AssertedGitDiffs asserted) {
+        var saved = versionRepo.save(CommitDiffContextCommitVersion.builder()
+                .branch(mrc.getValue().branchName())
+                .repo(mrc.getValue().url())
+                .parsed(asserted)
+                .validationScore(mrc.getKey().validationScore())
+                .build());
+        assertions.assertSoftly(Objects.nonNull(saved.getUuid()),
+                "Validation score as not saved for %s."
+                        .formatted(mrc.getValue()),
+                "Validation score was set for %s."
+                        .formatted(mrc.getValue()));
+        return saved;
     }
 }

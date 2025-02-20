@@ -7,7 +7,7 @@ Feature: Perform next commit
   @next_commit_only_no_toolset
   @next_commit_only
   Scenario Outline: generate next commit without toolset.
-#    Given docker-compose is started from "<composePath>"
+    Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
     And the embeddings for the branch should be added
@@ -21,8 +21,10 @@ Feature: Perform next commit
     When the repo is added to the database by calling commit diff context
     And a request for the next commit is sent to the server with the next commit information provided previously
     Then a branch with name "<branchName>" will be added to the database
+    Then the branches embeddings will be added to the database
     Then the blame node embeddings are validated to be added to the database
     Then the response from retrieving next commit can be applied to the repository as a git diff
+    Then the mountebank requests for the toolset existed
     Examples:
       | repoUrl        | branchName | composePath                                                                                     |
       | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |

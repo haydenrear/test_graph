@@ -31,13 +31,18 @@ public class DbConfig {
 
     @Bean
     @Primary
-    public DataSource dataSource(@ResettableThread DockerInitCtx dockerInitCtx) {
+    public DataSource dataSource(@ResettableThread DockerInitCtx dockerInitCtx,
+                                 DbDataSourceTrigger dbDataSourceTrigger) {
         var d = new AbstractRoutingDataSource() {
             @Override
             protected Object determineCurrentLookupKey() {
                 return dockerInitCtx.getStarted()
-                        .optional().filter(Boolean::booleanValue)
-                        .map(b -> "initialized")
+                        .optional()
+                        .filter(Boolean::booleanValue)
+                        .map(b -> {
+                            dbDataSourceTrigger.countDown();
+                            return dbDataSourceTrigger.currentKey();
+                        })
                         .orElse("init");
             }
         };

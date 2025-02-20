@@ -7,11 +7,15 @@ import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.commit_diff_context.service.CallGraphQlQueryArgs;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
+import com.hayden.utilitymodule.git.RepoUtil;
 import com.hayden.utilitymodule.io.ArchiveUtils;
 import org.assertj.core.util.Files;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.util.FS;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -47,16 +51,8 @@ public class InitializeRepo implements RepoOpInitNode {
      * @return
      */
     private @NotNull RepoOpInit doPerformRepoInitializations(RepoOpInit c, RepoOpInit.RepositoryData rd) {
-        if (rd.url().endsWith(".tar")) {
-            assertions.assertSoftly(new File(rd.url()).exists(), "Repo archive did not exist.");
-            var tempDir = Files.newTemporaryFolder();
-            Path tarPath = Paths.get(rd.url());
-            Path unzippedPath = tempDir.toPath();
-            var unzipped = ArchiveUtils.prepareTestRepos(tarPath.getParent(), unzippedPath, tarPath.getFileName().toString());
-            c.repoData().swap(rd.unzipped(unzippedPath));
-            assertions.assertSoftly(unzipped.isOk(), "Was unsuccessful in unzipping repositories: %s.".formatted(unzipped.errorMessage()));
-        }
-
+        cloneIfRemote(c, rd);
+        decompressIfArchive(c, rd);
         c.getRepoInitializations()
                 .initItems()
                 .stream()
@@ -76,6 +72,33 @@ public class InitializeRepo implements RepoOpInitNode {
                 });
 
         return c;
+    }
+
+    private void cloneIfRemote(RepoOpInit c, RepoOpInit.RepositoryData rd) {
+        if (rd.url().startsWith("http") || rd.url().startsWith("git") || rd.url().startsWith("ssh")) {
+            var gitDir = Files.newTemporaryFolder();
+            RepoUtil.cloneRepo(gitDir, rd.url(), rd.branchName())
+                    .doOnError(gitInitError -> {
+                        assertions.assertSoftly(false, "Failed to clone git repo: %s.".formatted(gitInitError));
+                    })
+                    .ifPresent(git -> {
+                        assertions.reportAssert("Initialized git repository to %s", gitDir);
+                        c.repoData().swap(rd.withClonedUri(gitDir.toPath()));
+                    });
+        }
+    }
+
+    private void decompressIfArchive(RepoOpInit c, RepoOpInit.RepositoryData rd) {
+        if (rd.url().endsWith(".tar")) {
+            assertions.assertSoftly(new File(rd.url()).exists(), "Repo archive did not exist.");
+            var tempDir = Files.newTemporaryFolder();
+            Path tarPath = Paths.get(rd.url());
+            Path unzippedPath = tempDir.toPath();
+            var unzipped = ArchiveUtils.prepareTestRepos(tarPath.getParent(), unzippedPath, tarPath.getFileName().toString());
+            c.repoData().swap(rd.unzipped(unzippedPath));
+            assertions.reportAssert("Initialized git repository to %s", rd.clonedUri());
+            assertions.assertSoftly(unzipped.isOk(), "Was unsuccessful in unzipping repositories: %s.".formatted(unzipped.errorMessage()));
+        }
     }
 
     private void doAddGitOp(RepoOpInit c, GitOperation gitOperation) {
