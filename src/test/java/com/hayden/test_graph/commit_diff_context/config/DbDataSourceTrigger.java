@@ -3,6 +3,7 @@ package com.hayden.test_graph.commit_diff_context.config;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
@@ -26,6 +27,8 @@ public class DbDataSourceTrigger {
     }
 
 
+    private final ThreadLocal<String> threadKey = new ThreadLocal<>();
+
     private String currentKey = VALIDATION_DB_KEY;
 
     private final CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -33,6 +36,12 @@ public class DbDataSourceTrigger {
     private final ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();
 
     private final Object lock = new Object();
+
+    public String setGlobalCurrentKey(String globalCurrent) {
+        return doWithWriteLock(() -> {
+            this.currentKey = globalCurrent;
+        });
+    }
 
     public String initializeGetKey() {
         if (countDownLatch.getCount() > 0) {
@@ -54,56 +63,59 @@ public class DbDataSourceTrigger {
      * @return
      */
     public String currentKey() {
-        this.reentrantReadWriteLock.readLock().lock();
-        try {
-            return this.currentKey;
-        } finally {
-            this.reentrantReadWriteLock.readLock().unlock();
-        }
-    }
-
-    public void doWithKey(Consumer<SetKey> setKeyConsumer) {
-        doWithWriteLock(() -> {
-            String prev = currentKey;
-            try {
-                setKeyConsumer.accept(new SetKey() {
-                    @Override
-                    public void setInit() {
-                        setValidationInner();
-                    }
-
-                    @Override
-                    public void setInitialized() {
-                        setInitializedInner();
-                    }
-
-                    @Override
-                    public String starting() {
-                        return prev;
+        return Optional.ofNullable(threadKey.get())
+                .orElseGet(() -> {
+                    this.reentrantReadWriteLock.readLock().lock();
+                    try {
+                        return this.currentKey;
+                    } finally {
+                        this.reentrantReadWriteLock.readLock().unlock();
                     }
                 });
-            } finally {
-                this.currentKey = prev;
-            }
-        });
+    }
+
+    public String doWithKey(Consumer<SetKey> setKeyConsumer) {
+        String prev = currentKey;
+        try {
+            this.threadKey.set(currentKey);
+            setKeyConsumer.accept(new SetKey() {
+                @Override
+                public void setInit() {
+                    setValidationInner();
+                }
+
+                @Override
+                public void setInitialized() {
+                    setInitializedInner();
+                }
+
+                @Override
+                public String starting() {
+                    return prev;
+                }
+            });
+            return this.threadKey.get();
+        } finally {
+            this.threadKey.remove();
+        }
     }
 
     public String doWithWriteLock(Runnable toDo) {
         reentrantReadWriteLock.writeLock().lock();
         try {
             toDo.run();
-            return this.currentKey();
+            return this.currentKey;
         } finally {
             reentrantReadWriteLock.writeLock().unlock();
         }
     }
 
     private void setValidationInner() {
-        this.currentKey = VALIDATION_DB_KEY;
+        this.threadKey.set(VALIDATION_DB_KEY);
     }
 
     private void setInitializedInner() {
-        this.currentKey = APP_DB_KEY;
+        this.threadKey.set(APP_DB_KEY);
     }
 
 }
