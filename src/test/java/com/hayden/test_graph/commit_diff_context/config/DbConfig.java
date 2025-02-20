@@ -16,16 +16,15 @@ import java.util.Map;
 @Configuration
 public class DbConfig {
 
-
     @Bean
     @ConfigurationProperties("spring.datasource.validation")
-    public DataSource initializationDataSource() {
+    public DataSource validationDataSource() {
         return DataSourceBuilder.create().build();
     }
 
     @Bean
     @ConfigurationProperties("spring.datasource.app")
-    public DataSource initializedDataSource() {
+    public DataSource appDataSource() {
         return DataSourceBuilder.create().build();
     }
 
@@ -33,7 +32,7 @@ public class DbConfig {
     @Primary
     public DataSource dataSource(@ResettableThread DockerInitCtx dockerInitCtx,
                                  DbDataSourceTrigger dbDataSourceTrigger) {
-        var d = new AbstractRoutingDataSource() {
+        AbstractRoutingDataSource routingDataSource = new AbstractRoutingDataSource() {
             @Override
             protected Object determineCurrentLookupKey() {
                 return dockerInitCtx.getStarted()
@@ -45,14 +44,16 @@ public class DbConfig {
         };
 
         Map<Object, Object> resolvedDataSources = new HashMap<>();
-        resolvedDataSources.put(DbDataSourceTrigger.APP_DB_KEY, initializedDataSource());
-        resolvedDataSources.put(DbDataSourceTrigger.VALIDATION_DB_KEY, initializationDataSource());
-        d.setTargetDataSources(resolvedDataSources);
+        resolvedDataSources.put(DbDataSourceTrigger.APP_DB_KEY, appDataSource());
+        resolvedDataSources.put(DbDataSourceTrigger.VALIDATION_DB_KEY, validationDataSource());
 
-        d.setDefaultTargetDataSource(initializationDataSource());
+        routingDataSource.setTargetDataSources(resolvedDataSources);
+        routingDataSource.setDefaultTargetDataSource(validationDataSource());
 
-        d.afterPropertiesSet();
-        return d;
+
+        routingDataSource.afterPropertiesSet();
+
+        return routingDataSource;
     }
 
 }
