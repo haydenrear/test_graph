@@ -13,6 +13,7 @@ Feature: Perform repo operations
       | repoUrl        | branchName | composePath                                                                                     |
       | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
 
+
   @add_embeddings @all
   Scenario Outline: add embeddings is called and validated.
     Given docker-compose is started from "<composePath>"
@@ -42,4 +43,5 @@ Feature: Perform repo operations
     Then the blame node embeddings are validated to be added to the database
     Examples:
       | repoUrl        | branchName | composePath                                                                                     |
-      | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+#      | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+      | /Users/hayde/IdeaProjects/test_graph_next | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
