@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-@ConfigurationProperties(prefix = "commit-diff-context")
+@ConfigurationProperties(prefix = "commit-diff-context-test-props")
 @Component
 @Data
 @NoArgsConstructor
@@ -23,5 +23,7 @@ public class CommitDiffContextConfigProps {
     String modelServerBaseUrl;
 
     int modelServerPort;
+
+    String homeDir;
 
 }

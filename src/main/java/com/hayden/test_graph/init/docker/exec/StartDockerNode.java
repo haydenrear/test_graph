@@ -7,16 +7,21 @@ import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.zerodep.ZerodepDockerHttpClient;
+import com.hayden.commitdiffmodel.config.CommitDiffContextProperties;
 import com.hayden.test_graph.assertions.Assertions;
+import com.hayden.test_graph.config.EnvConfigProps;
 import com.hayden.test_graph.init.docker.config.DockerInitConfigProps;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.io.FileUtils;
 import com.hayden.utilitymodule.result.Result;
+import com.hayden.utilitymodule.result.error.SingleError;
 import com.hayden.utilitymodule.waiter.AsyncWaiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.docker.compose.core.DockerComposeFile;
 import org.springframework.boot.docker.compose.core.ExposeCompose;
 import org.springframework.boot.logging.LogLevel;
@@ -25,6 +30,7 @@ import org.springframework.stereotype.Component;
 import java.io.Closeable;
 import java.io.File;
 import java.net.URI;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -38,6 +44,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class StartDockerNode implements DockerInitNode {
 
     private final DockerInitConfigProps dockerInitConfigProps;
+
+    private final EnvConfigProps env;
 
     private final Assertions assertions;
 
@@ -71,16 +79,39 @@ public class StartDockerNode implements DockerInitNode {
         return c;
     }
 
-    static void initializeDockerCompose(DockerInitCtx workingDirectory,
+    void initializeDockerCompose(DockerInitCtx workingDirectory,
                                         DockerInitConfigProps configProps) {
+        bringDownAllComposeInDirectories(workingDirectory, configProps);
         File workDir = workingDirectory.composePath().res().one().get();
         ExposeCompose exposeCompose = new ExposeCompose(
                 workDir,
                 DockerComposeFile.find(workDir),
                 workingDirectory.dockerProfiles().res().one().orElseRes(new HashSet<>()),
                 workingDirectory.host().res().one().orElseRes(configProps.getHost()));
-        exposeCompose.down(Duration.ofSeconds(10));
         exposeCompose.up(workingDirectory.logLevel().res().orElseRes(LogLevel.INFO));
+    }
+
+    private void bringDownAllComposeInDirectories(DockerInitCtx workingDirectory, DockerInitConfigProps configProps) {
+        configProps.getComposeDirectories()
+                .forEach(s -> FileUtils.doOnFilesRecursiveParallel(
+                        FileUtils.replaceHomeDir(env.getHomeDir(), s).toPath(),
+                        next -> stopNext(workingDirectory, configProps, next)));
+    }
+
+    private static @NotNull Boolean stopNext(DockerInitCtx workingDirectory, DockerInitConfigProps configProps, Path next) {
+        if (!next.toFile().exists())
+            return false;
+        if (next.toFile().getName().equals("docker-compose.yml")) {
+            new ExposeCompose(
+                        next.getParent().toFile(),
+                        DockerComposeFile.find(next.getParent().toFile()),
+                        new HashSet<>(),
+                        workingDirectory.host().res().one().orElseRes(configProps.getHost())
+                    )
+                    .down(Duration.ofSeconds(10));
+        }
+
+        return true;
     }
 
     public void awaitLogMessage(String containerLogMatch,
@@ -103,7 +134,7 @@ public class StartDockerNode implements DockerInitNode {
                                                 return done.get();
                                             },
                                             Boolean::valueOf,
-                                            Duration.ofSeconds(120),
+                                            Duration.ofSeconds(200),
                                             Duration.ofSeconds(3))
                             ),
                             "Could not wait for container %s to start with log %s.".formatted(containerId, containerLogMatch));
@@ -114,32 +145,31 @@ public class StartDockerNode implements DockerInitNode {
     private void execCmd(String toMatch, String containerName, LogContainerCmd logCmd, AtomicBoolean done) {
         logCmd.exec(new ResultCallback<Frame>() {
                     @Override
-                    public void onStart(Closeable closeable) {
+                    public synchronized void onStart(Closeable closeable) {
                         log.info("Starting container '{}'", containerName);
                     }
 
                     @Override
-                    public void onNext(Frame frame) {
+                    public synchronized void onNext(Frame frame) {
                         String logLine = new String(frame.getPayload());
                         if (logLine.contains(toMatch)) {
-                            assertions.assertSoftly(true, "Container started successfully - found log: {}", logLine);
                             done.set(true);
+                            assertions.assertSoftly(true, "Container started successfully - found log: {}", logLine);
                         }
                     }
 
                     @Override
-                    public void onError(Throwable throwable) {
-                        assertions.assertSoftly(false, "Error when starting container %s.", containerName);
+                    public synchronized void onError(Throwable throwable) {
+                        assertions.reportAssert("Error when starting container %s, %s.", containerName,
+                                SingleError.parseStackTraceToString(throwable));
                     }
 
                     @Override
-                    public void onComplete() {
-                        assertions.assertSoftly(done.get(), "Could not wait for container '%s'", containerName);
+                    public synchronized void onComplete() {
                     }
 
                     @Override
-                    public void close() {
-                        assertions.assertSoftly(done.get(), "Could not wait for container '%s'", containerName);
+                    public synchronized void close() {
                     }
                 });
     }

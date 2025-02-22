@@ -1,19 +1,25 @@
-commit-diff-context:
+commit-diff-context-test-props:
   url: http://localhost:8080/graphql
   port: 8080
   model-server-base-url: http://localhost:9991
   model-server-port: 9991
+  home-dir: /Users/hayde
+
+test-graph.env:
+  home-dir: /Users/hayde
 
 docker-init-ctx:
   skip-docker: true
-  skip-build-docker: true
-  skip-start-docker: true
+  skip-build-docker: false
+  skip-start-docker: false
   host: localhost
   containers:
     - container-name: "commit-diff-server"
       log: "Tomcat started on port"
   docker-host-uri: "unix:///Users/hayde/.docker/run/docker.sock"
   docker-response-timeout: 30
+  compose-directories:
+    - ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context
 
 
 

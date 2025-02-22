@@ -19,5 +19,29 @@ Feature: Perform next commit
     Then the response from retrieving next commit can be applied to the repository as a git diff
     Then the validation data is saved for review
     Examples:
-      | repoUrl                                | postgresPath               | branchName | composePath                                                                        | validationEndpoint                      |
-      | https://github.com/kiegroup/drools.git | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
+      | repoUrl                                   | postgresPath               | branchName | composePath                                                                        | validationEndpoint                      |
+#      | https://github.com/kiegroup/drools.git | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
+      | /Users/hayde/IdeaProjects/test_graph_next | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
+
+  @do_embedding_only
+  Scenario Outline:
+    Given a postgres database to be loaded from "<postgresPath>" for docker-compose "<composePath>"
+    And docker-compose is started from "<composePath>"
+    And there is a repository at the url "<repoUrl>"
+    And a branch should be added "<branchName>"
+    And the embeddings for the branch should be added
+    Then the branches embeddings will be added to the database
+    Examples:
+      | repoUrl                                   | postgresPath               | branchName | composePath                                                                        | validationEndpoint                      |
+#      | https://github.com/kiegroup/drools.git | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
+      | /Users/hayde/IdeaProjects/test_graph_next | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
+
+  @test_postgres_db
+  Scenario Outline:
+    Given a postgres database to be loaded from "<postgresPath>" for docker-compose "<composePath>"
+    And docker-compose is started from "<composePath>"
+    Then postgres database should be started
+    Examples:
+      | repoUrl                                   | postgresPath               | branchName | composePath                                                                        | validationEndpoint                      |
+#      | https://github.com/kiegroup/drools.git | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
+      | /Users/hayde/IdeaProjects/test_graph_next | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |

@@ -5,13 +5,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hayden.commitdiffmodel.comittdiff.ParseDiff;
 import com.hayden.commitdiffmodel.convert.CommitDiffContextMapper;
-import com.hayden.commitdiffmodel.entity.CommitDiffId;
 import com.hayden.commitdiffmodel.entity.GitDiffs;
 import com.hayden.commitdiffmodel.git.GitErrors;
-import com.hayden.commitdiffmodel.git.GitFactory;
-import com.hayden.commitdiffmodel.git.RepoOperations;
 import com.hayden.commitdiffmodel.git_factory.DiffFactory;
-import com.hayden.commitdiffmodel.model.GitRefModel;
 import com.hayden.commitdiffmodel.validation.entity.CommitDiffContextCommitVersion;
 import com.hayden.commitdiffmodel.validation.repo.CommitDiffContextVersionRepo;
 import com.hayden.proto.prototyped.datasources.ai.modelserver.client.ModelServerValidationAiClient;
@@ -25,33 +21,20 @@ import com.hayden.test_graph.commit_diff_context.config.DbDataSourceTrigger;
 import com.hayden.test_graph.commit_diff_context.init.llm_validation.ctx.ValidateLlmInit;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
-import com.hayden.test_graph.steps.ExecAssertStep;
-import com.hayden.test_graph.steps.RegisterAssertStep;
-import com.hayden.test_graph.steps.RegisterInitStep;
-import com.hayden.test_graph.steps.ResettableStep;
+import com.hayden.test_graph.steps.*;
 import com.hayden.test_graph.thread.ResettableThread;
-import com.hayden.utilitymodule.git.RepoUtil;
 import com.hayden.utilitymodule.io.FileUtils;
 import com.hayden.utilitymodule.result.Result;
-import com.hayden.utilitymodule.result.error.SingleError;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.util.Files;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ResetCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.util.FS;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -92,20 +75,21 @@ public class LlmValidationNextCommit implements ResettableStep {
     @Given("a postgres database to be loaded from {string} for docker-compose {string}")
     @RegisterInitStep(RepoOpInit.class)
     public void startPostgresDatabase(String postgresSource, String dockerCompose) {
-        var postgresSrcDir = Paths.get(postgresSource).toFile();
-        assertions.assertSoftly(postgresSrcDir.exists() || postgresSrcDir.mkdirs(),
+        final Path postgresSrcDir = getPostgresSrcDir(postgresSource);
+        assertions.assertSoftly(postgresSrcDir.toFile().exists() || postgresSrcDir.toFile().mkdirs(),
                 "Postgres directory %s exists or was able to be created.".formatted(postgresSource));
 
-        final Path dockerComposeFile = Paths.get(dockerCompose, "docker-compose.yml");
-        var written = FileUtils.readToString(Paths.get(dockerCompose, "docker-compose-template.yml").toFile())
+        final Path dockerComposeFile = getDockerFileSave(dockerCompose);
+
+        var written = FileUtils.readToString(dockerComposeFile.resolve("docker-compose-template.yml").toFile())
                 .mapError(se -> new FileUtils.FileError(se.getMessage()))
                 .flatMapResult(found -> {
-                    var replaced = found.replaceAll("\\{\\{postgres_source}}", postgresSource);
-                    return FileUtils.writeToFileRes(replaced, dockerComposeFile);
+                    var replaced = found.replaceAll("\\{\\{postgres_source}}", postgresSrcDir.toString());
+                    return FileUtils.writeToFileRes(replaced, dockerComposeFile.resolve("docker-compose.yml"));
                 })
                 .one();
 
-        assertions.assertSoftly(written.isOk(), "Was not successfuly generating docker-compose with err: %s"
+        assertions.assertSoftly(written.isOk(), "Was not successfully generating docker-compose with err: %s"
                 .formatted(written.errorMessage()));
         written.ifPresent(didSuccessfullyWriteDockerCompose -> {
             assertions.assertSoftly(didSuccessfullyWriteDockerCompose, "Was not successfuly generating docker-compose");
@@ -117,6 +101,16 @@ public class LlmValidationNextCommit implements ResettableStep {
             }
         });
 
+    }
+
+    private @NotNull Path getPostgresSrcDir(String postgresSource) {
+        var p = FileUtils.replaceHomeDir(Paths.get(props.getHomeDir()), postgresSource).toPath().toAbsolutePath();
+        return p;
+    }
+
+    private @NotNull Path getDockerFileSave(String dockerCompose) {
+        var p = FileUtils.replaceHomeDir(Paths.get(props.getHomeDir()), dockerCompose).toPath().toAbsolutePath();
+        return p;
     }
 
     /**
@@ -245,5 +239,11 @@ public class LlmValidationNextCommit implements ResettableStep {
                 "Validation score was set for %s."
                         .formatted(mrc.getValue()));
         return saved;
+    }
+
+    @Then("postgres database should be started")
+    @ExecInitStep({RepoOpInit.class})
+    public void postgresDatabaseShouldBeStarted() {
+
     }
 }

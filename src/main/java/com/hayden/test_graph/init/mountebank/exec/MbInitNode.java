@@ -19,9 +19,7 @@ public interface MbInitNode<T extends MbInitCtx> extends InitNode<T> {
     @Override
     default T exec(T c, MetaCtx h) {
         createGetImposters(c)
-                .forEach(imposterCreated -> {
-                    createGetImposter(c, imposterCreated);
-                });
+                .forEach(imposterCreated -> createGetImposter(c, imposterCreated));
         return c;
     }
 

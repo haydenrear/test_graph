@@ -1,5 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.init.commit_diff_init;
 
+import com.hayden.commitdiffmodel.entity.CommitDiff;
 import com.hayden.commitdiffmodel.repo.*;
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.concurrent.Callable;
 
 @Component
@@ -38,21 +40,32 @@ public class DbCleanupNode implements CommitDiffInitNode {
     @Transactional
     public CommitDiffInit exec(CommitDiffInit c, MetaCtx h) {
         repoExecutor.perform(() -> {
-            commitDiffItemRepository.deleteAll();
-            codeBranchRepository.deleteAll();
-            codeRepoRepository.deleteAll();
+            if (commitDiffItemRepository.count() > 0)
+                commitDiffItemRepository.deleteAll();
 
-            commitDiffRepository.saveAllAndFlush(
-                    commitDiffRepository.findAll().stream()
-                            .peek(cd -> cd.getPartials().clear())
-                            .distinct()
-                            .toList());
+            if (codeBranchRepository.count() > 0)
+                codeBranchRepository.deleteAll();
+            if (codeRepoRepository.count() > 0)
+                codeRepoRepository.deleteAll();
 
-            blameTreeRepository.deleteAll();
-            blameNodeRepository.deleteAll();
-            commitRepository.deleteAll();
-            commitDiffClusterRepository.deleteAll();
-            commitDiffRepository.deleteAll();
+            List<CommitDiff> toDelete = commitDiffRepository.findAll().stream()
+                    .peek(cd -> cd.getPartials().clear())
+                    .distinct()
+                    .toList();
+
+            if (!toDelete.isEmpty())
+                commitDiffRepository.saveAllAndFlush(toDelete);
+
+            if (blameTreeRepository.count() > 0)
+                blameTreeRepository.deleteAll();
+            if (blameNodeRepository.count() > 0)
+                blameNodeRepository.deleteAll();
+            if(commitRepository.count() > 0)
+                commitRepository.deleteAll();
+            if (commitDiffClusterRepository.count() > 0)
+                commitDiffClusterRepository.deleteAll();
+            if (commitDiffRepository.count() > 0)
+                commitDiffRepository.deleteAll();
             return null;
         });
         return c;

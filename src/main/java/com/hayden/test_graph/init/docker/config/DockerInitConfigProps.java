@@ -28,5 +28,6 @@ public class DockerInitConfigProps {
 
     List<AwaitableContainer> containers = new ArrayList<>();
 
+    List<String> composeDirectories = new ArrayList<>();
 
 }
