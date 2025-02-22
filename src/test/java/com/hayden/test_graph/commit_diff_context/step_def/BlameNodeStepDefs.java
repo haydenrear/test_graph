@@ -82,7 +82,7 @@ public class BlameNodeStepDefs implements ResettableStep {
         assertions.assertSoftly(
                 c.stream().noneMatch(cdc
                         -> Objects.isNull(cdc) || Arrays.equals(cdc.getEmbedding(), Embedding.INITIALIZED)),
-                "Commit diff clusters were empty.");
+                "Commit diff clusters were not embedded.");
     }
 
 }
