@@ -2,6 +2,7 @@ package com.hayden.test_graph.commit_diff_context.init.commit_diff_init;
 
 import com.hayden.commitdiffmodel.entity.CommitDiff;
 import com.hayden.commitdiffmodel.repo.*;
+import com.hayden.test_graph.commit_diff_context.config.DatabaseConfigProps;
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import lombok.experimental.Delegate;
@@ -35,6 +36,17 @@ public class DbCleanupNode implements CommitDiffInitNode {
     private RepoExecutor repoExecutor;
     @Autowired
     private BlameNodeRepository blameNodeRepository;
+    @Autowired
+    private DatabaseConfigProps databaseConfigProps;
+
+    @Override
+    public boolean skip(CommitDiffInit t) {
+        if (databaseConfigProps.isSkipDbCleanup())
+            return true;
+
+        return t.getSkipCleanupNode().optional()
+                .orElse(false);
+    }
 
     @Override
     @Transactional

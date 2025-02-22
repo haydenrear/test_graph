@@ -6,6 +6,7 @@ import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.thread.ResettableThread;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,9 +18,12 @@ public class CommitDiffInit implements InitCtx {
 
     private final ContextValue<CommitDiffInitBubble> bubbleUnderlying;
 
+    @Getter
+    private final ContextValue<Boolean> skipCleanupNode;
+
 
     public CommitDiffInit() {
-        this(ContextValue.empty());
+        this(ContextValue.empty(), ContextValue.ofExisting(false));
     }
 
     @Autowired

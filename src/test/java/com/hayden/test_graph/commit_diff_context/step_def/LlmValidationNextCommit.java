@@ -18,6 +18,7 @@ import com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit.NextCo
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.config.CommitDiffContextConfigProps;
 import com.hayden.test_graph.commit_diff_context.config.DbDataSourceTrigger;
+import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
 import com.hayden.test_graph.commit_diff_context.init.llm_validation.ctx.ValidateLlmInit;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
@@ -72,9 +73,14 @@ public class LlmValidationNextCommit implements ResettableStep {
     @Autowired
     DbDataSourceTrigger dbDataSourceTrigger;
 
+    @Autowired
+    @ResettableThread
+    CommitDiffInit init;
+
     @Given("a postgres database to be loaded from {string} for docker-compose {string}")
     @RegisterInitStep(RepoOpInit.class)
     public void startPostgresDatabase(String postgresSource, String dockerCompose) {
+        init.getSkipCleanupNode().swap(true);
         final Path postgresSrcDir = getPostgresSrcDir(postgresSource);
         assertions.assertSoftly(postgresSrcDir.toFile().exists() || postgresSrcDir.toFile().mkdirs(),
                 "Postgres directory %s exists or was able to be created.".formatted(postgresSource));

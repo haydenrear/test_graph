@@ -32,9 +32,9 @@ Feature: Perform next commit
     And the embeddings for the branch should be added
     Then the branches embeddings will be added to the database
     Examples:
-      | repoUrl                                   | postgresPath               | branchName | composePath                                                                        | validationEndpoint                      |
+      | repoUrl                                   | postgresPath                   | branchName | composePath                                                                        | validationEndpoint                      |
 #      | https://github.com/kiegroup/drools.git | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
-      | /Users/hayde/IdeaProjects/test_graph_next | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
+      | /Users/hayde/IdeaProjects/test_graph_next | ~/test_dbs/test_graph_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
 
   @test_postgres_db
   Scenario Outline:
@@ -42,6 +42,6 @@ Feature: Perform next commit
     And docker-compose is started from "<composePath>"
     Then postgres database should be started
     Examples:
-      | repoUrl                                   | postgresPath               | branchName | composePath                                                                        | validationEndpoint                      |
-#      | https://github.com/kiegroup/drools.git | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
-      | /Users/hayde/IdeaProjects/test_graph_next | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
+      | postgresPath               | branchName | composePath                                                                        |
+#      | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres |
+      | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres |
