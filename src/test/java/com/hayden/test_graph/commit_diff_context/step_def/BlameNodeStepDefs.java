@@ -1,9 +1,7 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.google.common.collect.Sets;
-import com.hayden.commitdiffmodel.entity.CommitDiffContextBlameTree;
-import com.hayden.commitdiffmodel.entity.CommitDiffId;
-import com.hayden.commitdiffmodel.entity.Embedding;
+import com.hayden.commitdiffmodel.entity.*;
 import com.hayden.commitdiffmodel.repo.BlameTreeRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffClusterRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffRepository;
@@ -21,7 +19,10 @@ import io.cucumber.java.en.Then;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class BlameNodeStepDefs implements ResettableStep {
@@ -80,9 +81,26 @@ public class BlameNodeStepDefs implements ResettableStep {
         var c = cluster.findAll();
         assertions.assertSoftly(!c.isEmpty(), "Commit diff clusters were empty.");
         assertions.assertSoftly(
-                c.stream().noneMatch(cdc
-                        -> Objects.isNull(cdc) || Arrays.equals(cdc.embedding(), Embedding.INITIALIZED)),
+                c.stream()
+                        .filter(cdc -> Objects.nonNull(cdc.getEmbeddingHash()))
+                        .allMatch(BlameNodeStepDefs::isInitializedEmbedding),
                 "Commit diff clusters were not embedded.");
+        assertions.assertSoftly(
+                c.stream().allMatch(cdc -> Objects.nonNull(cdc.getEmbeddingHash())),
+                "No commit diff clusters were embedded.");
+        c.stream().flatMap(cdc -> isInitializedEmbedding(cdc.getCommitDiffs(), "Some commit diffs clusters were not embedded.").stream())
+                .flatMap(cdi -> isInitializedEmbedding(cdi.getDiffs(), "Some commit diffs were not embedded.").stream())
+                .flatMap(cdi -> isInitializedEmbedding(cdi.getParsed().diffs(), "Some git diffs were not embedded.").stream())
+                .forEach(eg -> assertions.assertSoftly(BlameNodeStepDefs.isInitializedEmbedding(eg),
+                        "Some git diffs were not embedded."));
     }
 
+    private static boolean isInitializedEmbedding(SerializableEmbed cdc) {
+        return !Arrays.equals(cdc.embedding(), Embedding.INITIALIZED);
+    }
+
+    private <T extends SerializableEmbed> Collection<T>  isInitializedEmbedding(Collection<T> cdc, String message) {
+        assertions.assertSoftly(cdc.stream().allMatch(BlameNodeStepDefs::isInitializedEmbedding), message);
+        return cdc;
+    }
 }
