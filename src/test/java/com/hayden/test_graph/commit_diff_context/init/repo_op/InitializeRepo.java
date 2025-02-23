@@ -72,30 +72,15 @@ public class InitializeRepo implements RepoOpInitNode {
     }
 
     private void cloneIfRemote(RepoOpInit c, RepoOpInit.RepositoryData rd) {
-        if (rd.url().startsWith("http") || rd.url().startsWith("git") || rd.url().startsWith("ssh")) {
-            var gitDir = Files.newTemporaryFolder();
-            RepoUtil.cloneRepo(gitDir, rd.url(), rd.branchName())
-                    .doOnError(gitInitError -> {
-                        assertions.assertSoftly(false, "Failed to clone git repo: %s.".formatted(gitInitError));
-                    })
-                    .ifPresent(git -> {
-                        assertions.reportAssert("Initialized git repository to %s", gitDir);
-                        c.repoData().swap(rd.withClonedUri(gitDir.toPath()));
-                    });
-        }
+        RepoUtil.cloneIfRemote(rd.url(), rd.branchName())
+                .doOnError(repoUtilError -> assertions.assertSoftly(false, "Failed to clone git repo: %s.".formatted(repoUtilError.getMessage())))
+                .ifPresent(path -> c.repoData().swap(rd.withClonedUri(path)));
     }
 
     private void decompressIfArchive(RepoOpInit c, RepoOpInit.RepositoryData rd) {
-        if (rd.url().endsWith(".tar")) {
-            assertions.assertSoftly(new File(rd.url()).exists(), "Repo archive did not exist.");
-            var tempDir = Files.newTemporaryFolder();
-            Path tarPath = Paths.get(rd.url());
-            Path unzippedPath = tempDir.toPath();
-            var unzipped = ArchiveUtils.prepareTestRepos(tarPath.getParent(), unzippedPath, tarPath.getFileName().toString());
-            c.repoData().swap(rd.unzipped(unzippedPath));
-            assertions.reportAssert("Initialized git repository to %s", rd.clonedUri());
-            assertions.assertSoftly(unzipped.isOk(), "Was unsuccessful in unzipping repositories: %s.".formatted(unzipped.errorMessage()));
-        }
+        RepoUtil.decompressIfArchive(rd.url())
+                .doOnError(repoUtilError -> assertions.assertSoftly(false, "Failed to decompress git repo: %s.".formatted(repoUtilError.getMessage())))
+                .ifPresent(path -> c.repoData().swap(rd.unzipped(path)));
     }
 
     private void doAddGitOp(RepoOpInit c, GitOperation gitOperation) {

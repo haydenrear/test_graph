@@ -5,7 +5,6 @@ import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.init.docker.config.DockerInitConfigProps;
 import com.hayden.test_graph.init.docker.exec.DockerInitNode;
-import com.hayden.test_graph.init.docker.exec.StartDockerNode;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -16,13 +15,22 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 @Component
 @ResettableThread
 @RequiredArgsConstructor
 public class DockerInitCtx implements InitCtx {
+
+
+    public sealed interface DockerTask {
+
+        record BuildCloneDockerTask(String repoUri, String branch, String contextPath, String imageName) implements DockerTask {}
+
+        record GradleTask(String directory, String gradleCommand) implements DockerTask {}
+
+    }
+
     private final ContextValue<File> composePath;
     private final ContextValue<LogLevel> logLevel;
     private final ContextValue<Set<String>> dockerProfiles;
@@ -32,12 +40,11 @@ public class DockerInitCtx implements InitCtx {
     private final ContextValue<Boolean> started;
 
     @Getter
-    private final List<GradleTask> gradleTasks = new ArrayList<>();
+    private final List<DockerTask> dockerBuildCommands = new ArrayList<>();
 
     @Getter
     private final List<AssertContainer> containers = new ArrayList<>();
 
-    public record GradleTask(String directory, String gradleCommand) {}
 
     public record AssertContainer(String imageName) {}
 

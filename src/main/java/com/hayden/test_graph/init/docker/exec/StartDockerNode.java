@@ -10,6 +10,7 @@ import com.github.dockerjava.zerodep.ZerodepDockerHttpClient;
 import com.hayden.commitdiffmodel.config.CommitDiffContextProperties;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.config.EnvConfigProps;
+import com.hayden.test_graph.init.docker.DockerService;
 import com.hayden.test_graph.init.docker.config.DockerInitConfigProps;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
@@ -45,6 +46,8 @@ public class StartDockerNode implements DockerInitNode {
 
     private final DockerInitConfigProps dockerInitConfigProps;
 
+    private final DockerService dockerService;
+
     private final EnvConfigProps env;
 
     private final Assertions assertions;
@@ -64,12 +67,7 @@ public class StartDockerNode implements DockerInitNode {
                 .ifPresentOrElse(
                         p -> initializeDockerCompose(c, dockerInitConfigProps),
                         () -> log.info("Skipping initialization of docker compose as file was not set."));
-        Result.tryFrom(() -> {
-                    return DockerClientBuilder.getInstance()
-                            .withDockerHttpClient(new ZerodepDockerHttpClient.Builder().dockerHost(URI.create(dockerInitConfigProps.getDockerHostUri()))
-                                    .responseTimeout(Duration.ofSeconds(dockerInitConfigProps.getDockerResponseTimeout())).build())
-                            .build();
-                })
+        Result.tryFrom(dockerService::buildDockerClient)
                 .exceptEmpty(exc -> assertions.assertSoftly(false, "Failed to retrieve docker client for waiting for container to start: %s", exc.getMessage()))
                 .ifPresent((DockerClient dc) -> dockerInitConfigProps.getContainers()
                         .forEach(container -> awaitLogMessage(container.log(), dc, container.containerName())));
