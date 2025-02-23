@@ -42,6 +42,6 @@ Feature: Perform repo operations
     Then the branches embeddings will be added to the database
     Then the blame node embeddings are validated to be added to the database
     Examples:
-      | repoUrl        | branchName | composePath                                                                                     |
-      | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+      | repoUrl                                   | branchName | composePath                                                                                     |
 #      | /Users/hayde/IdeaProjects/test_graph_next | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+      | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
