@@ -147,7 +147,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
 
             commitDiffs.one().ifPresent(cd -> {
                 for (var cdFound : cd)
-                    assertions.assertSoftly(!Arrays.equals(cdFound.getEmbedding(), Embedding.INITIALIZED),
+                    assertions.assertSoftly(!Arrays.equals(cdFound.embedding(), Embedding.INITIALIZED),
                             "Commit diff %s was not initialized.".formatted(cdFound.getId()));
             });
         });
