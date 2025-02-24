@@ -13,8 +13,8 @@ db-init-ctx:
 
 docker-init-ctx:
   skip-docker: true
-  skip-build-docker: false
-  skip-start-docker: false
+  skip-build-docker: true
+  skip-start-docker: true
   host: localhost
   containers:
     - container-name: "commit-diff-server"

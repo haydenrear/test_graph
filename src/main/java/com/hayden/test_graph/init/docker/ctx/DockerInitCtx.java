@@ -25,7 +25,7 @@ public class DockerInitCtx implements InitCtx {
 
     public sealed interface DockerTask {
 
-        record BuildCloneDockerTask(String repoUri, String branch, String contextPath, String imageName) implements DockerTask {}
+        record BuildCloneDockerTask(String repoUri, String branch, String contextPath, String imageName, String dockerfile) implements DockerTask {}
 
         record GradleTask(String directory, String gradleCommand) implements DockerTask {}
 

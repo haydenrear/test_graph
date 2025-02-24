@@ -28,10 +28,12 @@ public class DockerStepDef implements ResettableStep {
                 .swap(FileUtils.replaceHomeDir(Paths.get(props.getHomeDir()), composePath));
     }
 
-    @And("Docker container from repo {string} with branch {string} is built with image name {string} from subdirectory {string}")
-    public void buildCommand(String repo, String branch, String imageName, String subdirectory) {
-        var relativized = FileUtils.replaceHomeDir(env.getHomeDir(), repo).toPath().toAbsolutePath().toString();
-        dockerInitCtx.getDockerBuildCommands().add(new DockerInitCtx.DockerTask.BuildCloneDockerTask(relativized, branch,  subdirectory, imageName));
+    @And("docker container from repo {string} with branch {string} is built with image name {string} from subdirectory {string} and dockerfile {string}")
+    public void buildCommand(String repo, String branch, String imageName, String subdirectory, String dockerfile) {
+        if (!repo.startsWith("http") && !repo.startsWith("git") && !repo.startsWith("ssh")) {
+            repo = FileUtils.replaceHomeDir(env.getHomeDir(), repo).toPath().toAbsolutePath().toString();
+        }
+        dockerInitCtx.getDockerBuildCommands().add(new DockerInitCtx.DockerTask.BuildCloneDockerTask(repo, branch,  subdirectory, imageName, dockerfile));
     }
 
     @And("the docker container {string} exists")

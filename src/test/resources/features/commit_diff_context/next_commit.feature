@@ -39,6 +39,7 @@ Feature: Perform next commit
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
     And the embeddings for the branch should be added
+    And docker container from repo "git@github.com:haydenrear/servers.git" with branch "main" is built with image name "mcp/postgres" from subdirectory "" and dockerfile "src/postgres/Dockerfile"
     And a request for the next commit is provided with the commit message being provided from "classpath:responses/commit-message.json"
     And a request for the next commit is provided with the staged information being provided from "classpath:responses/staged.json"
     And a request for the next commit is provided with the contextData being provided from "classpath:responses/context-data.json"
@@ -47,7 +48,7 @@ Feature: Perform next commit
     And There exists a response type of "INITIAL_CODE" in the file location "classpath:responses/toolset_response.json" for model server endpoint "/ai_suite_gemini_flash_model" on port "9991" for the "1" response
     And There exists a response type of "INITIAL_CODE" in the file location "classpath:responses/initial_code_response.json" for model server endpoint "/ai_suite_gemini_flash_model" on port "9991" for the "2" response
     And There exists a response type of "CODEGEN" in the file location "classpath:responses/codegen_response.json" for model server endpoint "/ai_suite_gemini_flash_model" on port "9991" for the "1" response
-    And the docker container "mpc/postgres" exists
+    And the docker container "mcp/postgres" exists
     When the repo is added to the database by calling commit diff context
     And a request for the next commit is sent to the server with the next commit information provided previously
     Then a branch with name "<branchName>" will be added to the database
@@ -77,7 +78,7 @@ Feature: Perform next commit
     And There exists a response type of "INITIAL_CODE" in the file location "classpath:responses/initial_code_response.json" for model server endpoint "/ai_suite_gemini_flash_model" on port "9991" for the "1" response
     And There exists a response type of "CODEGEN" in the file location "classpath:responses/toolset_response.json" for model server endpoint "/ai_suite_gemini_flash_model" on port "9991" for the "1" response
     And There exists a response type of "CODEGEN" in the file location "classpath:responses/codegen_response.json" for model server endpoint "/ai_suite_gemini_flash_model" on port "9991" for the "2" response
-    And the docker container "mpc/postgres" exists
+    And the docker container "mcp/postgres" exists
     When the repo is added to the database by calling commit diff context
     And a request for the next commit is sent to the server with the next commit information provided previously
     Then a branch with name "<branchName>" will be added to the database
