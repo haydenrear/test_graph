@@ -97,15 +97,8 @@ public class BlameNodeStepDefs implements ResettableStep {
         c.stream().flatMap(cdc -> isInitializedEmbedding(cdc.getCommitDiffs(), "Some commit diffs clusters were not embedded.").stream())
                 .flatMap(cdi -> isInitializedEmbedding(cdi.getDiffs(), "Some commit diffs were not embedded.").stream())
                 .flatMap(cdi -> isInitializedEmbedding(cdi.getParsed().diffs(), "Some git diffs were not embedded.").stream())
-                .forEach(eg -> {
-                    try {
-                        if (eg.serialize(new ToPromptingRequest.JacksonSerializationCtx(new ObjectMapper(), null)).length < 10000)
-                            assertions.assertSoftly(BlameNodeStepDefs.isInitializedEmbedding(eg),
-                                    "Some git diffs were not embedded.");
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+                .forEach(eg -> assertions.assertSoftly(BlameNodeStepDefs.isInitializedEmbedding(eg),
+                                "Some git diffs were not embedded."));
     }
 
     private static boolean isInitializedEmbedding(SerializableEmbed cdc) {
@@ -114,18 +107,7 @@ public class BlameNodeStepDefs implements ResettableStep {
     }
 
     private <T extends SerializableEmbed> Collection<T>  isInitializedEmbedding(Collection<T> cdc, String message) {
-        assertions.assertSoftly(
-                cdc.stream()
-                        .filter(t -> {
-                            try {
-                                return t.serialize(new ToPromptingRequest.JacksonSerializationCtx(new ObjectMapper(), null)).length <= 10000;
-                            } catch (
-                                    IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        })
-                        .allMatch(BlameNodeStepDefs::isInitializedEmbedding),
-                message);
+        assertions.assertSoftly(cdc.stream().allMatch(BlameNodeStepDefs::isInitializedEmbedding), message);
         return cdc;
     }
 }
