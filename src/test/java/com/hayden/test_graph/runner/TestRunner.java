@@ -14,6 +14,6 @@ import static io.cucumber.junit.platform.engine.Constants.*;
         key = GLUE_PROPERTY_NAME,
         value = "com.hayden.test_graph")
 @ConfigurationParameter(key = PLUGIN_PUBLISH_QUIET_PROPERTY_NAME, value = "true")
-@ConfigurationParameter(key = FILTER_TAGS_PROPERTY_NAME, value = "@next_commit_only_retry_initial")
+@ConfigurationParameter(key = FILTER_TAGS_PROPERTY_NAME, value = "@add_blame_node")
 public class TestRunner {
 }

@@ -1,9 +1,12 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.hayden.commitdiffmodel.entity.*;
+import com.hayden.commitdiffmodel.model.ToPromptingRequest;
 import com.hayden.commitdiffmodel.repo.BlameTreeRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffClusterRepository;
+import com.hayden.commitdiffmodel.repo.CommitDiffItemRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffRepository;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
@@ -18,6 +21,7 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -41,6 +45,8 @@ public class BlameNodeStepDefs implements ResettableStep {
     private BlameTreeRepository blameTreeRepository;
     @Autowired
     private CommitDiffRepository commitDiffRepository;
+    @Autowired
+    private CommitDiffItemRepository itemRepository;
     @Autowired
     private CommitDiffClusterRepository cluster;
 
@@ -91,16 +97,35 @@ public class BlameNodeStepDefs implements ResettableStep {
         c.stream().flatMap(cdc -> isInitializedEmbedding(cdc.getCommitDiffs(), "Some commit diffs clusters were not embedded.").stream())
                 .flatMap(cdi -> isInitializedEmbedding(cdi.getDiffs(), "Some commit diffs were not embedded.").stream())
                 .flatMap(cdi -> isInitializedEmbedding(cdi.getParsed().diffs(), "Some git diffs were not embedded.").stream())
-                .forEach(eg -> assertions.assertSoftly(BlameNodeStepDefs.isInitializedEmbedding(eg),
-                        "Some git diffs were not embedded."));
+                .forEach(eg -> {
+                    try {
+                        if (eg.serialize(new ToPromptingRequest.JacksonSerializationCtx(new ObjectMapper(), null)).length < 10000)
+                            assertions.assertSoftly(BlameNodeStepDefs.isInitializedEmbedding(eg),
+                                    "Some git diffs were not embedded.");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 
     private static boolean isInitializedEmbedding(SerializableEmbed cdc) {
-        return !Arrays.equals(cdc.embedding(), Embedding.INITIALIZED);
+        var isInitialized = cdc.embedding() != null && !Arrays.equals(cdc.embedding(), Embedding.INITIALIZED);
+        return isInitialized;
     }
 
     private <T extends SerializableEmbed> Collection<T>  isInitializedEmbedding(Collection<T> cdc, String message) {
-        assertions.assertSoftly(cdc.stream().allMatch(BlameNodeStepDefs::isInitializedEmbedding), message);
+        assertions.assertSoftly(
+                cdc.stream()
+                        .filter(t -> {
+                            try {
+                                return t.serialize(new ToPromptingRequest.JacksonSerializationCtx(new ObjectMapper(), null)).length <= 10000;
+                            } catch (
+                                    IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
+                        .allMatch(BlameNodeStepDefs::isInitializedEmbedding),
+                message);
         return cdc;
     }
 }

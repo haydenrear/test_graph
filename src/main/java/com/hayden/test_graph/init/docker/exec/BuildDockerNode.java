@@ -44,7 +44,6 @@ public class BuildDockerNode implements DockerInitNode {
                 .exceptEmpty(exc -> assertions.assertSoftly(false, "Failed to retrieve docker client for waiting for container to start: %s", exc.getMessage()))
                 .ifPresent((DockerClient dc) -> doPerformBuilds(c, dc));
 
-
         return c;
     }
 
