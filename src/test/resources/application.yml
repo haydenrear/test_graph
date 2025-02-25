@@ -4,6 +4,7 @@ commit-diff-context-test-props:
   model-server-base-url: http://localhost:9991
   model-server-port: 9991
   home-dir: /Users/hayde
+  test-embedding-max-side: 10000
 
 test-graph.env:
   home-dir: /Users/hayde

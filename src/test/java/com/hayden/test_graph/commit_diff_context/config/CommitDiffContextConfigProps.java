@@ -26,4 +26,6 @@ public class CommitDiffContextConfigProps {
 
     String homeDir;
 
+    int testEmbeddingMaxSide;
+
 }
