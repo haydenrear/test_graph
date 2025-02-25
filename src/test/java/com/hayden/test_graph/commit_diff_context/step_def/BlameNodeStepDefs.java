@@ -37,9 +37,6 @@ public class BlameNodeStepDefs implements ResettableStep {
     @Autowired
     @ResettableThread
     private Assertions assertions;
-    @Autowired
-    @ResettableThread
-    private CdMbInitCtx initCtx;
 
     @Autowired
     private BlameTreeRepository blameTreeRepository;
@@ -93,6 +90,7 @@ public class BlameNodeStepDefs implements ResettableStep {
 
         var blameTrees = blameTreeRepository.findAll();
         assertions.assertSoftly(!blameTrees.isEmpty(), "Could not find blame tree.");
+
         var bt = blameTrees.stream().map(CommitDiffContextBlameTree::getParent)
                 .map(CommitDiff::getId)
                 .map(CommitDiffId::getParentHash)
@@ -129,7 +127,7 @@ public class BlameNodeStepDefs implements ResettableStep {
 
     private void assertCommitDiffItem(CommitDiffItem cdi) {
         isInitializedEmbedding(List.of(cdi), "Embedded diff diff was not embedded.");
-        isInitializedEmbedding(cdi.getParsed().diffs(), "Some git diffs were not embedded.");
+        isInitializedEmbedding(cdi.getParsed(), "Some git diffs were not embedded.");
     }
 
     private <T extends SerializableEmbed> void  isInitializedEmbedding(Collection<T> cdc, String message) {

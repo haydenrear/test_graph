@@ -12,16 +12,16 @@ services:
         source: {{postgres_source}}
         target: /var/lib/postgresql/data
     ports:
-      - "5450:5432"
-  commit-diff-context:
-    networks:
-      - commit-diff-template-net
-    image: localhost:5001/commit-diff-server
-    container_name: commit-diff-server
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
+      - "5451:5432"
+#  commit-diff-context:
+#    networks:
+#      - commit-diff-template-net
+#    image: localhost:5001/commit-diff-server
+#    container_name: commit-diff-server
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      SPRING_PROFILES_ACTIVE: docker
   model-server:
     networks:
       - commit-diff-template-net

@@ -1,14 +1,3 @@
-commit-diff-context-test-props:
-  url: http://localhost:8080/graphql
-  port: 8080
-  model-server-base-url: http://localhost:9991
-  model-server-port: 9991
-  home-dir: /Users/hayde
-  test-embedding-max-side: 10000
-
-test-graph.env:
-  home-dir: /Users/hayde
-
 db-init-ctx:
   skip-db-cleanup: false
 
@@ -27,7 +16,7 @@ docker-init-ctx:
 
 spring:
   profiles:
-    active: mb
+    active: mb,localembed
   docker:
     compose:
       enabled: true
@@ -41,7 +30,7 @@ spring:
   jpa:
     defer-datasource-initialization: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
       format_sql: true
     show-sql: true
     properties:
@@ -58,9 +47,8 @@ spring:
       driver-class-name: org.postgresql.Driver
       username: postgres
       password: postgres
-      jdbc-url: jdbc:postgresql://localhost:5450/postgres
-      url: jdbc:postgresql://localhost:5450/postgres
-
+      jdbc-url: jdbc:postgresql://localhost:5451/postgres
+      url: jdbc:postgresql://localhost:5451/postgres
   liquibase:
     enabled: false
   main:
