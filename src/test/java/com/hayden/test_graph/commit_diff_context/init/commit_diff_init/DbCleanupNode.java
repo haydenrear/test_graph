@@ -53,6 +53,16 @@ public class DbCleanupNode implements CommitDiffInitNode {
     public CommitDiffInit exec(CommitDiffInit c, MetaCtx h) {
         repoExecutor.perform(() -> {
 
+            commitDiffClusterRepository.removeAllCommitDiffs();
+            commitDiffRepository.removeAllCommitDiffs();
+            commitDiffRepository.removeAllCommitDiffsItems();
+            commitDiffItemRepository.removeAllCommitDiffsItems();
+            blameNodeRepository.removeAllCommitDiffs();
+
+            if (commitDiffRepository.count() > 0)
+                commitDiffRepository.deleteAll();
+            if (commitDiffItemRepository.count() > 0)
+                commitDiffItemRepository.deleteAll();
             if (blameTreeRepository.count() > 0)
                 blameTreeRepository.deleteAll();
             if (blameNodeRepository.count() > 0)
@@ -62,22 +72,11 @@ public class DbCleanupNode implements CommitDiffInitNode {
             if (codeRepoRepository.count() > 0)
                 codeRepoRepository.deleteAll();
 
-            List<CommitDiff> toDelete = commitDiffRepository.findAll().stream()
-                    .peek(cd -> cd.getPartials().clear())
-                    .distinct()
-                    .toList();
 
-            if (!toDelete.isEmpty())
-                commitDiffRepository.saveAll(toDelete);
-            if (commitDiffItemRepository.count() > 0)
-                commitDiffItemRepository.deleteAll();
+            commitRepository.deleteAllHeads();
 
-            if(commitRepository.count() > 0)
-                commitRepository.deleteAll();
             if (commitDiffClusterRepository.count() > 0)
                 commitDiffClusterRepository.deleteAll();
-            if (commitDiffRepository.count() > 0)
-                commitDiffRepository.deleteAll();
             return null;
         });
         return c;

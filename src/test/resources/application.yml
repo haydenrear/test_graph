@@ -10,7 +10,7 @@ test-graph.env:
   home-dir: /Users/hayde
 
 db-init-ctx:
-  skip-db-cleanup: true
+  skip-db-cleanup: false
 
 docker-init-ctx:
   skip-docker: true

@@ -10,8 +10,8 @@ Feature: Perform next commit
     Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
-#    And the embeddings for the branch should be added
-#    And add blame nodes is called
+    And the embeddings for the branch should be added
+    And add blame nodes is called
     And a request for the next commit is provided with the commit message being provided from "classpath:responses/commit-message.json"
     And a request for the next commit is provided with the staged information being provided from "classpath:responses/staged.json"
     And a request for the next commit is provided with the contextData being provided from "classpath:responses/context-data.json"
