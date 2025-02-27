@@ -6,8 +6,9 @@ commit-diff-context-test-props:
   home-dir: /Users/hayde
   test-embedding-max-side: 10000
 
-test-graph.env:
+env-props:
   home-dir: /Users/hayde
+  project-dir: /Users/hayde/IdeaProjects/drools/test_graph
 
 db-init-ctx:
   skip-db-cleanup: false

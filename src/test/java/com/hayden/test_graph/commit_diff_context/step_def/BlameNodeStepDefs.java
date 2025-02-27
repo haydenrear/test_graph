@@ -135,7 +135,7 @@ public class BlameNodeStepDefs implements ResettableStep {
     }
 
     private boolean isInitializedEmbedding(SerializableEmbed embeddedItem, ObjectMapper om) {
-        var isInitialized = embeddedItem.embedding() != null && !Arrays.equals(embeddedItem.embedding(), Embedding.INITIALIZED);
+        var isInitialized = embeddedItem.isEmbedded();
         if (!isInitialized) {
             try {
                 if (embeddedItem.serialize(om).length > contextConfigProps.getTestEmbeddingMaxSide()) {
