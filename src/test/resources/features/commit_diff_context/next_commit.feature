@@ -10,7 +10,8 @@ Feature: Perform next commit
     Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
-    And the embeddings for the branch should be added
+#    And the embeddings for the branch should be added
+#    And add blame nodes is called
     And a request for the next commit is provided with the commit message being provided from "classpath:responses/commit-message.json"
     And a request for the next commit is provided with the staged information being provided from "classpath:responses/staged.json"
     And a request for the next commit is provided with the contextData being provided from "classpath:responses/context-data.json"
@@ -18,6 +19,7 @@ Feature: Perform next commit
     And There exists a response type of "EMBEDDING" in the file location "classpath:responses/embedding_response.json" for model server endpoint "/ai_suite_gemini_embedding" on port "9991"
     And There exists a response type of "INITIAL_CODE" in the file location "classpath:responses/initial_code_response.json" for model server endpoint "/ai_suite_gemini_flash_model" on port "9991"
     And There exists a response type of "CODEGEN" in the file location "classpath:responses/codegen_response.json" for model server endpoint "/ai_suite_gemini_flash_model" on port "9991"
+    And There exists a response type of "RERANK" in the file location "classpath:responses/rerank_response.json" for model server endpoint "/ai_suite_rerank" on port "9991"
     When the repo is added to the database by calling commit diff context
     And a request for the next commit is sent to the server with the next commit information provided previously
     Then a branch with name "<branchName>" will be added to the database
@@ -26,8 +28,9 @@ Feature: Perform next commit
     Then the response from retrieving next commit can be applied to the repository as a git diff
     Then the mountebank requests for the toolset existed
     Examples:
-      | repoUrl        | branchName | composePath                                                                                     |
-      | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+      | repoUrl                                   | branchName | composePath                                                                                     |
+#      | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+      | /Users/hayde/IdeaProjects/test_graph_next | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
 
 
   @commit_diff_context_compose
@@ -39,6 +42,7 @@ Feature: Perform next commit
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
     And the embeddings for the branch should be added
+    And add blame nodes is called
     And docker container from repo "git@github.com:haydenrear/servers.git" with branch "main" is built with image name "mcp/postgres" from subdirectory "" and dockerfile "src/postgres/Dockerfile"
     And a request for the next commit is provided with the commit message being provided from "classpath:responses/commit-message.json"
     And a request for the next commit is provided with the staged information being provided from "classpath:responses/staged.json"
@@ -70,6 +74,7 @@ Feature: Perform next commit
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
     And the embeddings for the branch should be added
+    And add blame nodes is called
     And a request for the next commit is provided with the commit message being provided from "classpath:responses/commit-message.json"
     And a request for the next commit is provided with the staged information being provided from "classpath:responses/staged.json"
     And a request for the next commit is provided with the contextData being provided from "classpath:responses/context-data.json"

@@ -23,7 +23,8 @@ public class ModelServerResponseNode implements CdMbInitNode, ModelServerCdMbIni
         final List<CdMbInitCtx.AiServerResponse.AiServerResponseType> SERVER = List.of(
                 CdMbInitCtx.AiServerResponse.AiServerResponseType.EMBEDDING,
                 CdMbInitCtx.AiServerResponse.AiServerResponseType.INITIAL_CODE,
-                CdMbInitCtx.AiServerResponse.AiServerResponseType.CODEGEN
+                CdMbInitCtx.AiServerResponse.AiServerResponseType.CODEGEN,
+                CdMbInitCtx.AiServerResponse.AiServerResponseType.RERANK
         );
 
         @Override

@@ -52,9 +52,11 @@ public class DbCleanupNode implements CommitDiffInitNode {
     @Transactional
     public CommitDiffInit exec(CommitDiffInit c, MetaCtx h) {
         repoExecutor.perform(() -> {
-            if (commitDiffItemRepository.count() > 0)
-                commitDiffItemRepository.deleteAll();
 
+            if (blameTreeRepository.count() > 0)
+                blameTreeRepository.deleteAll();
+            if (blameNodeRepository.count() > 0)
+                blameNodeRepository.deleteAll();
             if (codeBranchRepository.count() > 0)
                 codeBranchRepository.deleteAll();
             if (codeRepoRepository.count() > 0)
@@ -66,12 +68,10 @@ public class DbCleanupNode implements CommitDiffInitNode {
                     .toList();
 
             if (!toDelete.isEmpty())
-                commitDiffRepository.saveAllAndFlush(toDelete);
+                commitDiffRepository.saveAll(toDelete);
+            if (commitDiffItemRepository.count() > 0)
+                commitDiffItemRepository.deleteAll();
 
-            if (blameTreeRepository.count() > 0)
-                blameTreeRepository.deleteAll();
-            if (blameNodeRepository.count() > 0)
-                blameNodeRepository.deleteAll();
             if(commitRepository.count() > 0)
                 commitRepository.deleteAll();
             if (commitDiffClusterRepository.count() > 0)

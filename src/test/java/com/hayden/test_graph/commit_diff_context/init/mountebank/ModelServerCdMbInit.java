@@ -76,12 +76,6 @@ public interface ModelServerCdMbInit {
     }
 
     static String getHeaderToMatch(CdMbInitCtx.AiServerResponseDescriptor aiServerResponse) {
-        return switch(aiServerResponse.responseType()) {
-            case EMBEDDING -> "EMBEDDING";
-            case CODEGEN -> "CODEGEN";
-            case TOOLSET -> "TOOLSET";
-            case INITIAL_CODE -> "INITIAL_CODE";
-            case VALIDATION -> "VALIDATION";
-        };
+        return aiServerResponse.responseType().name();
     }
 }

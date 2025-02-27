@@ -1,0 +1,17 @@
+{
+  "query": "Try to embed this!.",
+  "ranked_results": {
+    "0": {
+      "doc_id": "0",
+      "document_type": "text",
+      "rank": 0,
+      "text": "ok"
+    },
+    "1": {
+      "doc_id": "1",
+      "document_type": "text",
+      "rank": 1,
+      "text": "another"
+    }
+  }
+}

@@ -36,7 +36,7 @@ public class CdMbInitCtx implements MbInitCtx {
     public interface AiServerResponse {
 
         enum AiServerResponseType {
-            EMBEDDING, CODEGEN, TOOLSET, INITIAL_CODE, VALIDATION
+            EMBEDDING, CODEGEN, TOOLSET, INITIAL_CODE, VALIDATION, RERANK
         }
 
         record FileSourceResponse(Path filePath, AiServerResponseType responseType,
