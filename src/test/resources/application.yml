@@ -11,7 +11,7 @@ env-props:
   project-dir: /Users/hayde/IdeaProjects/drools/test_graph
 
 db-init-ctx:
-  skip-db-cleanup: false
+  skip-db-cleanup: true
 
 docker-init-ctx:
   skip-docker: true

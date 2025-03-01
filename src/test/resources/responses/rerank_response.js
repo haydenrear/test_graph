@@ -1,20 +1,22 @@
-(request) => {
+(config) => {
     try {
+        let request = config.request
         const body = JSON.parse(request.body);
         let query = body['rerank_body']['query']
         let documents = body['rerank_body']['docs']
 
         let returnDocs = {}
-        let i = 0
-        for (let d in documents) {
+
+        for (let i = 0; i < documents.length; ++i) {
             returnDocs[i] = {
                 'text': documents[i]['text'],
                 'rank': i,
                 'doc_id': documents[i]['doc_id'],
                 'document_type': 'text'
-            };
-            i = i +1
+            }
         }
+
+        config.logger.info("Returning ", returnDocs)
 
         return {
             body: {
@@ -23,6 +25,6 @@
             }
         };
     } catch (e) {
-        return {body: 'Failed to parse request.'};
+        return {body: 'Failed to parse request: ' + e.toString() + '.'};
     }
 }
