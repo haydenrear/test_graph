@@ -6,7 +6,6 @@ import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.mountebank.ctx.MbInitCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.io.FileUtils;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
@@ -27,13 +26,14 @@ public class CdMbInitCtx implements MbInitCtx {
 
     public record ModelServerRequestData(String urlPath, int httpStatusCode, int port) {}
 
-    public record AiServerResponseDescriptor(int count, int repeat, @Delegate AiServerResponse response) {
+    public record AiServerResponseDescriptor(int count, int repeat,
+                                             @Delegate AiServerResponse response) {
         public AiServerResponseDescriptor(AiServerResponse response) {
             this(-1, 1, response);
         }
     }
 
-    public interface AiServerResponse {
+    public sealed interface AiServerResponse {
 
         enum AiServerResponseType {
             EMBEDDING, CODEGEN, TOOLSET, INITIAL_CODE, VALIDATION, RERANK
@@ -47,6 +47,21 @@ public class CdMbInitCtx implements MbInitCtx {
                         .one()
                         .mapError(se -> {
                             log.error("Error when reading {}.", filePath.toFile());
+                            return se;
+                        })
+                        .optional();
+            }
+        }
+
+        record FileSourceFunctionResponse(Path functionPath,
+                                          AiServerResponseType responseType,
+                                          ModelServerRequestData requestData) implements AiServerResponse {
+            @Override
+            public Optional<String> getResponseAsString() {
+                return FileUtils.readToString(functionPath.toFile())
+                        .one()
+                        .mapError(se -> {
+                            log.error("Error when reading {}.", functionPath.toFile());
                             return se;
                         })
                         .optional();

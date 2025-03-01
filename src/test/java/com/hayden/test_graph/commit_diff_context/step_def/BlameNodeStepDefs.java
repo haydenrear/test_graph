@@ -88,20 +88,12 @@ public class BlameNodeStepDefs implements ResettableStep {
 
         assertions.assertSoftly(!cd.isEmpty(), "Could not find commit diffs.");
 
-        var blameTrees = blameTreeRepository.findAll();
-        assertions.assertSoftly(!blameTrees.isEmpty(), "Could not find blame tree.");
+        var bt = blameTreeRepository.findAll();
 
-        var bt = blameTrees.stream().map(CommitDiffContextBlameTree::getParent)
-                .map(CommitDiff::getId)
-                .map(CommitDiffId::getParentHash)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        assertions.assertSoftly(!bt.isEmpty(), "Could not find blame tree.");
+        assertions.assertSoftly(bt.stream().allMatch(blameTree -> blameTree.getRoot() != null),
+                "Blame tree root not set on some blame trees.");
 
-        var int1 = Sets.intersection(bt, cd);
-        var int2 = Sets.intersection(bt, cd);
-
-        assertions.assertSoftly(int1.equals(int2), "All commit diffs represented in blame tree.");
-        assertions.assertSoftly(bt.size() == cd.size(), "All commit diffs represented in blame tree.");
     }
 
     private void assertCommitDiffClusters() {

@@ -1,12 +1,18 @@
 package com.hayden.test_graph.commit_diff_context.init.mountebank;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
+import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
+import org.mbtest.javabank.fluent.ImposterBuilder;
+import org.mbtest.javabank.fluent.ResponseBuilder;
+import org.mbtest.javabank.fluent.StubBuilder;
 import org.mbtest.javabank.http.core.Stub;
 import org.mbtest.javabank.http.imposters.Imposter;
 import org.mbtest.javabank.http.predicates.Predicate;
 import org.mbtest.javabank.http.predicates.PredicateType;
+import org.mbtest.javabank.http.responses.Inject;
 import org.mbtest.javabank.http.responses.Is;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +28,7 @@ public interface ModelServerCdMbInit {
         return fromRes(aiServerResponseType).stream();
     }
 
+    @SneakyThrows
     default Optional<Imposter> fromRes(List<CdMbInitCtx.AiServerResponseDescriptor> aiResponses) {
 
         if (aiResponses.isEmpty())
@@ -39,24 +46,17 @@ public interface ModelServerCdMbInit {
             assert nextAiResponse.requestData().port() == next.port();
             assert Objects.equals(nextAiResponse.requestData().urlPath(), next.urlPath());
 
-            CdMbInitCtx.ModelServerRequestData modelServerRequestData = nextAiResponse.requestData();
-
-            Is res = new Is();
-
-            res = res.withStatusCode(modelServerRequestData.httpStatusCode());
-            res = nextAiResponse.getResponseAsString()
-                    .map(res::withBody)
-                    .or(() -> {
-                        log.info("Response string was not found for mountebank.");
-                        return Optional.empty();
-                    })
-                    .orElse(null);
-
-            if (nextAiResponse.count() != -1) {
-                res = res.withRepeat(nextAiResponse.repeat());
+            switch(nextAiResponse.response()) {
+                case CdMbInitCtx.AiServerResponse.FileSourceFunctionResponse fileSourceFunctionResponse -> {
+                    Optional<String> res = fileSourceFunctionResponse.getResponseAsString();
+                    if (res.isPresent())
+                        addInjectResponse(res.get(), stub);
+                }
+                case CdMbInitCtx.AiServerResponse.FileSourceResponse fileSourceResponse ->
+                        addStringResponse(nextAiResponse, stub);
+                case CdMbInitCtx.AiServerResponse.StringSourceResponse stringSourceResponse ->
+                        addStringResponse(nextAiResponse, stub);
             }
-
-            stub.addResponse(res);
         }
 
 
@@ -72,7 +72,35 @@ public interface ModelServerCdMbInit {
                 .withRequestsRecorded(true)
                 .addStub(stub);
 
+        var written = new ObjectMapper().writeValueAsString(imposter);
+        log.info("{}", written);
+
         return Optional.of(imposter);
+    }
+
+    private static void addInjectResponse(String fn, Stub stub) {
+        stub.addResponse(new Inject().withFunction(fn));
+    }
+
+    private static void addStringResponse(CdMbInitCtx.AiServerResponseDescriptor nextAiResponse, Stub stub) {
+        CdMbInitCtx.ModelServerRequestData modelServerRequestData = nextAiResponse.requestData();
+
+        Is res = new Is();
+
+        res = res.withStatusCode(modelServerRequestData.httpStatusCode());
+        res = nextAiResponse.getResponseAsString()
+                .map(res::withBody)
+                .or(() -> {
+                    log.info("Response string was not found for mountebank.");
+                    return Optional.empty();
+                })
+                .orElse(null);
+
+        if (nextAiResponse.count() != -1) {
+            res = res.withRepeat(nextAiResponse.repeat());
+        }
+
+        stub.addResponse(res);
     }
 
     static String getHeaderToMatch(CdMbInitCtx.AiServerResponseDescriptor aiServerResponse) {

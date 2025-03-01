@@ -34,6 +34,8 @@ tasks.generateJava {
     )
 }
 
+project.mountebank.allowInjection = true
+
 tasks.acquireMountebank {
     project.logger.info("Getting mountebank!")
 }

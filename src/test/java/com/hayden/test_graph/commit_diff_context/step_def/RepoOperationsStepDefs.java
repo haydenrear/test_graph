@@ -85,6 +85,11 @@ public class RepoOperationsStepDefs implements ResettableStep {
         registerResponse(responseType, fileLocation, uri, port, count);
     }
 
+    @And("There exists an inject response type of {string} in the file location {string} for model server endpoint {string} on port {string}")
+    public void registerInjectResponse(String responseType, String fileLocation, String uri, String port) {
+        registerInjectResponse(responseType, fileLocation, uri, port, "-1");
+    }
+
     @And("the add repo GraphQl query {string}")
     @RegisterInitStep(RepoOpInit.class)
     public void do_set_graph_ql_add_repo(String repoUrl) {
@@ -153,6 +158,21 @@ public class RepoOperationsStepDefs implements ResettableStep {
         });
     }
 
+    private void registerInjectResponse(String responseType, String fileLocation, String uri, String port, String count) {
+        var responseFile = resolver.getResource(fileLocation);
+        assertions.assertStrongly(responseFile.exists(), "Response did exist.");
+        try {
+            ctx.addAiServerResponse(new CdMbInitCtx.AiServerResponse.FileSourceFunctionResponse(
+                            responseFile.getFile().toPath(),
+                            CdMbInitCtx.AiServerResponse.AiServerResponseType.valueOf(responseType),
+                            new CdMbInitCtx.ModelServerRequestData(uri, 200, Integer.parseInt(port))),
+                    Integer.parseInt(count));
+        } catch (IOException e) {
+            assertions.assertStronglyPattern(false, "Failed to add response for %s: %s\n%s.",
+                    responseType, e.getMessage(), SingleError.parseStackTraceToString(e));
+        }
+    }
+
     private void registerResponse(String responseType, String fileLocation, String uri, String port, String count) {
         var responseFile = resolver.getResource(fileLocation);
         assertions.assertStrongly(responseFile.exists(), "Response did exist.");
@@ -176,4 +196,5 @@ public class RepoOperationsStepDefs implements ResettableStep {
                 "Code branch existed.");
         return found;
     }
+
 }

@@ -26,9 +26,10 @@ public interface MbInitNode<T extends MbInitCtx> extends InitNode<T> {
     default void createGetImposter(T c, Imposter imposterCreated) {
         try {
             Imposter imposter = c.client().getImposter(imposterCreated.getPort());
-            if (imposter.getStubs().isEmpty())
-                c.client().createImposter(imposterCreated);
-            else {
+            if (imposter.getStubs().isEmpty()) {
+                int created = c.client().createImposter(imposterCreated);
+                log.info("{}", created);
+            } else {
                 imposterCreated.getStubs()
                         .stream()
                         .peek(st -> {
