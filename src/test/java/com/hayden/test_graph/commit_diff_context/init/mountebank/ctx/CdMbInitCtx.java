@@ -24,6 +24,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CdMbInitCtx implements MbInitCtx {
 
+    public boolean containsRerank() {
+        return this.getServerResponses()
+                .responses.stream()
+                .anyMatch(ai -> ai.response.responseType() == AiServerResponse.AiServerResponseType.RERANK);
+    }
+
     public record ModelServerRequestData(String urlPath, int httpStatusCode, int port) {}
 
     public record AiServerResponseDescriptor(int count, int repeat,

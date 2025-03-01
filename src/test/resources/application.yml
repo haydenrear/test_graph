@@ -3,6 +3,7 @@ commit-diff-context-test-props:
   port: 8080
   model-server-base-url: http://localhost:9991
   model-server-port: 9991
+  model-server-rerank-port: 9992
   home-dir: /Users/hayde
   test-embedding-max-side: 10000
 
@@ -11,7 +12,7 @@ env-props:
   project-dir: /Users/hayde/IdeaProjects/drools/test_graph
 
 db-init-ctx:
-  skip-db-cleanup: true
+  skip-db-cleanup: false
 
 docker-init-ctx:
   skip-docker: true

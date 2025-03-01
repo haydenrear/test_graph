@@ -24,6 +24,8 @@ public class CommitDiffContextConfigProps {
 
     int modelServerPort;
 
+    int modelServerRerankPort;
+
     String homeDir;
 
     int testEmbeddingMaxSide;

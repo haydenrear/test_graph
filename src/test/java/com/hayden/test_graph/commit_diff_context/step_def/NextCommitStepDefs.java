@@ -184,22 +184,40 @@ public class NextCommitStepDefs implements ResettableStep {
                 assertions.reportAssert("Found response for %s", read);
             }
 
-            assertions.assertSoftly(tyHeaders.containsAll(Lists.newArrayList("EMBEDDING", "CODEGEN", "INITIAL_CODE")),
+            var validResponses = Lists.newArrayList(CdMbInitCtx.AiServerResponse.AiServerResponseType.EMBEDDING,
+                    CdMbInitCtx.AiServerResponse.AiServerResponseType.CODEGEN, CdMbInitCtx.AiServerResponse.AiServerResponseType.INITIAL_CODE);
+            assertions.assertSoftly(tyHeaders.containsAll(validResponses.stream().map(Enum::name).toList()),
                     "Ty headers %s did not exist.".formatted(tyHeaders));
             var res = cdMbInitCtx.getServerResponses().responses().stream()
                     .collect(Collectors.groupingBy(CdMbInitCtx.AiServerResponseDescriptor::responseType));
 
-            res.keySet().forEach(ai -> {
-                var c = tyHeaders.stream()
-                        .filter(a -> a.equals(ai.name())).count();
-                assertions.assertSoftly(c >= res.get(ai).size(), "Correct number of requests received: %s, %s.".formatted(c, res.get(ai).size()));
-            });
+            res.keySet().stream().filter(validResponses::contains)
+                    .forEach(ai -> {
+                        var c = tyHeaders.stream()
+                                .filter(a -> a.equals(ai.name())).count();
+                        assertions.assertSoftly(c >= res.get(ai).size(), "Correct number of requests received: %s, %s.".formatted(c, res.get(ai).size()));
+                    });
 
             res.keySet().forEach(ai -> assertions.assertSoftly(!res.get(ai).isEmpty(), "No request received for %s."
                     .formatted(ai)));
+
+            assertRerank(tyHeaders);
+
         } catch (ParseException | JsonProcessingException e) {
             assertions.assertSoftly(false, "Could not retrieve imposter for model server: %s",
                     SingleError.parseStackTraceToString(e));
+        }
+    }
+
+    private void assertRerank(List<String> tyHeaders) throws ParseException, JsonProcessingException {
+        if (cdMbInitCtx.containsRerank()) {
+            var rerank = cdMbInitCtx.client().getImposter(contextConfigProps.getModelServerRerankPort());
+            for (var req : rerank.getRequests()) {
+                var h = req.getHeaders();
+                addHeaderIfExists(h, tyHeaders, CdMbInitCtx.AiServerResponse.AiServerResponseType.RERANK.name());
+                var read = mapper.readValue(req.getBody(), new TypeReference<Map<String, Object>>() {});
+                assertions.reportAssert("Found response for %s", read);
+            }
         }
     }
 
