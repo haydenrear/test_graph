@@ -17,7 +17,7 @@ import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit.NextCommitAssert;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.config.CommitDiffContextConfigProps;
-import com.hayden.test_graph.commit_diff_context.config.DbDataSourceTrigger;
+import com.hayden.utilitymodule.db.DbDataSourceTrigger;
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
 import com.hayden.test_graph.commit_diff_context.init.llm_validation.ctx.ValidateLlmInit;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
