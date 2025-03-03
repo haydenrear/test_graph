@@ -52,6 +52,7 @@ public class StartDockerNode implements DockerInitNode {
         if (dockerInitConfigProps.isSkipStartDocker()) {
             initCtx.getStarted().swap(true);
         }
+
         return dockerInitConfigProps.isSkipStartDocker();
     }
 

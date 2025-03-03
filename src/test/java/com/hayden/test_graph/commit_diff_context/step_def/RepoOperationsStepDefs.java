@@ -2,16 +2,19 @@ package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.hayden.commitdiffmodel.entity.CodeBranch;
 import com.hayden.commitdiffmodel.entity.Embedding;
+import com.hayden.commitdiffmodel.git.RepositoryHolder;
 import com.hayden.commitdiffmodel.repo.CodeBranchRepository;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoInitItem;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
+import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.steps.ExecAssertStep;
 import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.db.DbDataSourceTrigger;
 import com.hayden.utilitymodule.result.error.SingleError;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
@@ -49,6 +52,8 @@ public class RepoOperationsStepDefs implements ResettableStep {
     CodeBranchRepository codeBranchRepository;
     @Autowired
     PathMatchingResourcePatternResolver resolver;
+    @Autowired
+    DbDataSourceTrigger trigger;
 
     @Autowired
     @ResettableThread
@@ -56,9 +61,22 @@ public class RepoOperationsStepDefs implements ResettableStep {
         this.commitDiffInit = commitDiffInit;
     }
 
+    @Autowired
+    @ResettableThread
+    DockerInitCtx dockerInitCtx;
+
     @And("there is a repository at the url {string}")
     @RegisterInitStep(RepoOpInit.class)
     public void do_set_repo_given(String repoUrl) {
+        dockerInitCtx.getStarted().swap(true);
+        trigger.doWithKey(setKey -> {
+            var currKey = setKey.curr();
+            var p = codeBranchRepository.withCommitsWithDiffs(RepositoryHolder.RepositoryArgs.builder()
+                    .branch("main")
+                    .repoPath("/Users/hayde/IdeaProjects/test_graph_next")
+                    .build());
+            System.out.println();
+        }) ;
         commitDiffInit.setRepoData(
                 RepoOpInit.RepositoryData.builder()
                         .clonedUri(Paths.get(repoUrl))
@@ -144,7 +162,8 @@ public class RepoOperationsStepDefs implements ResettableStep {
         var repoData = commitDiffInit.repoDataOrThrow();
         var found = codeBranchRepository.withCommitsWithDiffs(repoData.toRepositoryArgs());
 
-        assertions.assertSoftly(found.isPresent(), "Code branch did not exist.");
+        assertions.assertSoftly(found.isPresent(), "Code branch did not exist, %s."
+                .formatted(repoData.toRepositoryArgs()));
         found.ifPresent(cb -> {
             var commitDiffs = cb.parseCommitDiffs();
             assertions.assertSoftly(commitDiffs.isOk(), "Commit diffs could not be retrieved from %s with err: %s."

@@ -28,8 +28,6 @@ docker-init-ctx:
     - ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context
 
 spring:
-  profiles:
-    active: mb
   docker:
     compose:
       enabled: true

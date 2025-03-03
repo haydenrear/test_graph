@@ -1,5 +1,5 @@
 db-init-ctx:
-  skip-db-cleanup: false
+  skip-db-cleanup: true
 
 docker-init-ctx:
   skip-docker: true
@@ -15,8 +15,6 @@ docker-init-ctx:
     - ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context
 
 spring:
-  profiles:
-    active: mb,localembed
   docker:
     compose:
       enabled: true
@@ -24,7 +22,7 @@ spring:
       readiness:
         wait: never
       skip:
-        in-tests: false
+        in-tests: true
       file: src/test/docker/init/docker-compose.yml
   application.name: commit-diff-context-tg
   jpa:

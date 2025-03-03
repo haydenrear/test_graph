@@ -36,11 +36,12 @@ public class DbConfig {
         AbstractRoutingDataSource routingDataSource = new AbstractRoutingDataSource() {
             @Override
             protected Object determineCurrentLookupKey() {
-                return dockerInitCtx.getStarted()
+                String s = dockerInitCtx.getStarted()
                         .optional()
                         .filter(Boolean::booleanValue)
-                        .map(b -> dbDataSourceTrigger.initializeGetKey())
+                        .map(b -> dbDataSourceTrigger.initializeKeyTo(DbDataSourceTrigger.APP_DB_KEY))
                         .orElse(DbDataSourceTrigger.VALIDATION_DB_KEY);
+                return s;
             }
         };
 
