@@ -68,15 +68,6 @@ public class RepoOperationsStepDefs implements ResettableStep {
     @And("there is a repository at the url {string}")
     @RegisterInitStep(RepoOpInit.class)
     public void do_set_repo_given(String repoUrl) {
-        dockerInitCtx.getStarted().swap(true);
-        trigger.doWithKey(setKey -> {
-            var currKey = setKey.curr();
-            var p = codeBranchRepository.withCommitsWithDiffs(RepositoryHolder.RepositoryArgs.builder()
-                    .branch("main")
-                    .repoPath("/Users/hayde/IdeaProjects/test_graph_next")
-                    .build());
-            System.out.println();
-        }) ;
         commitDiffInit.setRepoData(
                 RepoOpInit.RepositoryData.builder()
                         .clonedUri(Paths.get(repoUrl))

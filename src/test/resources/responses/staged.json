@@ -1,1 +1,103 @@
-{"diffs":[{"underlyingDiff":{"newPath":"/test","oldPath":null,"newFileMode":null,"oldFileMode":null,"diffType":"MODIFY","content":{"hunks":[{"commitDiffEdits":[{"diffType":"INSERT","editLocations":{"locationA":{"begin":38,"end":0},"locationB":{"begin":39,"end":1}},"contentChange":null,"oldContent":null},{"diffType":"REPLACE","editLocations":{"locationA":{"begin":150,"end":2},"locationB":{"begin":151,"end":1}},"contentChange":null,"oldContent":null},{"diffType":"REPLACE","editLocations":{"locationA":{"begin":174,"end":1},"locationB":{"begin":174,"end":1}},"contentChange":null,"oldContent":null},{"diffType":"INSERT","editLocations":{"locationA":{"begin":178,"end":0},"locationB":{"begin":179,"end":1}},"contentChange":null,"oldContent":null},{"diffType":"REPLACE","editLocations":{"locationA":{"begin":180,"end":1},"locationB":{"begin":181,"end":1}},"contentChange":null,"oldContent":null}],"hunkLines":{"newStartLine":38,"newLineCount":143,"linesAdded":0,"linesDeleted":0}}],"content":null}}}]}
+{
+  "diffs": [
+    {
+      "underlyingDiff": {
+        "newPath": "/test",
+        "oldPath": null,
+        "newFileMode": null,
+        "oldFileMode": null,
+        "diffType": "MODIFY",
+        "content": {
+          "hunks": [
+            {
+              "commitDiffEdits": [
+                {
+                  "diffType": "INSERT",
+                  "editLocations": {
+                    "locationA": {
+                      "begin": 38,
+                      "end": 0
+                    },
+                    "locationB": {
+                      "begin": 39,
+                      "end": 1
+                    }
+                  },
+                  "contentChange": null,
+                  "oldContent": null
+                },
+                {
+                  "diffType": "REPLACE",
+                  "editLocations": {
+                    "locationA": {
+                      "begin": 150,
+                      "end": 2
+                    },
+                    "locationB": {
+                      "begin": 151,
+                      "end": 1
+                    }
+                  },
+                  "contentChange": null,
+                  "oldContent": null
+                },
+                {
+                  "diffType": "REPLACE",
+                  "editLocations": {
+                    "locationA": {
+                      "begin": 174,
+                      "end": 1
+                    },
+                    "locationB": {
+                      "begin": 174,
+                      "end": 1
+                    }
+                  },
+                  "contentChange": null,
+                  "oldContent": null
+                },
+                {
+                  "diffType": "INSERT",
+                  "editLocations": {
+                    "locationA": {
+                      "begin": 178,
+                      "end": 0
+                    },
+                    "locationB": {
+                      "begin": 179,
+                      "end": 1
+                    }
+                  },
+                  "contentChange": null,
+                  "oldContent": null
+                },
+                {
+                  "diffType": "REPLACE",
+                  "editLocations": {
+                    "locationA": {
+                      "begin": 180,
+                      "end": 1
+                    },
+                    "locationB": {
+                      "begin": 181,
+                      "end": 1
+                    }
+                  },
+                  "contentChange": null,
+                  "oldContent": null
+                }
+              ],
+              "hunkLines": {
+                "newStartLine": 38,
+                "newLineCount": 143,
+                "linesAdded": 0,
+                "linesDeleted": 0
+              }
+            }
+          ],
+          "content": null
+        }
+      }
+    }
+  ]
+}

@@ -178,7 +178,8 @@ public class LlmValidationNextCommit implements ResettableStep {
                                                 .url(props.getModelServerBaseUrl())
                                                 .retryParameters(new RetryParameters(0))
                                                 .headers(new HttpHeaders())
-                                                .build())
+                                                .build()
+                                )
                                 .one();
 
                         assertions.assertSoftly(sent.isOk(), "Validation was not received from server: %s."

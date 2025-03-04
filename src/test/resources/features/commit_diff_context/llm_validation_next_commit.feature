@@ -9,6 +9,9 @@ Feature: Perform next commit
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
     And the embeddings for the branch should be added
+#    And add blame nodes is called
+    And a request for the next commit is provided with the commit message being provided from "classpath:responses/commit-message-llm-validation-test-graph.json"
+    And a request for the next commit is provided with the contextData being provided from "classpath:responses/context-data.json"
     And the most recent commit is saved to memory and removed from the repository
     When the repo is added to the database by calling commit diff context
     And a request for the next commit is sent to the server with the next commit information provided previously
@@ -20,7 +23,7 @@ Feature: Perform next commit
     Then the validation data is saved for review
     Examples:
       | repoUrl                                   | postgresPath               | branchName | composePath                                                                        | validationEndpoint                      |
-#      | https://github.com/kiegroup/drools.git | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
+#      | https://github.com/kiegroup/drools.git    | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
       | /Users/hayde/IdeaProjects/test_graph_next | ~/test_dbs/drools_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
 
   @do_embedding_only

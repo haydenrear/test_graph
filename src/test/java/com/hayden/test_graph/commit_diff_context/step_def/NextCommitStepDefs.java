@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hayden.commitdiffmodel.codegen.types.*;
 import com.hayden.commitdiffmodel.convert.CommitDiffContextMapper;
+import com.hayden.commitdiffmodel.git.PromptingTemplate;
+import com.hayden.commitdiffmodel.model.GitContext;
 import com.hayden.commitdiffmodel.repo_actions.GitHandlerActions;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit.NextCommitAssert;
@@ -180,8 +182,24 @@ public class NextCommitStepDefs implements ResettableStep {
                 addHeaderIfExists(h, tyHeaders, "EMBEDDING");
                 addHeaderIfExists(h, tyHeaders, "CODEGEN");
                 addHeaderIfExists(h, tyHeaders, "INITIAL_CODE");
-                var read = mapper.readValue(req.getBody(), new TypeReference<Map<String, Object>>() {});
-                assertions.reportAssert("Found response for %s", read);
+
+                Object read = null;
+
+                if (req.getHeaders().containsKey("EMBEDDING")) {
+                    read = mapper.readValue(req.getBody(), new TypeReference<Map<String, Object>>() {});
+                } else if (req.getHeaders().containsKey("CODEGEN")) {
+                    read = mapper.readValue(req.getBody(), GitContext.class);
+                } else if (req.getHeaders().containsKey("INITIAL_CODE")) {
+                    var toMap = mapper.readValue(req.getBody(), new TypeReference<Map<String, Object>>() {} );
+                    if (toMap.containsKey("modelContextProtocolTools")) {
+                        read = mapper.readValue(req.getBody(), PromptingTemplate.CommitDiffPromptingTemplateWithToolset.class);
+                    } else {
+                        read = mapper.readValue(req.getBody(), PromptingTemplate.CommitDiffPromptingTemplate.class);
+                    }
+                }
+
+                if (read != null)
+                    assertions.reportAssert("Found response for %s", read);
             }
 
             var validResponses = Lists.newArrayList(CdMbInitCtx.AiServerResponse.AiServerResponseType.EMBEDDING,

@@ -14,6 +14,6 @@ import static io.cucumber.junit.platform.engine.Constants.*;
         key = GLUE_PROPERTY_NAME,
         value = "com.hayden.test_graph")
 @ConfigurationParameter(key = PLUGIN_PUBLISH_QUIET_PROPERTY_NAME, value = "true")
-@ConfigurationParameter(key = FILTER_TAGS_PROPERTY_NAME, value = "@do_embedding_blame_tree_only")
+@ConfigurationParameter(key = FILTER_TAGS_PROPERTY_NAME, value = "@generate_next_commit_llm")
 public class TestRunner {
 }
