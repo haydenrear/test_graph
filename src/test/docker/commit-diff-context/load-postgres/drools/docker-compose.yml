@@ -1,0 +1,42 @@
+services:
+  commit-diff-postgres:
+    networks:
+      - commit-diff-template-net
+    image: localhost:5001/postgres-pgvector
+    container_name: commit-diff-postgres-drools
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - type: bind
+        source: /Users/hayde/test_dbs/drools_postgres
+        target: /var/lib/postgresql/data
+    ports:
+      - "5451:5432"
+#  commit-diff-context:
+#    networks:
+#      - commit-diff-template-net
+#    image: localhost:5001/commit-diff-server
+#    container_name: commit-diff-server
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      SPRING_PROFILES_ACTIVE: docker
+#  model-server:
+#    networks:
+#      - commit-diff-template-net
+#    image: localhost:5001/model-server
+#    container_name: model-server-container
+#    ports:
+#      - "9991:9991"
+#    environment:
+#      HF_HOME: /.huggingface
+#    volumes:
+#      - type: bind
+#        source: /Users/hayde/IdeaProjects/drools/model_server/.models
+#        target: /.huggingface
+
+volumes:
+  validation:
+networks:
+  commit-diff-template-net:

@@ -1,5 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.init.llm_validation;
 
+import com.hayden.commitdiffmodel.codegen.types.CommitMessage;
 import com.hayden.commitdiffmodel.codegen.types.GitOperation;
 import com.hayden.commitdiffmodel.comittdiff.ParseDiff;
 import com.hayden.commitdiffmodel.entity.CommitDiffId;
@@ -23,6 +24,7 @@ import org.assertj.core.util.Files;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.AnyObjectId;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.util.FS;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +38,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @Component
+@ResettableThread
 public class InitializeLlmValidation implements ValidateLlmInitNode {
 
     @Autowired
@@ -45,6 +48,11 @@ public class InitializeLlmValidation implements ValidateLlmInitNode {
     ParseDiff parseDiff;
     @Autowired
     GitFactory gitFactory;
+
+    @Autowired
+    @ResettableThread
+    RepoOpInit repoOpInit;
+
 
 
     @Override
@@ -84,11 +92,17 @@ public class InitializeLlmValidation implements ValidateLlmInitNode {
                 // parse backwards, get second from back, get commit hash for this
                 var parsed = parseDiff.parseDiffItemsToGitDiff(rh, nrc);
 
-                var latestCommit = RepoUtil.getLatestCommit(rh.getGit(), repoData.branchName())
-                        .map(RevCommit::getFullMessage)
+                var latestRevCommit = RepoUtil.getLatestCommit(rh.getGit(), repoData.branchName())
                         .mapError(re -> new GitErrors.GitAggregateError(re.getMessage()));
 
+                var latestCommit = latestRevCommit.map(AnyObjectId::getName);
+
+                latestRevCommit.map(RevCommit::getFullMessage)
+                        .one()
+                        .ifPresent(commitMessage -> repoOpInit.setCommitMessage(new CommitMessage(commitMessage)));
+
                 var lst = parsed.toList();
+
 
                 String s = GitErrors.GitAggregateError.from(parsed.e().toList()).getMessage();
                 List<GitErrors.GitError> allErrs = lst.errsList().stream().flatMap(gae -> gae.errors().stream()).toList();
