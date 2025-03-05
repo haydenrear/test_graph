@@ -24,13 +24,9 @@ public class DbCleanupNode implements CommitDiffInitNode {
     @Autowired
     private CommitDiffItemRepository commitDiffItemRepository;
     @Autowired
-    private BlameTreeRepository blameTreeRepository;
-    @Autowired
     private CommitDiffClusterRepository commitDiffClusterRepository;
     @Autowired
     private RepoExecutor repoExecutor;
-    @Autowired
-    private BlameNodeRepository blameNodeRepository;
     @Autowired
     private DatabaseConfigProps databaseConfigProps;
 
@@ -48,22 +44,16 @@ public class DbCleanupNode implements CommitDiffInitNode {
     public CommitDiffInit exec(CommitDiffInit c, MetaCtx h) {
         repoExecutor.perform(() -> {
 
-            blameTreeRepository.removeRefs();
 
             commitDiffClusterRepository.removeAllCommitDiffs();
             commitDiffRepository.removeAllCommitDiffs();
             commitDiffRepository.removeAllCommitDiffsItems();
             commitDiffItemRepository.removeAllCommitDiffsItems();
-            blameNodeRepository.removeAllCommitDiffs();
 
             if (commitDiffRepository.count() > 0)
                 commitDiffRepository.deleteAll();
             if (commitDiffItemRepository.count() > 0)
                 commitDiffItemRepository.deleteAll();
-            if (blameTreeRepository.count() > 0)
-                blameTreeRepository.deleteAll();
-            if (blameNodeRepository.count() > 0)
-                blameNodeRepository.deleteAll();
             if (codeBranchRepository.count() > 0)
                 codeBranchRepository.deleteAll();
             if (codeRepoRepository.count() > 0)

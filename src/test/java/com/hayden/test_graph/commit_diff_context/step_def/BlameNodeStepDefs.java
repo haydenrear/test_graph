@@ -1,23 +1,19 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
 import com.hayden.commitdiffmodel.entity.*;
-import com.hayden.commitdiffmodel.repo.BlameTreeRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffClusterRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffItemRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffRepository;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.config.CommitDiffContextConfigProps;
-import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoInitItem;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.steps.RegisterAssertStep;
 import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
-import com.querydsl.core.types.OrderSpecifier;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import lombok.extern.slf4j.Slf4j;
@@ -38,8 +34,6 @@ public class BlameNodeStepDefs implements ResettableStep {
     @ResettableThread
     private Assertions assertions;
 
-    @Autowired
-    private BlameTreeRepository blameTreeRepository;
     @Autowired
     private CommitDiffRepository commitDiffRepository;
     @Autowired
@@ -87,12 +81,6 @@ public class BlameNodeStepDefs implements ResettableStep {
 
 
         assertions.assertSoftly(!cd.isEmpty(), "Could not find commit diffs.");
-
-        var bt = blameTreeRepository.findAll();
-
-        assertions.assertSoftly(!bt.isEmpty(), "Could not find blame tree.");
-        assertions.assertSoftly(bt.stream().allMatch(blameTree -> blameTree.getRoot() != null),
-                "Blame tree root not set on some blame trees.");
 
     }
 

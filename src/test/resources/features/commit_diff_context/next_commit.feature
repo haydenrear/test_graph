@@ -10,7 +10,7 @@ Feature: Perform next commit
     Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
-    And the embeddings for the branch should be added
+#    And the embeddings for the branch should be added
     And add blame nodes is called
     And a request for the next commit is provided with the commit message being provided from "classpath:responses/commit-message.json"
     And a request for the next commit is provided with the staged information being provided from "classpath:responses/staged.json"
@@ -28,9 +28,9 @@ Feature: Perform next commit
     Then the response from retrieving next commit can be applied to the repository as a git diff
     Then the mountebank requests for the toolset existed
     Examples:
-      | repoUrl        | branchName | composePath                                                                                     |
-      | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
-#      | /Users/hayde/IdeaProjects/test_graph_next | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+      | repoUrl                                   | branchName | composePath                                                                                     |
+#      | work/first.tar                            | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+      | /Users/hayde/IdeaProjects/test_graph_next | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
 
 
   @commit_diff_context_compose
