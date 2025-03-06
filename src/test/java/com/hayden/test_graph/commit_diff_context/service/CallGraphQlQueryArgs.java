@@ -1,6 +1,5 @@
 package com.hayden.test_graph.commit_diff_context.service;
 
-import com.hayden.commitdiffmodel.codegen.client.DoCommitProjectionRoot;
 import com.hayden.commitdiffmodel.codegen.types.*;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.utilitymodule.result.error.SingleError;
@@ -96,39 +95,6 @@ public sealed interface CallGraphQlQueryArgs<T> {
         }
     }
 
-    static DoCommitProjectionRoot allProjection() {
-        return new DoCommitProjectionRoot<>()
-                .diffs()
-                .diffType().parent().newPath().oldPath().newFileMode().oldFileMode()
-                .content()
-                .content()
-                .hunks()
-                .commitDiffEdits()
-                .editLocations()
-                .locationA()
-                .begin()
-                .end()
-                .parent()
-                .locationB()
-                .begin()
-                .end()
-                .parent()
-                .parent()
-                .contentChange()
-                .diffType()
-                .parent()
-                .parent()
-                .parent()
-                .parent()
-                .parent()
-                .commitMessage().value()
-                .parent()
-                .sessionKey().key()
-                .parent()
-                .errors().message()
-                .parent();
-    }
-
     static GitRepositoryRequest toRepoRequest(String branchName, String gitRepoPath,
                                                      String sessionKey, GitOperation gitOperation,
                                                      Object ctx) {
@@ -189,6 +155,14 @@ public sealed interface CallGraphQlQueryArgs<T> {
                             .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
                             .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
                             .updateHead(r)
+                            .build();
+            case RagOptions rag ->
+                    GitRepositoryRequest.newBuilder()
+                            .ragOptions(rag)
+                            .gitBranch(GitBranch.newBuilder().branch(branchName).build())
+                            .operation(Lists.newArrayList(gitOperation))
+                            .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
                             .build();
             case null, default ->
                     GitRepositoryRequest.newBuilder()

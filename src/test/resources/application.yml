@@ -1,4 +1,4 @@
-commit-diff-context-test-props:
+commit-diff-context-server-props:
   url: http://localhost:8080/graphql
   port: 8080
   model-server-base-url: http://localhost:9991
@@ -12,7 +12,7 @@ env-props:
   project-dir: /Users/hayde/IdeaProjects/drools/test_graph
 
 db-init-ctx:
-  skip-db-cleanup: true
+  skip-db-cleanup: false
 
 docker-init-ctx:
   skip-docker: true

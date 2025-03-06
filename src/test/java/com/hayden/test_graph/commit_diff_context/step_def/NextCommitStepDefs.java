@@ -10,7 +10,7 @@ import com.hayden.commitdiffmodel.model.GitContext;
 import com.hayden.commitdiffmodel.repo_actions.GitHandlerActions;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit.NextCommitAssert;
-import com.hayden.test_graph.commit_diff_context.config.CommitDiffContextConfigProps;
+import com.hayden.commitdiffmodel.config.CommitDiffContextConfigProps;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;

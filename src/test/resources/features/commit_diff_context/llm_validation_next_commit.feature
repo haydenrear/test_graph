@@ -11,6 +11,7 @@ Feature: Perform next commit
     And the embeddings for the branch should be added
     And add blame nodes is called
     And a request for the next commit is provided with the contextData being provided from "classpath:responses/context-data.json"
+    And the max number of commits parsed of the git repo when setting the embeddings is "300"
     And the most recent commit is saved to memory and removed from the repository
     When the repo is added to the database by calling commit diff context
     And a request for the next commit is sent to the server with the next commit information provided previously

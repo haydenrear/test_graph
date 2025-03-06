@@ -21,6 +21,9 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 @Component
 @ResettableThread
@@ -40,7 +43,16 @@ public class RepoOpInit implements InitCtx {
     public record CommitDiffData(@NotNull String sessionKey) {}
 
 
-    public record RepoInitializations(List<RepoInitItem> initItems) {}
+    public record RepoInitializations(List<RepoInitItem> initItems) {
+        public void doOnRagOptions(Consumer<RepoInitItem.AddEmbeddings> updateRagOptions, Supplier<RagOptions> defaultRagOptions) {
+            var found = initItems.stream().flatMap(r -> r instanceof RepoInitItem.AddEmbeddings addEmbeddings
+                                            ? Stream.of(addEmbeddings): Stream.empty())
+                    .findAny()
+                    .orElseGet(() -> new RepoInitItem.AddEmbeddings(defaultRagOptions.get()));
+
+            updateRagOptions.accept(found);
+        }
+    }
 
     @Builder
     public record RepositoryData(String url,

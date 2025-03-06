@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class DbCleanupNode implements CommitDiffInitNode {
 
     @Autowired
+    private CodeBranchRefRepository codeBranchRefRepository;
+    @Autowired
     private CodeBranchRepository codeBranchRepository;
     @Autowired
     private CodeRepoRepository codeRepoRepository;
@@ -50,20 +52,22 @@ public class DbCleanupNode implements CommitDiffInitNode {
             commitDiffRepository.removeAllCommitDiffsItems();
             commitDiffItemRepository.removeAllCommitDiffsItems();
 
+
+            codeBranchRepository.deleteAllWithCommitsSet();
+            commitRepository.deleteAllHeads();
+
             if (commitDiffRepository.count() > 0)
                 commitDiffRepository.deleteAll();
             if (commitDiffItemRepository.count() > 0)
                 commitDiffItemRepository.deleteAll();
-            if (codeBranchRepository.count() > 0)
-                codeBranchRepository.deleteAll();
             if (codeRepoRepository.count() > 0)
                 codeRepoRepository.deleteAll();
 
-
-            commitRepository.deleteAllHeads();
+            codeBranchRefRepository.deleteAll();
 
             if (commitDiffClusterRepository.count() > 0)
                 commitDiffClusterRepository.deleteAll();
+
             return null;
         });
         return c;

@@ -1,6 +1,7 @@
 package com.hayden.test_graph.commit_diff_context.init.repo_op;
 
 import com.hayden.commitdiffmodel.codegen.types.GitOperation;
+import com.hayden.commitdiffmodel.codegen.types.RagOptions;
 import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoInitItem;
@@ -59,7 +60,7 @@ public class InitializeRepo implements RepoOpInitNode {
                     switch (repoInit) {
                         case RepoInitItem.AddCodeBranch ignored ->
                                 doAddGitOp(c, GitOperation.ADD_BRANCH);
-                        case RepoInitItem.AddEmbeddings ignored ->
+                        case RepoInitItem.AddEmbeddings(RagOptions ragOptions)  ->
                                 doAddGitOp(c, GitOperation.SET_EMBEDDINGS);
                         case RepoInitItem.AddBlameNodes ignored ->
                                 doAddGitOp(c, GitOperation.PARSE_BLAME_TREE);
@@ -85,6 +86,10 @@ public class InitializeRepo implements RepoOpInitNode {
 
     private void doAddGitOp(RepoOpInit c, GitOperation gitOperation) {
         doAddGitOp(c, gitOperation, null);
+    }
+
+    private void doAddGitOp(RepoOpInit c, GitOperation gitOperation, RagOptions ragOptions) {
+        doAddGitOp(c, gitOperation, ragOptions);
     }
 
     private void doAddGitOp(RepoOpInit c, GitOperation gitOp, Object ctx) {

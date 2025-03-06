@@ -1,5 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
+import com.hayden.commitdiffmodel.config.CommitDiffContextProperties;
 import com.hayden.commitdiffmodel.entity.CodeBranch;
 import com.hayden.commitdiffmodel.entity.Embedding;
 import com.hayden.commitdiffmodel.git.RepositoryHolder;
@@ -53,17 +54,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
     @Autowired
     PathMatchingResourcePatternResolver resolver;
     @Autowired
-    DbDataSourceTrigger trigger;
-
-    @Autowired
-    @ResettableThread
-    public void setCommitDiffInit(RepoOpInit commitDiffInit) {
-        this.commitDiffInit = commitDiffInit;
-    }
-
-    @Autowired
-    @ResettableThread
-    DockerInitCtx dockerInitCtx;
+    CommitDiffContextProperties contextProperties;
 
     @And("there is a repository at the url {string}")
     @RegisterInitStep(RepoOpInit.class)
@@ -92,6 +83,12 @@ public class RepoOperationsStepDefs implements ResettableStep {
     @RegisterInitStep(RepoOpInit.class)
     public void addResponseTypeWithCount(String responseType, String fileLocation, String uri, String port, String count) {
         registerResponse(responseType, fileLocation, uri, port, count);
+    }
+
+    @And("There exists a response type of {string} in the file location {string} for model server endpoint {string} on port {string} for the {string} response repeated")
+    @RegisterInitStep(RepoOpInit.class)
+    public void addResponseTypeWithCountRepeated(String responseType, String fileLocation, String uri, String port, String count) {
+        registerResponse(responseType, fileLocation, uri, port, count, 50);
     }
 
     @And("There exists an inject response type of {string} in the file location {string} for model server endpoint {string} on port {string}")
@@ -128,7 +125,25 @@ public class RepoOperationsStepDefs implements ResettableStep {
 
     @And("the embeddings for the branch should be added")
     public void addEmbeddings() {
-        commitDiffInit.getRepoInitializations().initItems().add(new RepoInitItem.AddEmbeddings());
+        commitDiffInit.getRepoInitializations().initItems()
+                .add(new RepoInitItem.AddEmbeddings(contextProperties.getDefaultRagOptions()));
+    }
+
+    @And("the max number of commits parsed of the git repo when setting the embeddings is {string}")
+    @RegisterInitStep(RepoOpInit.class)
+    public void setMaxDepthEmbeddings(String maxDepthSetEmbeddings) {
+        try {
+            commitDiffInit.getRepoInitializations()
+                    .doOnRagOptions(
+                            addEmbeddings -> addEmbeddings
+                                    .ragOptions()
+                                    .getParseGitOptions()
+                                    .setMaxCommitDepth(Integer.parseInt(maxDepthSetEmbeddings)),
+                            () -> contextProperties.getDefaultRagOptions());
+        } catch (NumberFormatException e) {
+            assertions.assertSoftly(false, "Max depth should be an integer - could not set to %s"
+                    .formatted(maxDepthSetEmbeddings));
+        }
     }
 
     @Then("a branch with name {string} will be added to the database")
@@ -184,6 +199,10 @@ public class RepoOperationsStepDefs implements ResettableStep {
     }
 
     private void registerResponse(String responseType, String fileLocation, String uri, String port, String count) {
+        registerResponse(responseType, fileLocation, uri, port, count, 1);
+    }
+
+    private void registerResponse(String responseType, String fileLocation, String uri, String port, String count, int numRepetitions) {
         var responseFile = resolver.getResource(fileLocation);
         assertions.assertStrongly(responseFile.exists(), "Response did exist.");
         try {
@@ -191,7 +210,8 @@ public class RepoOperationsStepDefs implements ResettableStep {
                             responseFile.getFile().toPath(),
                             CdMbInitCtx.AiServerResponse.AiServerResponseType.valueOf(responseType),
                             new CdMbInitCtx.ModelServerRequestData(uri, 200, Integer.parseInt(port))),
-                    Integer.parseInt(count));
+                    Integer.parseInt(count),
+                    numRepetitions);
         } catch (IOException e) {
             assertions.assertStronglyPattern(false, "Failed to add response for %s: %s\n%s.",
                     responseType, e.getMessage(), SingleError.parseStackTraceToString(e));

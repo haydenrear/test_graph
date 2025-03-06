@@ -1,6 +1,8 @@
 package com.hayden.test_graph.commit_diff_context.init.repo_op.ctx;
 
+import com.hayden.commitdiffmodel.codegen.types.RagOptions;
 import com.hayden.commitdiffmodel.codegen.types.UpdateHeadCtx;
+import com.hayden.test_graph.ctx.ContextValue;
 
 import java.util.Comparator;
 import java.util.List;
@@ -19,13 +21,11 @@ public sealed interface RepoInitItem {
     record AddCodeBranch(RepoOpInit.RepositoryData repositoryData) implements RepoInitItem {
     }
 
-    record AddEmbeddings() implements RepoInitItem {
+    record AddEmbeddings(RagOptions ragOptions) implements RepoInitItem {
     }
 
-    record AddBlameNodes() implements RepoInitItem {
-    }
+    record AddBlameNodes() implements RepoInitItem {}
 
-    record UpdateHeadNode(UpdateHeadCtx ctx) implements RepoInitItem {
-    }
+    record UpdateHeadNode(UpdateHeadCtx ctx) implements RepoInitItem {}
 
 }

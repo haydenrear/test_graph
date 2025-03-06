@@ -1,6 +1,6 @@
 package com.hayden.test_graph.step_def;
 
-import com.hayden.test_graph.commit_diff_context.config.CommitDiffContextConfigProps;
+import com.hayden.commitdiffmodel.config.CommitDiffContextConfigProps;
 import com.hayden.utilitymodule.config.EnvConfigProps;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.steps.ResettableStep;

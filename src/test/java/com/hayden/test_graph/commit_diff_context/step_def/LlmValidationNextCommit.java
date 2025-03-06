@@ -16,7 +16,7 @@ import com.hayden.proto.prototyped.datasources.ai.modelserver.request.RetryParam
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit.NextCommitAssert;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
-import com.hayden.test_graph.commit_diff_context.config.CommitDiffContextConfigProps;
+import com.hayden.commitdiffmodel.config.CommitDiffContextConfigProps;
 import com.hayden.utilitymodule.db.DbDataSourceTrigger;
 import com.hayden.test_graph.commit_diff_context.init.commit_diff_init.ctx.CommitDiffInit;
 import com.hayden.test_graph.commit_diff_context.init.llm_validation.ctx.ValidateLlmInit;
