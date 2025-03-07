@@ -88,10 +88,6 @@ public class InitializeRepo implements RepoOpInitNode {
         doAddGitOp(c, gitOperation, null);
     }
 
-    private void doAddGitOp(RepoOpInit c, GitOperation gitOperation, RagOptions ragOptions) {
-        doAddGitOp(c, gitOperation, ragOptions);
-    }
-
     private void doAddGitOp(RepoOpInit c, GitOperation gitOp, Object ctx) {
         var key = c.retrieveSessionKey();
         CallGraphQlQueryArgs.DoGitArgs addCodeBranchArgs = CallGraphQlQueryArgs.DoGitArgs.builder()

@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - type: bind
-        source: /Users/hayde/test_dbs/drools_postgres
+        source: /Users/hayde/test_dbs/test_graph_postgres
         target: /var/lib/postgresql/data
     ports:
       - "5451:5432"

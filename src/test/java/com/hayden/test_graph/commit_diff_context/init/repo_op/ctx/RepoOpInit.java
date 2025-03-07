@@ -1,7 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.init.repo_op.ctx;
 
 import com.hayden.commitdiffmodel.codegen.types.*;
-import com.hayden.commitdiffmodel.comittdiff.ParseDiff;
 import com.hayden.commitdiffmodel.git.RepositoryHolder;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.RepoOpInitNode;
@@ -101,6 +100,10 @@ public class RepoOpInit implements InitCtx {
                                                 RagOptions ragOptions,
                                                 SessionKey sessionKey) {
 
+        public void addRepoToContext(GitRepoQueryRequest gitRepositoryRequest) {
+            this.addRepo.getGitRepoRequestOptions().getPromptingOptions().getIncludeRepoClosestCommits().add(gitRepositoryRequest);
+        }
+
         public List<PrevDiff> prevDiffs() {
             return Optional.ofNullable(this.addRepo())
                     .flatMap(gpr -> Optional.ofNullable(gpr.getPrev()))
@@ -160,21 +163,38 @@ public class RepoOpInit implements InitCtx {
     public RepoOpInit() {
         this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty(),
                 ContextValue.empty(), ContextValue.empty(), new RepoInitializations(new ArrayList<>()));
-        this.commitDiffContextValue = CommitDiffContextGraphQlModel.builder()
-                .sessionKey(SessionKey.newBuilder().build())
-                .addRepo(GitRepoPromptingRequest.newBuilder()
-                        .sessionKey(SessionKey.newBuilder().build())
-                        .build())
-                .repositoryRequest(GitRepositoryRequest.newBuilder()
-                        .sessionKey(SessionKey.newBuilder().build())
-                        .build())
-                .build();
     }
+
+
+    public void initializeCommitDiffContextValue() {
+        if (this.commitDiffContextValue == null)
+            this.commitDiffContextValue = CommitDiffContextGraphQlModel.builder()
+                    .sessionKey(SessionKey.newBuilder().build())
+                    .repositoryRequest(GitRepositoryRequest.newBuilder()
+                            .sessionKey(new SessionKey(retrieveSessionKey()))
+                            .gitRepoRequestOptions(GitRepoRequestOptions.newBuilder()
+                                    .promptingOptions(PromptingOptions.newBuilder()
+                                            .includeRepoClosestCommits(new ArrayList<>())
+                                            .build())
+                                    .build())
+                            .build())
+                    .addRepo(GitRepoPromptingRequest.newBuilder()
+                            .sessionKey(new SessionKey(retrieveSessionKey()))
+                            .gitRepoRequestOptions(GitRepoRequestOptions.newBuilder()
+                                    .promptingOptions(PromptingOptions.newBuilder()
+                                            .includeRepoClosestCommits(new ArrayList<>())
+                                            .build())
+                                    .build())
+                            .build())
+                    .build();
+    }
+
 
     @Autowired
     public void setBubble(RepoOpBubble bubble) {
         this.bubbleUnderlying.swap(bubble);
         this.bubbleUnderlying.res().one().get().getRepoInit().swap(this);
+        initializeCommitDiffContextValue();
     }
 
     public void setRepoData(RepositoryData repositoryData) {
@@ -237,6 +257,7 @@ public class RepoOpInit implements InitCtx {
     }
 
     public CallGraphQlQueryArgs.CommitRequestArgs toCommitRequestArgs() {
+        initializeCommitDiffContextValue();
         RepositoryData repoArgs = repoDataOrThrow();
         addSessionKeyToRequests();
         return CallGraphQlQueryArgs.CommitRequestArgs.builder()

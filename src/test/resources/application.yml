@@ -65,3 +65,24 @@ spring:
     enabled: false
   main:
     allow-bean-definition-overriding: true
+commit-diff-context:
+  diffs-include-pattern:
+    - "*.java"
+    - "*.py"
+    - "*.yml"
+    - "*.properties"
+    - "*.json"
+    - "*.drl"
+    - "*/pom.xml"
+    - "*.md"
+    - "*.adoc"
+    - "*.html"
+    - "*.ts"
+    - "*.js"
+    - "*.mvel"
+    - "*.conf"
+    - "*.yaml"
+  diffs-exclude-pattern:
+    - "**/gradle.properties"
+    - "*/gradle.properties"
+    - "*.puml"

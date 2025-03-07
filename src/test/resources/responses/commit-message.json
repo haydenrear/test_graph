@@ -1,1 +1,1 @@
-{"value":"message!"}
+{"value":"Refactor ModelServerEmbeddingClient.java to replace takeEmbedding with RequestObjectFactory and IdempotentRequestFactory - replacing entity objects with object graphs saved at the end to enable batching."}

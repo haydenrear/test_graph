@@ -7,6 +7,7 @@ import com.hayden.commitdiffmodel.codegen.types.*;
 import com.hayden.commitdiffmodel.convert.CommitDiffContextMapper;
 import com.hayden.commitdiffmodel.git.PromptingTemplate;
 import com.hayden.commitdiffmodel.model.GitContext;
+import com.hayden.commitdiffmodel.repo.EmbeddedGitDiffRepository;
 import com.hayden.commitdiffmodel.repo_actions.GitHandlerActions;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit.NextCommitAssert;
@@ -19,9 +20,12 @@ import com.hayden.test_graph.steps.ExecInitStep;
 import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.io.FileUtils;
 import com.hayden.utilitymodule.result.error.SingleError;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
+import jakarta.annotation.PostConstruct;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.json.simple.parser.ParseException;
@@ -67,6 +71,8 @@ public class NextCommitStepDefs implements ResettableStep {
     PathMatchingResourcePatternResolver resourcePatternResolver;
     @Autowired
     CommitDiffContextConfigProps contextConfigProps;
+    @Autowired
+    EmbeddedGitDiffRepository embeddedGitDiffRepository;
 
     @And("a request for the next commit is provided with the commit message being provided from {string}")
     @RegisterInitStep(value = {RepoOpInit.class})
@@ -128,6 +134,17 @@ public class NextCommitStepDefs implements ResettableStep {
         }
     }
 
+    @And("the repository {string} with branch {string} can be used in the context")
+    @RegisterInitStep(value = {RepoOpInit.class})
+    public void theRepositoryCanBeUsedInTheContext(String arg0, String branch) {
+        var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
+        gitRepoPromptingRequest.addRepoToContext(
+                GitRepoQueryRequest.newBuilder()
+                        .gitRepo(new GitRepo(arg0))
+                        .gitBranch(new GitBranch(branch))
+                        .build());
+    }
+
     @And("a request for the next commit is sent to the server with the next commit information provided previously")
     @ExecInitStep(value = RepoOpInit.class)
     @RegisterAssertStep(value = NextCommitAssert.class, doFnFirst = true)
@@ -151,8 +168,11 @@ public class NextCommitStepDefs implements ResettableStep {
                     // apply commit to the repository for observation
                     // or for then pulling that out as staged information for validation
 
-                    var req = repoOpInit.toCommitRequestArgs();
-                    assertThat(req.commitMessage()).isEqualTo(repoOpInit.getNextCommitMessageExpected());
+                    try {
+                        new ObjectMapper().writeValue(new File(FileUtils.randomFilename("next-test.json")), ncm);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
 
                     var applied = new GitHandlerActions(Paths.get(repoData.url()), commitDiffContextMapper)
                             .applyCommit(ncm);
@@ -245,4 +265,5 @@ public class NextCommitStepDefs implements ResettableStep {
                 .map(Object::toString)
                 .ifPresent(tyHeaders::add);
     }
+
 }

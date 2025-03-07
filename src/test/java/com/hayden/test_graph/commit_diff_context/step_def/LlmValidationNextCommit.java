@@ -3,10 +3,12 @@ package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hayden.commitdiffmodel.codegen.types.Staged;
 import com.hayden.commitdiffmodel.comittdiff.ParseDiff;
 import com.hayden.commitdiffmodel.convert.CommitDiffContextMapper;
 import com.hayden.commitdiffmodel.entity.GitDiffs;
 import com.hayden.commitdiffmodel.git.GitErrors;
+import com.hayden.commitdiffmodel.git.GitFactory;
 import com.hayden.commitdiffmodel.git_factory.DiffFactory;
 import com.hayden.commitdiffmodel.validation.entity.CommitDiffContextCommitVersion;
 import com.hayden.commitdiffmodel.validation.repo.CommitDiffContextVersionRepo;
@@ -30,10 +32,13 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jgit.api.ResetCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -72,6 +77,10 @@ public class LlmValidationNextCommit implements ResettableStep {
     CommitDiffContextVersionRepo versionRepo;
     @Autowired
     DbDataSourceTrigger dbDataSourceTrigger;
+    @Autowired
+    ParseDiff parseDiff;
+    @Autowired
+    GitFactory gitArgsFactory;
 
     @Autowired
     @ResettableThread
@@ -252,5 +261,18 @@ public class LlmValidationNextCommit implements ResettableStep {
     @ExecInitStep({RepoOpInit.class})
     public void postgresDatabaseShouldBeStarted() {
 
+    }
+
+    @And("the staged commit information is retrieved from the repository")
+    public void theStagedCommitInformationIsRetrievedFromTheRepository() {
+        var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
+        try(var rh = gitArgsFactory.repositoryHolder(repoOpInit.repoDataOrThrow().toRepositoryArgs())) {
+            parseDiff.getStagedChanges(rh)
+                    .ifPresent(staged -> gitRepoPromptingRequest.addRepo()
+                            .setStaged(staged.staged()));
+            rh.reset().setMode(ResetCommand.ResetType.HARD).setRef("HEAD").call();
+        } catch (GitAPIException | IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
