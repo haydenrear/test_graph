@@ -50,6 +50,8 @@ public class CommitDiff implements ResettableThreadLike {
                     this.doWithGraphQl(client -> createGraphQlQueryResponse(doCommitOp(commitRequestArgs, client).executeSync(), graphQlQueryArgs));
             case CallGraphQlQueryArgs.DoGitArgs(String branchName, String gitRepoPath, String sessionKey, GitOperation doGitOp, Object ctx) ->
                     this.doWithGraphQl(client -> doGitOp(graphQlQueryArgs, client, buildRepoReq(branchName, gitRepoPath, sessionKey, doGitOp, ctx)));
+            case CallGraphQlQueryArgs.CodeContextQueryArgs codeContextQueryArgs ->
+                    this.doWithGraphQl(client -> createGraphQlQueryResponse(doCodeContextOp(codeContextQueryArgs, client).executeSync(), graphQlQueryArgs));
         };
     }
 
@@ -69,12 +71,31 @@ public class CommitDiff implements ResettableThreadLike {
         return createGraphQlQueryResponse(requestSpec.executeSync(), graphQlQueryArgs);
     }
 
+    private DgsGraphQlClient.RequestSpec doCodeContextOp(CallGraphQlQueryArgs.CodeContextQueryArgs commitRequestArgs,
+                                                         DgsGraphQlClient client) {
+        return doCodeContextOpInner(client, BuildCommitDiffContextGraphQLQuery.newRequest()
+                .commitDiffContextRequest(buildGitRepoPromptingRequest(commitRequestArgs))
+                .queryName(commitRequestArgs.key())
+                .build());
+    }
+
     private DgsGraphQlClient.RequestSpec doCommitOp(CallGraphQlQueryArgs.CommitRequestArgs commitRequestArgs,
                                                     DgsGraphQlClient client) {
-        DoCommitGraphQLQuery query = DoCommitGraphQLQuery.newRequest()
+        return doCommitOpInner(client, DoCommitGraphQLQuery.newRequest()
                 .gitRepoPromptingRequest(buildGitRepoPromptingRequest(commitRequestArgs))
                 .queryName(commitRequestArgs.key())
-                .build();
+                .build());
+    }
+
+    private DgsGraphQlClient.@NotNull RequestSpec doCodeContextOpInner(DgsGraphQlClient client, BuildCommitDiffContextGraphQLQuery build) {
+        BuildCommitDiffContextGraphQLQuery query = build;
+        var projection = GitGraphQlProjections.codeContextProjectionRoot();
+        var rs = doCreateRequestSpec(client, query, projection);
+        return rs;
+    }
+
+    private DgsGraphQlClient.@NotNull RequestSpec doCommitOpInner(DgsGraphQlClient client, DoCommitGraphQLQuery build) {
+        DoCommitGraphQLQuery query = build;
         DoCommitProjectionRoot projection = GitGraphQlProjections.nextCommitAllProjection();
 
         var rs = doCreateRequestSpec(client, query, projection);
@@ -114,29 +135,48 @@ public class CommitDiff implements ResettableThreadLike {
         return rs;
     }
 
+    private GitRepoPromptingRequest buildGitRepoPromptingRequest(CallGraphQlQueryArgs commitRequestArgs) {
+        if (commitRequestArgs instanceof CallGraphQlQueryArgs.CodeContextQueryArgs c)
+            return buildGitRepoPromptingRequest(c);
+        if (commitRequestArgs instanceof CallGraphQlQueryArgs.CommitRequestArgs c)
+            return buildGitRepoPromptingRequest(c);
+
+        throw new RuntimeException("Did not find valid args for git repo prompting request.");
+    }
+
+    private GitRepoPromptingRequest buildGitRepoPromptingRequest(CallGraphQlQueryArgs.CodeContextQueryArgs commitRequestArgs) {
+        return buildGitRepoPromptingRequestInner(null,
+                commitRequestArgs.commitDiffContextValue(), commitRequestArgs.branchName(), commitRequestArgs.gitRepoPath());
+    }
 
     private GitRepoPromptingRequest buildGitRepoPromptingRequest(CallGraphQlQueryArgs.CommitRequestArgs commitRequestArgs) {
-        CommitMessage cm = CommitMessage.newBuilder().value(commitRequestArgs.commitMessage()).build();
+        return buildGitRepoPromptingRequestInner(commitRequestArgs.commitMessage(), commitRequestArgs.commitDiffContextValue(), commitRequestArgs.branchName(), commitRequestArgs.gitRepoPath());
+    }
+
+    private GitRepoPromptingRequest buildGitRepoPromptingRequestInner(String commitMessage,
+                                                                      RepoOpInit.CommitDiffContextGraphQlModel commitDiffContextGraphQlModel,
+                                                                      String branchName, String path) {
+        CommitMessage cm = CommitMessage.newBuilder().value(Optional.ofNullable(commitMessage).orElse("")).build();
         SessionKey session = SessionKey.newBuilder().key(repoOpInit.retrieveSessionKey()).build();
         var repoRequest = GitRepoPromptingRequest.newBuilder()
-                .gitRepoRequestOptions(commitRequestArgs.commitDiffContextValue().nextCommitRequest().getGitRepoRequestOptions())
+                .gitRepoRequestOptions(commitDiffContextGraphQlModel.nextCommitRequest().getGitRepoRequestOptions())
                 .gitRepo(GitRepo.newBuilder()
-                        .path(commitRequestArgs.gitRepoPath())
+                        .path(path)
                         .build())
-                .lastRequestStagedApplied(commitRequestArgs.commitDiffContextValue().nextCommitRequest().getLastRequestStagedApplied())
+                .lastRequestStagedApplied(commitDiffContextGraphQlModel.nextCommitRequest().getLastRequestStagedApplied())
                 .staged(Staged.newBuilder()
-                        .diffs(commitRequestArgs.commitDiffContextValue().stagedDiffs())
+                        .diffs(commitDiffContextGraphQlModel.stagedDiffs())
                         .build())
                 .commitMessage(cm)
-                .ragOptions(commitRequestArgs.commitDiffContextValue().nextCommitRequest().getRagOptions())
+                .ragOptions(commitDiffContextGraphQlModel.nextCommitRequest().getRagOptions())
                 .sessionKey(session)
                 .prev(PrevCommit.newBuilder()
-                        .diffs(commitRequestArgs.commitDiffContextValue().prevDiffs())
+                        .diffs(commitDiffContextGraphQlModel.prevDiffs())
                         .commitMessage(cm)
                         .sessionKey(session)
                         .build())
-                .branchName(commitRequestArgs.branchName())
-                .contextData(commitRequestArgs.commitDiffContextValue().getContextData())
+                .branchName(branchName)
+                .contextData(commitDiffContextGraphQlModel.getContextData())
                 .build();
         return repoRequest;
     }
