@@ -3,6 +3,8 @@ package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hayden.commitdiffmodel.codegen.types.RelevantFileItem;
+import com.hayden.commitdiffmodel.codegen.types.RelevantFileItems;
 import com.hayden.commitdiffmodel.codegen.types.Staged;
 import com.hayden.commitdiffmodel.comittdiff.ParseDiff;
 import com.hayden.commitdiffmodel.convert.CommitDiffContextMapper;
@@ -10,6 +12,7 @@ import com.hayden.commitdiffmodel.entity.GitDiffs;
 import com.hayden.commitdiffmodel.git.GitErrors;
 import com.hayden.commitdiffmodel.git.GitFactory;
 import com.hayden.commitdiffmodel.git_factory.DiffFactory;
+import com.hayden.commitdiffmodel.parsediffs.StagedFileService;
 import com.hayden.commitdiffmodel.validation.entity.CommitDiffContextCommitVersion;
 import com.hayden.commitdiffmodel.validation.repo.CommitDiffContextVersionRepo;
 import com.hayden.proto.prototyped.datasources.ai.modelserver.client.ModelServerValidationAiClient;
@@ -41,6 +44,7 @@ import org.springframework.http.HttpHeaders;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -79,6 +83,8 @@ public class LlmValidationNextCommit implements ResettableStep {
     DbDataSourceTrigger dbDataSourceTrigger;
     @Autowired
     ParseDiff parseDiff;
+    @Autowired
+    StagedFileService stagedFileService;
     @Autowired
     GitFactory gitArgsFactory;
 
@@ -137,7 +143,7 @@ public class LlmValidationNextCommit implements ResettableStep {
         log.info("Registered to save most recent commit and reset to previous.");
     }
 
-    @And("the AI generated response is compared to the actual commit by calling the validation endpoint {string}")
+    @And("the AI generated response is compared to the innerValue commit by calling the validation endpoint {string}")
     @ExecAssertStep({RepoOpAssertCtx.class, NextCommitAssert.class})
     public void theAIGeneratedResponseIsComparedToTheActualCommitByCallingTheValidationEndpoint(String endpoint) {
         this.nextCommit.getNextCommitInfo().optional()
@@ -175,7 +181,7 @@ public class LlmValidationNextCommit implements ResettableStep {
                         var sent = validationAiClient.send(
                                         ModelServerChatRequest.builder()
                                                 .content(new ModelServerChatRequest.ModelServerBody("""
-                                                        Please rate the following commit by comparing it to the actual commit. Please give it only a rating out of 100 and nothing else.
+                                                        Please rate the following commit by comparing it to the innerValue commit. Please give it only a rating out of 100 and nothing else.
                                                         Actual:
                                                         %s
                                                         Generated:
@@ -267,12 +273,28 @@ public class LlmValidationNextCommit implements ResettableStep {
     public void theStagedCommitInformationIsRetrievedFromTheRepository() {
         var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
         try(var rh = gitArgsFactory.repositoryHolder(repoOpInit.repoDataOrThrow().toRepositoryArgs())) {
-            parseDiff.getStagedChanges(rh)
-                    .ifPresent(staged -> gitRepoPromptingRequest.addRepo()
-                            .setStaged(staged.staged()));
+            stagedFileService.getStagedChanges(rh)
+                    .ifPresent(staged -> {
+                        var s = Staged.newBuilder()
+                                .diffs(staged.staged().getDiffs())
+                                .files(staged.diffFiles().stream()
+                                        .map(r -> {
+                                            List<String> before = r.fileBeforeDiffApply().relevantChosenLinesWithLineNumbers();
+                                            List<String> after = r.fileAfterDiffApply().relevantChosenLinesWithLineNumbers();
+                                            return new RelevantFileItems(
+                                                    new RelevantFileItem(r.fileBeforeDiffApply().fileName().toAbsolutePath().toString(), before.isEmpty() ? "": before.getFirst()),
+                                                    new RelevantFileItem(r.fileAfterDiffApply().fileName().toAbsolutePath().toString(), after.isEmpty() ? "": after.getFirst()));
+                                        })
+                                        .toList()
+                                )
+                                .build();
+                        gitRepoPromptingRequest.nextCommitRequest()
+                                .setLastRequestStagedApplied(s);
+                    });
             rh.reset().setMode(ResetCommand.ResetType.HARD).setRef("HEAD").call();
         } catch (GitAPIException | IOException e) {
             throw new RuntimeException(e);
         }
     }
+
 }

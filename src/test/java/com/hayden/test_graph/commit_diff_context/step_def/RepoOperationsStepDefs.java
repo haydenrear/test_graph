@@ -5,6 +5,7 @@ import com.hayden.commitdiffmodel.entity.CodeBranch;
 import com.hayden.commitdiffmodel.entity.Embedding;
 import com.hayden.commitdiffmodel.git.RepositoryHolder;
 import com.hayden.commitdiffmodel.repo.CodeBranchRepository;
+import com.hayden.commitdiffmodel.repo.CommitDiffRepository;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
@@ -27,6 +28,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -55,6 +57,8 @@ public class RepoOperationsStepDefs implements ResettableStep {
     PathMatchingResourcePatternResolver resolver;
     @Autowired
     CommitDiffContextProperties contextProperties;
+    @Autowired
+    CommitDiffRepository commitDiffRepository;
 
     @And("there is a repository at the url {string}")
     @RegisterInitStep(RepoOpInit.class)
@@ -126,22 +130,33 @@ public class RepoOperationsStepDefs implements ResettableStep {
     @And("the embeddings for the branch should be added")
     public void addEmbeddings() {
         commitDiffInit.getRepoInitializations().initItems()
-                .add(new RepoInitItem.AddEmbeddings(contextProperties.getDefaultRagOptions()));
+                .add(new RepoInitItem.AddEmbeddings());
+    }
+
+    @RegisterInitStep(RepoOpInit.class)
+    @And("the max time parse blame tree is {string} seconds")
+    public void theMaxTimeParseBlameTreeIsSeconds(String numSecondsBlameTree) {
+        try {
+            commitDiffInit.doOnRagOptions(
+                            ragOptions -> ragOptions
+                                    .getBlameTreeOptions()
+                                    .setMaxTimeBlameTree(Integer.parseInt(numSecondsBlameTree) * 1000));
+        } catch (NumberFormatException e) {
+            assertions.assertSoftly(false, "Max time blame tree should be an integer - could not set to %s"
+                    .formatted(numSecondsBlameTree));
+        }
     }
 
     @And("the max number of commits parsed of the git repo when setting the embeddings is {string}")
     @RegisterInitStep(RepoOpInit.class)
     public void setMaxDepthEmbeddings(String maxDepthSetEmbeddings) {
         try {
-            commitDiffInit.getRepoInitializations()
-                    .doOnRagOptions(
-                            addEmbeddings -> addEmbeddings
-                                    .ragOptions()
+            commitDiffInit.doOnRagOptions(
+                            ragOptions -> ragOptions
                                     .getParseGitOptions()
-                                    .setMaxCommitDepth(Integer.parseInt(maxDepthSetEmbeddings)),
-                            () -> contextProperties.getDefaultRagOptions());
+                                    .setMaxCommitDepth(Integer.parseInt(maxDepthSetEmbeddings)));
         } catch (NumberFormatException e) {
-            assertions.assertSoftly(false, "Max depth should be an integer - could not set to %s"
+            assertions.assertSoftly(false, "Max maxCommitDepth should be an integer - could not set to %s"
                     .formatted(maxDepthSetEmbeddings));
         }
     }
@@ -176,9 +191,12 @@ public class RepoOperationsStepDefs implements ResettableStep {
                     .formatted(cb.getBranchName(), commitDiffs.errorMessage()));
 
             commitDiffs.one().ifPresent(cd -> {
-                for (var cdFound : cd)
-                    assertions.assertSoftly(!Arrays.equals(cdFound.embedding(), Embedding.INITIALIZED),
-                            "Commit diff %s was not initialized.".formatted(cdFound.getId()));
+                for (var cdFound : cd) {
+                    var smallest = commitDiffRepository.findEmbeddedGitDiff(cdFound.id());
+                    if (smallest.isEmpty())
+                        assertions.assertSoftly(!Arrays.equals(cdFound.embedding(), Embedding.INITIALIZED),
+                                "Commit diff %s was not initialized.".formatted(cdFound.getId()));
+                }
             });
         });
     }
@@ -227,4 +245,8 @@ public class RepoOperationsStepDefs implements ResettableStep {
         return found;
     }
 
+    @And("the maximum time blame node runs is {string} minutes")
+    public void theMaximumTimeBlameNodeRunsIsMinutes(String maxMinutesBlameTree) {
+        commitDiffInit.getCommitDiffContextValue().setMaxTimeBlameTree((int) Duration.ofMinutes(Integer.parseInt(maxMinutesBlameTree)).toMillis());
+    }
 }

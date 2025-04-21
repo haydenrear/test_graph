@@ -2,6 +2,7 @@ package com.hayden.test_graph.commit_diff_context.init.repo_op;
 
 import com.hayden.commitdiffmodel.codegen.types.GitOperation;
 import com.hayden.commitdiffmodel.codegen.types.RagOptions;
+import com.hayden.commitdiffmodel.codegen.types.SessionKey;
 import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoInitItem;
@@ -60,7 +61,7 @@ public class InitializeRepo implements RepoOpInitNode {
                     switch (repoInit) {
                         case RepoInitItem.AddCodeBranch ignored ->
                                 doAddGitOp(c, GitOperation.ADD_BRANCH);
-                        case RepoInitItem.AddEmbeddings(RagOptions ragOptions)  ->
+                        case RepoInitItem.AddEmbeddings()  ->
                                 doAddGitOp(c, GitOperation.SET_EMBEDDINGS);
                         case RepoInitItem.AddBlameNodes ignored ->
                                 doAddGitOp(c, GitOperation.PARSE_BLAME_TREE);
@@ -99,10 +100,11 @@ public class InitializeRepo implements RepoOpInitNode {
                 .build();
 
         var added = commitDiff.callGraphQlQuery(addCodeBranchArgs);
-
         assertions.assertSoftly(added.isOk(),
                 "Could not perform git operation %s. Error message: %s.".formatted(gitOp, added.errorMessage()),
                 () -> "Git operation %s performed successfully. Response: %s".formatted(gitOp, added.r().get()));
+
+        added.ifPresent(gitRepoResult -> c.setSessionKey(new SessionKey(gitRepoResult.getSessionKey().getKey())));
     }
 
 }

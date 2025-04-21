@@ -89,7 +89,7 @@ public class CommitDiff implements ResettableThreadLike {
                 .repoRequest(sendingCodeBranch)
                 .queryName(graphQlQueryArgs.key())
                 .build();
-        var projectionNode = new DoGitProjectionRoot<>().branch();
+        var projectionNode = new DoGitProjectionRoot<>().branch().sessionKey().key().getParent();
         var req = doCreateRequestSpec(client, built, projectionNode);
         var res = createGraphQlQueryResponse(req.executeSync(), graphQlQueryArgs);
         return res;
@@ -102,7 +102,7 @@ public class CommitDiff implements ResettableThreadLike {
                         this.repoOpInit.retrieveSessionKey()),
                 "Session key did not propagate.",
                 "Session key existed as %s".formatted(sessionKey));
-        return toRepoRequest(branchName, gitRepoPath, sessionKey, gitOperation, ctx);
+        return toRepoRequest(branchName, gitRepoPath, sessionKey, gitOperation, ctx, repoOpInit);
     }
 
     private DgsGraphQlClient.@NotNull RequestSpec doCreateRequestSpec(DgsGraphQlClient client,
@@ -119,14 +119,16 @@ public class CommitDiff implements ResettableThreadLike {
         CommitMessage cm = CommitMessage.newBuilder().value(commitRequestArgs.commitMessage()).build();
         SessionKey session = SessionKey.newBuilder().key(repoOpInit.retrieveSessionKey()).build();
         var repoRequest = GitRepoPromptingRequest.newBuilder()
+                .gitRepoRequestOptions(commitRequestArgs.commitDiffContextValue().nextCommitRequest().getGitRepoRequestOptions())
                 .gitRepo(GitRepo.newBuilder()
                         .path(commitRequestArgs.gitRepoPath())
                         .build())
+                .lastRequestStagedApplied(commitRequestArgs.commitDiffContextValue().nextCommitRequest().getLastRequestStagedApplied())
                 .staged(Staged.newBuilder()
                         .diffs(commitRequestArgs.commitDiffContextValue().stagedDiffs())
                         .build())
                 .commitMessage(cm)
-                .ragOptions(commitRequestArgs.commitDiffContextValue().ragOptions())
+                .ragOptions(commitRequestArgs.commitDiffContextValue().nextCommitRequest().getRagOptions())
                 .sessionKey(session)
                 .prev(PrevCommit.newBuilder()
                         .diffs(commitRequestArgs.commitDiffContextValue().prevDiffs())

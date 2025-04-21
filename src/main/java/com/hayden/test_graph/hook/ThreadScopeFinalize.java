@@ -11,7 +11,7 @@ public class ThreadScopeFinalize implements FinalizeHook {
     ResettableThreadScope resettableThreadScope;
 
     @Override
-    public Void call() throws Exception {
+    public Void call() {
         resettableThreadScope.reset();
         return null;
     }

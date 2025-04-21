@@ -18,11 +18,9 @@ public sealed interface RepoInitItem {
         }
     };
 
-    record AddCodeBranch(RepoOpInit.RepositoryData repositoryData) implements RepoInitItem {
-    }
+    record AddCodeBranch(RepoOpInit.RepositoryData repositoryData) implements RepoInitItem {}
 
-    record AddEmbeddings(RagOptions ragOptions) implements RepoInitItem {
-    }
+    record AddEmbeddings() implements RepoInitItem {}
 
     record AddBlameNodes() implements RepoInitItem {}
 

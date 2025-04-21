@@ -5,6 +5,7 @@ import com.hayden.commitdiffmodel.entity.*;
 import com.hayden.commitdiffmodel.repo.CommitDiffClusterRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffItemRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffRepository;
+import com.hayden.commitdiffmodel.repo.EmbeddedGitDiffRepository;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.commitdiffmodel.config.CommitDiffContextConfigProps;
@@ -19,7 +20,6 @@ import io.cucumber.java.en.Then;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -41,9 +41,7 @@ public class BlameNodeStepDefs implements ResettableStep {
     @Autowired
     private CommitDiffClusterRepository commitDiffClusterRepository;
     @Autowired
-    private ObjectMapper om;
-    @Autowired
-    private CommitDiffContextConfigProps contextConfigProps;
+    private EmbeddedGitDiffRepository embeddedGitDiffRepository;
 
     @And("add blame nodes is called")
     @RegisterInitStep(RepoOpInit.class)
@@ -59,16 +57,26 @@ public class BlameNodeStepDefs implements ResettableStep {
         assertCommitDiffClusters();
         assertCommitDiffs();
         assertCommitDiffItems();
+        assertions.assertSoftly(assertGitDiffEmbeddingItems(), "No git diff embeddings were embedded");
     }
 
     private void assertCommitDiffItems() {
         AtomicBoolean isEmpty = new AtomicBoolean(true);
         itemRepository.doWithStream(i -> {
             isEmpty.set(false);
-            this.assertCommitDiffItem(i);
+            if (!isEmpty.get()) {
+                return;
+            }
+            assertions.assertSoftly(this.assertCommitDiffItem(i), "No commit diff item were embedded");
         });
 
         assertions.assertSoftly(!isEmpty.get(), "Commit diff items were empty.");
+    }
+
+    private boolean assertGitDiffEmbeddingItems() {
+        List<EmbeddedGitDiff> all = embeddedGitDiffRepository.findAll();
+        assertions.assertSoftly(!all.isEmpty(), "Embedded git diff items were empty.");
+        return all.stream().anyMatch(this::isInitializedEmbedding);
     }
 
     private void assertBlameTrees() {
@@ -85,48 +93,43 @@ public class BlameNodeStepDefs implements ResettableStep {
     }
 
     private void assertCommitDiffClusters() {
-        var commitDiffClusters = commitDiffClusterRepository.findAll();
+        var commitDiffClusters = commitDiffClusterRepository.findAllWithCommitDiffs();
         assertions.assertSoftly(!commitDiffClusters.isEmpty(), "Commit diff clusters were empty.");
-        commitDiffClusters.forEach(this::assertCommitDiffCluster);
+        assertions.assertSoftly(commitDiffClusters.stream().anyMatch(this::assertCommitDiffCluster), "No commit diff clusters were embedded");
     }
 
     private void assertCommitDiffs() {
-        List<CommitDiff> commitDiffs = commitDiffRepository.findAll();
-        commitDiffs.forEach(this::assertCommitDiff);
+        List<CommitDiff> commitDiffs = commitDiffRepository.findAllWithCommitDiffItems();
+        assertions.assertSoftly(commitDiffs.stream().anyMatch(this::assertCommitDiff), "No commit diffs were embedded.");
         assertions.assertSoftly(!commitDiffs.isEmpty(), "Commit diffs were empty.");
     }
 
-    private void assertCommitDiffCluster(CommitDiffCluster cdc) {
-        isInitializedEmbedding(List.of(cdc),
-                "Some commit diffs clusters were not embedded.");
+    private boolean assertCommitDiffCluster(CommitDiffCluster cdc) {
+        if (cdc.getCommitDiffs().isEmpty())
+            return false;
+        return isInitializedEmbedding(List.of(cdc));
     }
 
-    private void assertCommitDiff(CommitDiff cdi) {
-        isInitializedEmbedding(List.of(cdi), "Commit diff was not embedded.");
+    private boolean assertCommitDiff(CommitDiff cdi) {
+        if (cdi.getDiffs().isEmpty())
+            return false;
+
+        return isInitializedEmbedding(List.of(cdi));
     }
 
-    private void assertCommitDiffItem(CommitDiffItem cdi) {
-        isInitializedEmbedding(List.of(cdi), "Embedded diff diff was not embedded.");
-        isInitializedEmbedding(cdi.getParsed(), "Some git diffs were not embedded.");
+    private boolean assertCommitDiffItem(CommitDiffItem cdi) {
+        if (cdi.getParsed().isEmpty())
+            return false;
+        return isInitializedEmbedding(List.of(cdi))
+                && isInitializedEmbedding(cdi.getParsed());
     }
 
-    private <T extends SerializableEmbed> void  isInitializedEmbedding(Collection<T> cdc, String message) {
-        assertions.assertSoftly(cdc.stream().allMatch(embeddedItem -> isInitializedEmbedding(embeddedItem, om)), message);
+    private <T extends SerializableEmbed & HasEmbedding> boolean  isInitializedEmbedding(Collection<T> cdc) {
+        return cdc.stream().anyMatch(this::isInitializedEmbedding);
     }
 
-    private boolean isInitializedEmbedding(SerializableEmbed embeddedItem, ObjectMapper om) {
-        var isInitialized = embeddedItem.isEmbedded();
-        if (!isInitialized) {
-            try {
-                if (embeddedItem.serialize(om).length > contextConfigProps.getTestEmbeddingMaxSide()) {
-                    log.info("Could not embed {}.", embeddedItem);
-                    return true;
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        return isInitialized;
+    private <T extends SerializableEmbed & HasEmbedding> boolean isInitializedEmbedding(T embeddedItem) {
+        return embeddedItem.isEmbedded();
     }
+
 }

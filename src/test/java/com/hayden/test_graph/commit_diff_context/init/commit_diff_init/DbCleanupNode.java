@@ -31,6 +31,8 @@ public class DbCleanupNode implements CommitDiffInitNode {
     private RepoExecutor repoExecutor;
     @Autowired
     private DatabaseConfigProps databaseConfigProps;
+    @Autowired
+    private EmbeddedGitDiffRepository embeddedGitDiffRepository;
 
     @Override
     public boolean skip(CommitDiffInit t) {
@@ -42,34 +44,12 @@ public class DbCleanupNode implements CommitDiffInitNode {
     }
 
     @Override
-    @Transactional
     public CommitDiffInit exec(CommitDiffInit c, MetaCtx h) {
-        repoExecutor.perform(() -> {
 
+        codeBranchRepository.deleteAllCodeBranch();
+        commitDiffClusterRepository.removeAllCommitDiffsAtOnce();
+        commitRepository.deleteAllRecursive();
 
-            commitDiffClusterRepository.removeAllCommitDiffs();
-            commitDiffRepository.removeAllCommitDiffs();
-            commitDiffRepository.removeAllCommitDiffsItems();
-            commitDiffItemRepository.removeAllCommitDiffsItems();
-
-
-            codeBranchRepository.deleteAllWithCommitsSet();
-            commitRepository.deleteAllHeads();
-
-            if (commitDiffRepository.count() > 0)
-                commitDiffRepository.deleteAll();
-            if (commitDiffItemRepository.count() > 0)
-                commitDiffItemRepository.deleteAll();
-            if (codeRepoRepository.count() > 0)
-                codeRepoRepository.deleteAll();
-
-            codeBranchRefRepository.deleteAll();
-
-            if (commitDiffClusterRepository.count() > 0)
-                commitDiffClusterRepository.deleteAll();
-
-            return null;
-        });
         return c;
     }
 

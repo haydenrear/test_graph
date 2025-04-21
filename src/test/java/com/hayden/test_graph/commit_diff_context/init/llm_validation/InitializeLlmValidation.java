@@ -90,7 +90,7 @@ public class InitializeLlmValidation implements ValidateLlmInitNode {
 
             secondTo.ifPresent(nrc -> {
                 // parse backwards, get second from back, get commit hash for this
-                var parsed = parseDiff.parseDiffItemsToGitDiff(rh, nrc);
+                var parsed = parseDiff.parseDiffItemsToGitDiff(rh, nrc, Paths.get("/"));
 
                 var latestRevCommit = RepoUtil.getLatestCommit(rh.getGit(), repoData.branchName())
                         .mapError(re -> new GitErrors.GitAggregateError(re.getMessage()));

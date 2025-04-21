@@ -21,8 +21,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 @Component
 @ResettableThread
@@ -41,16 +39,16 @@ public class RepoOpInit implements InitCtx {
 
     public record CommitDiffData(@NotNull String sessionKey) {}
 
-
     public record RepoInitializations(List<RepoInitItem> initItems) {
-        public void doOnRagOptions(Consumer<RepoInitItem.AddEmbeddings> updateRagOptions, Supplier<RagOptions> defaultRagOptions) {
-            var found = initItems.stream().flatMap(r -> r instanceof RepoInitItem.AddEmbeddings addEmbeddings
-                                            ? Stream.of(addEmbeddings): Stream.empty())
-                    .findAny()
-                    .orElseGet(() -> new RepoInitItem.AddEmbeddings(defaultRagOptions.get()));
+    }
 
-            updateRagOptions.accept(found);
-        }
+    public void doOnPromptingOptions(Consumer<PromptingOptions> promptingOptions) {
+        promptingOptions.accept(this.commitDiffContextValue.nextCommitRequest.getGitRepoRequestOptions().getPromptingOptions());
+    }
+
+    public void doOnRagOptions(Consumer<RagOptions> updateRagOptions) {
+        updateRagOptions.accept(this.commitDiffContextValue.nextCommitRequest.getRagOptions());
+        updateRagOptions.accept(this.commitDiffContextValue.doGitOperationRequest.getRagOptions());
     }
 
     @Builder
@@ -95,47 +93,55 @@ public class RepoOpInit implements InitCtx {
     }
 
     @Builder
-    public record CommitDiffContextGraphQlModel(GitRepoPromptingRequest addRepo,
-                                                GitRepositoryRequest repositoryRequest,
-                                                RagOptions ragOptions,
+    public record CommitDiffContextGraphQlModel(GitRepoPromptingRequest nextCommitRequest,
+                                                GitRepositoryRequest doGitOperationRequest,
                                                 SessionKey sessionKey) {
 
         public void addRepoToContext(GitRepoQueryRequest gitRepositoryRequest) {
-            this.addRepo.getGitRepoRequestOptions().getPromptingOptions().getIncludeRepoClosestCommits().add(gitRepositoryRequest);
+            this.nextCommitRequest.getGitRepoRequestOptions().getPromptingOptions().getIncludeRepoClosestCommits().add(gitRepositoryRequest);
         }
 
         public List<PrevDiff> prevDiffs() {
-            return Optional.ofNullable(this.addRepo())
+            return Optional.ofNullable(this.nextCommitRequest())
                     .flatMap(gpr -> Optional.ofNullable(gpr.getPrev()))
                     .map(PrevCommit::getDiffs)
                     .orElse(new ArrayList<>());
         }
 
         public Optional<String> commitMessage() {
-            return Optional.ofNullable(addRepo)
+            return Optional.ofNullable(nextCommitRequest)
                     .flatMap(gr -> Optional.ofNullable(gr.getCommitMessage()))
                     .flatMap(cm -> Optional.ofNullable(cm.getValue()));
         }
 
         public List<ContextData> getContextData() {
-            return Optional.ofNullable(addRepo)
+            return Optional.ofNullable(nextCommitRequest)
                     .flatMap(gr -> Optional.ofNullable(gr.getContextData()))
                     .orElse(new ArrayList<>());
         }
 
         public List<PrevRequests> getPrevRequests() {
-            return Optional.ofNullable(addRepo)
+            return Optional.ofNullable(nextCommitRequest)
                     .flatMap(gr -> Optional.ofNullable(gr.getPrevRequests()))
                     .orElse(new ArrayList<>());
         }
 
         public List<PromptDiff> stagedDiffs() {
-            return Optional.ofNullable(addRepo())
+            return Optional.ofNullable(nextCommitRequest())
                     .flatMap(g -> Optional.ofNullable(g.getStaged()))
                     .map(Staged::getDiffs)
                     .orElse(new ArrayList<>());
         }
 
+        public void setMaxTimeBlameTree(int millis) {
+            this.nextCommitRequest.getRagOptions().getBlameTreeOptions().setMaxTimeBlameTree(millis);
+            this.doGitOperationRequest.getRagOptions().getBlameTreeOptions().setMaxTimeBlameTree(millis);
+        }
+
+        public void setMaxCommitDiffsBlameTree(int maxCommitDiffs) {
+            this.nextCommitRequest.getRagOptions().getBlameTreeOptions().setMaxCommitDiffs(maxCommitDiffs);
+            this.doGitOperationRequest.getRagOptions().getBlameTreeOptions().setMaxCommitDiffs(maxCommitDiffs);
+        }
 
     }
 
@@ -165,21 +171,33 @@ public class RepoOpInit implements InitCtx {
                 ContextValue.empty(), ContextValue.empty(), new RepoInitializations(new ArrayList<>()));
     }
 
+    public RagOptions doGitRagOptions() {
+        return commitDiffContextValue.doGitOperationRequest.getRagOptions();
+    }
+
 
     public void initializeCommitDiffContextValue() {
         if (this.commitDiffContextValue == null)
             this.commitDiffContextValue = CommitDiffContextGraphQlModel.builder()
                     .sessionKey(SessionKey.newBuilder().build())
-                    .repositoryRequest(GitRepositoryRequest.newBuilder()
-                            .sessionKey(new SessionKey(retrieveSessionKey()))
+                    .doGitOperationRequest(GitRepositoryRequest.newBuilder()
+                            .sessionKey(new SessionKey())
+                            .ragOptions(RagOptions.newBuilder()
+                                    .parseGitOptions(ParseGitOptions.newBuilder().build())
+                                    .blameTreeOptions(BlameTreeOptions.newBuilder().build())
+                                    .build())
                             .gitRepoRequestOptions(GitRepoRequestOptions.newBuilder()
                                     .promptingOptions(PromptingOptions.newBuilder()
                                             .includeRepoClosestCommits(new ArrayList<>())
                                             .build())
                                     .build())
                             .build())
-                    .addRepo(GitRepoPromptingRequest.newBuilder()
-                            .sessionKey(new SessionKey(retrieveSessionKey()))
+                    .nextCommitRequest(GitRepoPromptingRequest.newBuilder()
+                            .sessionKey(new SessionKey())
+                            .ragOptions(RagOptions.newBuilder()
+                                    .parseGitOptions(ParseGitOptions.newBuilder().build())
+                                    .blameTreeOptions(BlameTreeOptions.newBuilder().build())
+                                    .build())
                             .gitRepoRequestOptions(GitRepoRequestOptions.newBuilder()
                                     .promptingOptions(PromptingOptions.newBuilder()
                                             .includeRepoClosestCommits(new ArrayList<>())
@@ -199,10 +217,10 @@ public class RepoOpInit implements InitCtx {
 
     public void setRepoData(RepositoryData repositoryData) {
         this.repositoryData.swap(repositoryData);
-        this.commitDiffContextValue.addRepo.setGitRepo(repositoryData.toGitRepo());
-        this.commitDiffContextValue.addRepo.setBranchName(repositoryData.branchName);
-        this.commitDiffContextValue.repositoryRequest.setGitRepo(repositoryData.toGitRepo());
-        this.commitDiffContextValue.repositoryRequest.setGitBranch(repositoryData.toGitBranch());
+        this.commitDiffContextValue.nextCommitRequest.setGitRepo(repositoryData.toGitRepo());
+        this.commitDiffContextValue.nextCommitRequest.setBranchName(repositoryData.branchName);
+        this.commitDiffContextValue.doGitOperationRequest.setGitRepo(repositoryData.toGitRepo());
+        this.commitDiffContextValue.doGitOperationRequest.setGitBranch(repositoryData.toGitBranch());
     }
 
     public void setSessionKey(SessionKey sessionKey) {
@@ -213,8 +231,8 @@ public class RepoOpInit implements InitCtx {
     private void addSessionKeyToRequests() {
         var sessionKey = this.retrieveSessionKey();
         this.commitDiffContextValue.sessionKey.setKey(sessionKey);
-        this.commitDiffContextValue.repositoryRequest.getSessionKey().setKey(sessionKey);
-        this.commitDiffContextValue.addRepo.getSessionKey().setKey(sessionKey);
+        this.commitDiffContextValue.doGitOperationRequest.getSessionKey().setKey(sessionKey);
+        this.commitDiffContextValue.nextCommitRequest.getSessionKey().setKey(sessionKey);
     }
 
     public ContextValue<RepositoryData> repoData() {
@@ -251,7 +269,7 @@ public class RepoOpInit implements InitCtx {
     }
 
     public void setCommitMessage(CommitMessage commitMessage) {
-        this.commitDiffContextValue.addRepo()
+        this.commitDiffContextValue.nextCommitRequest()
                 .setCommitMessage(commitMessage);
         this.userCodeData.swap(new UserCodeData(commitMessage.getValue()));
     }

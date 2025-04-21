@@ -22,19 +22,19 @@ services:
 #      - "8080:8080"
 #    environment:
 #      SPRING_PROFILES_ACTIVE: docker
-  model-server:
-    networks:
-      - commit-diff-template-net
-    image: localhost:5001/model-server
-    container_name: model-server-container
-    ports:
-      - "9991:9991"
-    environment:
-      HF_HOME: /.huggingface
-    volumes:
-      - type: bind
-        source: /Users/hayde/IdeaProjects/drools/model_server/.models
-        target: /.huggingface
+#  model-server:
+#    networks:
+#      - commit-diff-template-net
+#    image: localhost:5001/model-server
+#    container_name: model-server-container
+#    ports:
+#      - "9991:9991"
+#    environment:
+#      HF_HOME: /.huggingface
+#    volumes:
+#      - type: bind
+#        source: /Users/hayde/IdeaProjects/drools/model_server/.models
+#        target: /.huggingface
 
 volumes:
   validation:

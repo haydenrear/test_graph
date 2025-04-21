@@ -11,6 +11,11 @@ Feature: Perform next commit
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
     And the embeddings for the branch should be added
+    And the max number of commits parsed of the git repo when setting the embeddings is "300"
+    And the max time parse blame tree is "5" seconds
+    And the max diffs per file is "5"
+    And the max files per chat item is "10"
+    And the max number of chat items in the history is "20"
     And add blame nodes is called
     And a request for the next commit is provided with the commit message being provided from "classpath:responses/commit-message.json"
     And a request for the next commit is provided with the staged information being provided from "classpath:responses/staged.json"
@@ -41,9 +46,16 @@ Feature: Perform next commit
     Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
+    And the max number of commits parsed of the git repo when setting the embeddings is "300"
+    And the max time parse blame tree is "5" seconds
+    And the max diffs per file is "5"
+    And the max files per chat item is "10"
+    And the max number of chat items in the history is "20"
     And the embeddings for the branch should be added
     And add blame nodes is called
     And docker container from repo "git@github.com:haydenrear/servers.git" with branch "main" is built with image name "mcp/postgres" from subdirectory "" and dockerfile "src/postgres/Dockerfile"
+    And docker container from repo "git@github.com:haydenrear/servers.git" with branch "main" is built with image name "mcp/postgres" from subdirectory "" and dockerfile "src/postgres/Dockerfile"
+    And docker container from repo "git@github.com:haydenrear/servers.git" with branch "main" is built with image name "mcp/sqlite" from subdirectory "src/sqlite" and dockerfile "Dockerfile"
     And a request for the next commit is provided with the commit message being provided from "classpath:responses/commit-message.json"
     And a request for the next commit is provided with the staged information being provided from "classpath:responses/staged.json"
     And a request for the next commit is provided with the contextData being provided from "classpath:responses/context-data.json"
@@ -75,6 +87,11 @@ Feature: Perform next commit
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
     And the embeddings for the branch should be added
+    And the max number of commits parsed of the git repo when setting the embeddings is "300"
+    And the max time parse blame tree is "5" seconds
+    And the max diffs per file is "5"
+    And the max files per chat item is "10"
+    And the max number of chat items in the history is "20"
     And add blame nodes is called
     And a request for the next commit is provided with the commit message being provided from "classpath:responses/commit-message.json"
     And a request for the next commit is provided with the staged information being provided from "classpath:responses/staged.json"

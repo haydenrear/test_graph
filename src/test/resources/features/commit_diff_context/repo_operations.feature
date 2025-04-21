@@ -12,6 +12,7 @@ Feature: Perform repo operations
     Examples:
       | repoUrl        | branchName | composePath                                                                                     |
       | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+#      | /Users/hayde/IdeaProjects/drools_test/commit-diff-context | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
 
 
   @add_embeddings @all
@@ -25,8 +26,9 @@ Feature: Perform repo operations
     Then a branch with name "<branchName>" will be added to the database
     Then the branches embeddings will be added to the database
     Examples:
-      | repoUrl        | branchName | composePath                                                                                     |
-      | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+      | repoUrl                                                   | branchName | composePath                                                                                     |
+      | work/first.tar                                            | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+#      | /Users/hayde/IdeaProjects/drools_test/commit-diff-context | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
 
   @add_blame_node
   @all
@@ -34,6 +36,7 @@ Feature: Perform repo operations
     Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
+    And the maximum time blame node runs is "2" minutes
     And the embeddings for the branch should be added
     And add blame nodes is called
     And There exists a response type of "EMBEDDING" in the file location "classpath:responses/embedding_response.json" for model server endpoint "/ai_suite_gemini_embedding" on port "9991"
@@ -42,6 +45,22 @@ Feature: Perform repo operations
     Then the branches embeddings will be added to the database
     Then the blame node embeddings are validated to be added to the database
     Examples:
-      | repoUrl                                   | branchName | composePath                                                                                     |
-#      | /Users/hayde/IdeaProjects/test_graph_next | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
-      | work/first.tar | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+      | repoUrl                                                   | branchName | composePath                                                                                     |
+#      | /Users/hayde/IdeaProjects/drools_test/commit-diff-context | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+      | work/first.tar                                            | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+
+  @add_blame_node_only
+    @all
+  Scenario Outline: add blame nodes is called and validated.
+    Given docker-compose is started from "<composePath>"
+    And there is a repository at the url "<repoUrl>"
+    And a branch should be added "<branchName>"
+    And add blame nodes is called
+    And There exists a response type of "EMBEDDING" in the file location "classpath:responses/embedding_response.json" for model server endpoint "/ai_suite_gemini_embedding" on port "9991"
+    When the repo is added to the database by calling commit diff context
+    Then a branch with name "<branchName>" will be added to the database
+    Then the blame node embeddings are validated to be added to the database
+    Examples:
+      | repoUrl                                                   | branchName | composePath                                                                                     |
+#      | /Users/hayde/IdeaProjects/drools_test/commit-diff-context | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
+      | work/first.tar                                            | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |

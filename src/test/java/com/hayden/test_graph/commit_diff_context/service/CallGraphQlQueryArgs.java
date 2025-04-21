@@ -96,15 +96,16 @@ public sealed interface CallGraphQlQueryArgs<T> {
     }
 
     static GitRepositoryRequest toRepoRequest(String branchName, String gitRepoPath,
-                                                     String sessionKey, GitOperation gitOperation,
-                                                     Object ctx) {
-
+                                              String sessionKey, GitOperation gitOperation,
+                                              Object ctx, RepoOpInit repoOpInit) {
+        var ragOptions = repoOpInit.doGitRagOptions();
         return switch (ctx) {
             case TagContext t ->
                     GitRepositoryRequest.newBuilder()
                             .gitBranch(GitBranch.newBuilder().branch(branchName).build())
                             .operation(Lists.newArrayList(gitOperation))
                             .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .ragOptions(ragOptions)
                             .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
                             .tag(t)
                             .build();
@@ -113,6 +114,7 @@ public sealed interface CallGraphQlQueryArgs<T> {
                             .gitBranch(GitBranch.newBuilder().branch(branchName).build())
                             .operation(Lists.newArrayList(gitOperation))
                             .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .ragOptions(ragOptions)
                             .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
                             .merge(m)
                             .build();
@@ -121,6 +123,7 @@ public sealed interface CallGraphQlQueryArgs<T> {
                             .gitBranch(GitBranch.newBuilder().branch(branchName).build())
                             .operation(Lists.newArrayList(gitOperation))
                             .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .ragOptions(ragOptions)
                             .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
                             .rebase(r)
                             .build();
@@ -129,6 +132,7 @@ public sealed interface CallGraphQlQueryArgs<T> {
                             .gitBranch(GitBranch.newBuilder().branch(branchName).build())
                             .operation(Lists.newArrayList(gitOperation))
                             .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .ragOptions(ragOptions)
                             .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
                             .cherryPick(r)
                             .build();
@@ -145,6 +149,7 @@ public sealed interface CallGraphQlQueryArgs<T> {
                             .gitBranch(GitBranch.newBuilder().branch(branchName).build())
                             .operation(Lists.newArrayList(gitOperation))
                             .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .ragOptions(ragOptions)
                             .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
                             .drop(r)
                             .build();
@@ -153,22 +158,16 @@ public sealed interface CallGraphQlQueryArgs<T> {
                             .gitBranch(GitBranch.newBuilder().branch(branchName).build())
                             .operation(Lists.newArrayList(gitOperation))
                             .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .ragOptions(ragOptions)
                             .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
                             .updateHead(r)
-                            .build();
-            case RagOptions rag ->
-                    GitRepositoryRequest.newBuilder()
-                            .ragOptions(rag)
-                            .gitBranch(GitBranch.newBuilder().branch(branchName).build())
-                            .operation(Lists.newArrayList(gitOperation))
-                            .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
-                            .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
                             .build();
             case null, default ->
                     GitRepositoryRequest.newBuilder()
                             .gitBranch(GitBranch.newBuilder().branch(branchName).build())
                             .operation(Lists.newArrayList(gitOperation))
                             .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
+                            .ragOptions(ragOptions)
                             .sessionKey(SessionKey.newBuilder().key(sessionKey).build())
                             .build();
         };

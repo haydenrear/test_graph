@@ -1,21 +1,10 @@
 package com.hayden.test_graph.runner;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hayden.commitdiffmodel.codegen.types.*;
-import com.hayden.commitdiffmodel.model.Git;
-import com.hayden.proto.prototyped.datasources.ai.modelserver.client.ModelServerCodingAiClient;
-import com.hayden.proto.prototyped.datasources.ai.modelserver.request.ModelContextProtocolContextRequest;
-import com.hayden.proto.prototyped.datasources.ai.modelserver.response.ModelServerResponse;
-import lombok.SneakyThrows;
 import org.assertj.core.util.Lists;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.ai.mcp.client.transport.ServerParameters;
 
-import java.io.File;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class Script {
 

@@ -24,8 +24,6 @@ import com.hayden.utilitymodule.io.FileUtils;
 import com.hayden.utilitymodule.result.error.SingleError;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
-import jakarta.annotation.PostConstruct;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.json.simple.parser.ParseException;
@@ -98,7 +96,7 @@ public class NextCommitStepDefs implements ResettableStep {
         try {
             var staged = mapper.readValue(getFile(commitMessageJson), Staged.class);
             var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
-            gitRepoPromptingRequest.addRepo()
+            gitRepoPromptingRequest.nextCommitRequest()
                     .setStaged(staged);
         } catch (IOException e) {
             assertions.assertStrongly(false, "Could not parse commit message: " + commitMessageJson);
@@ -113,7 +111,7 @@ public class NextCommitStepDefs implements ResettableStep {
             var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs()
                     .commitDiffContextValue();
             gitRepoPromptingRequest
-                    .addRepo()
+                    .nextCommitRequest()
                     .setContextData(staged);
         } catch (IOException e) {
             assertions.assertStrongly(false, "Could not parse commit message: " + commitMessageJson);
@@ -127,7 +125,7 @@ public class NextCommitStepDefs implements ResettableStep {
             var staged = mapper.readValue(getFile(commitMessageJson), PrevCommit.class);
             var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
             gitRepoPromptingRequest
-                    .addRepo()
+                    .nextCommitRequest()
                     .setPrev(staged);
         } catch (IOException e) {
             assertions.assertStrongly(false, "Could not parse commit message: " + commitMessageJson + "\n" + SingleError.parseStackTraceToString(e));
@@ -212,7 +210,7 @@ public class NextCommitStepDefs implements ResettableStep {
                 } else if (req.getHeaders().containsKey("INITIAL_CODE")) {
                     var toMap = mapper.readValue(req.getBody(), new TypeReference<Map<String, Object>>() {} );
                     if (toMap.containsKey("modelContextProtocolTools")) {
-                        read = mapper.readValue(req.getBody(), PromptingTemplate.CommitDiffPromptingTemplateWithToolset.class);
+//                        read = mapper.readValue(req.getBody(), PromptingTemplate.CommitDiffPromptingTemplateWithToolset.class);
                     } else {
                         read = mapper.readValue(req.getBody(), PromptingTemplate.CommitDiffPromptingTemplate.class);
                     }
@@ -266,4 +264,27 @@ public class NextCommitStepDefs implements ResettableStep {
                 .ifPresent(tyHeaders::add);
     }
 
+    @And("the max diffs per file is {string}")
+    @RegisterInitStep(value = {RepoOpInit.class})
+    public void setMaxDiffsPerFile(String diffsPerFile) {
+        this.repoOpInit.doOnPromptingOptions(rO -> rO.setMaxDiffsPerFile(Integer.valueOf(diffsPerFile)));
+    }
+
+    @And("the max files per chat item is {string}")
+    @RegisterInitStep(value = {RepoOpInit.class})
+    public void setMaxFilesPerChatItem(String maxFilesPerChatItem) {
+        this.repoOpInit.doOnPromptingOptions(rO -> rO.setNumFilesPerChatItem(Integer.valueOf(maxFilesPerChatItem)));
+    }
+
+    @And("the max number of chat items in the history is {string}")
+    @RegisterInitStep(value = {RepoOpInit.class})
+    public void theMaxTimeNumberOfChatItemsInTheHistoryIs(String maxNumChatItems) {
+        this.repoOpInit.doOnPromptingOptions(rO -> rO.setNumChatItemsTotal(Integer.valueOf(maxNumChatItems)));
+    }
+
+    @And("blame tree is not parsed for next commit")
+    @RegisterInitStep(value = {RepoOpInit.class})
+    public void blameTreeIsNotParsedForNextCommit() {
+        this.repoOpInit.doOnPromptingOptions(rO -> rO.setDoPerformBlameTree(false));
+    }
 }
