@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 
-import static com.hayden.test_graph.commit_diff_context.service.CallGraphQlQueryArgs.toRepoRequest;
+import static com.hayden.test_graph.commit_diff_context.service.CallGraphQlQueryArgs.doBuildRepoRequest;
 
 @Slf4j
 @Service
@@ -48,7 +48,7 @@ public class CommitDiff implements ResettableThreadLike {
                     this.doWithGraphQl(client -> callValidateBranch(graphQlQueryArgs, branchName, gitRepoPath, client));
             case CallGraphQlQueryArgs.CommitRequestArgs commitRequestArgs ->
                     this.doWithGraphQl(client -> createGraphQlQueryResponse(doCommitOp(commitRequestArgs, client).executeSync(), graphQlQueryArgs));
-            case CallGraphQlQueryArgs.DoGitArgs(String branchName, String gitRepoPath, String sessionKey, GitOperation doGitOp, Object ctx) ->
+            case CallGraphQlQueryArgs.DoGitArgs(String branchName, String gitRepoPath, String sessionKey, List<GitOperation> doGitOp, Object[] ctx) ->
                     this.doWithGraphQl(client -> doGitOp(graphQlQueryArgs, client, buildRepoReq(branchName, gitRepoPath, sessionKey, doGitOp, ctx)));
             case CallGraphQlQueryArgs.CodeContextQueryArgs codeContextQueryArgs ->
                     this.doWithGraphQl(client -> createGraphQlQueryResponse(doCodeContextOp(codeContextQueryArgs, client).executeSync(), graphQlQueryArgs));
@@ -117,13 +117,13 @@ public class CommitDiff implements ResettableThreadLike {
     }
 
     private GitRepositoryRequest buildRepoReq(String branchName, String gitRepoPath,
-                                              String sessionKey, GitOperation gitOperation,
-                                              Object ctx) {
+                                              String sessionKey, List<GitOperation> gitOperation,
+                                              Object ... ctx) {
         assertions.assertSoftly(sessionKey.equals(
                         this.repoOpInit.retrieveSessionKey()),
                 "Session key did not propagate.",
                 "Session key existed as %s".formatted(sessionKey));
-        return toRepoRequest(branchName, gitRepoPath, sessionKey, gitOperation, ctx, repoOpInit);
+        return doBuildRepoRequest(branchName, gitRepoPath, sessionKey, gitOperation, ctx, repoOpInit);
     }
 
     private DgsGraphQlClient.@NotNull RequestSpec doCreateRequestSpec(DgsGraphQlClient client,

@@ -39,7 +39,16 @@ public class RepoOpInit implements InitCtx {
 
     public record CommitDiffData(@NotNull String sessionKey) {}
 
-    public record RepoInitializations(List<RepoInitItem> initItems) {
+    public record RepoInitializations(List<RepoInitItem> initItems, ContextValue<Boolean> simultaneously) {
+
+        public RepoInitializations(List<RepoInitItem> initItems, boolean simultaneously) {
+            this(initItems, ContextValue.ofExisting(simultaneously));
+        }
+
+        public RepoInitializations(List<RepoInitItem> initItems) {
+            this(initItems, ContextValue.empty());
+        }
+
     }
 
     public void doOnPromptingOptions(Consumer<PromptingOptions> promptingOptions) {
@@ -95,7 +104,14 @@ public class RepoOpInit implements InitCtx {
     @Builder
     public record CommitDiffContextGraphQlModel(GitRepoPromptingRequest nextCommitRequest,
                                                 GitRepositoryRequest doGitOperationRequest,
-                                                SessionKey sessionKey) {
+                                                SessionKey sessionKey,
+                                                ContextValue<Integer> numSecondsAsync) {
+
+        public CommitDiffContextGraphQlModel(GitRepoPromptingRequest nextCommitRequest,
+                                             GitRepositoryRequest doGitOperationRequest,
+                                             SessionKey sessionKey) {
+            this(nextCommitRequest, doGitOperationRequest, sessionKey, ContextValue.empty());
+        }
 
         public void addRepoToContext(GitRepoQueryRequest gitRepositoryRequest) {
             this.nextCommitRequest.getGitRepoRequestOptions().getPromptingOptions().getIncludeRepoClosestCommits().add(gitRepositoryRequest);

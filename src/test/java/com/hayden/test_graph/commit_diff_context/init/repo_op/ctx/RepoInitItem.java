@@ -1,5 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.init.repo_op.ctx;
 
+import com.hayden.commitdiffmodel.codegen.types.GitOperation;
 import com.hayden.commitdiffmodel.codegen.types.RagOptions;
 import com.hayden.commitdiffmodel.codegen.types.UpdateHeadCtx;
 import com.hayden.test_graph.ctx.ContextValue;
@@ -18,12 +19,38 @@ public sealed interface RepoInitItem {
         }
     };
 
-    record AddCodeBranch(RepoOpInit.RepositoryData repositoryData) implements RepoInitItem {}
+    GitOperation op();
 
-    record AddEmbeddings() implements RepoInitItem {}
+    default Object ctx() {
+        return null;
+    }
 
-    record AddBlameNodes() implements RepoInitItem {}
+    record AddCodeBranch(RepoOpInit.RepositoryData repositoryData) implements RepoInitItem {
+        @Override
+        public GitOperation op() {
+            return GitOperation.ADD_BRANCH;
+        }
+    }
 
-    record UpdateHeadNode(UpdateHeadCtx ctx) implements RepoInitItem {}
+    record AddEmbeddings() implements RepoInitItem {
+        @Override
+        public GitOperation op() {
+            return GitOperation.SET_EMBEDDINGS;
+        }
+    }
+
+    record AddBlameNodes() implements RepoInitItem {
+        @Override
+        public GitOperation op() {
+            return GitOperation.PARSE_BLAME_TREE;
+        }
+    }
+
+    record UpdateHeadNode(UpdateHeadCtx ctx) implements RepoInitItem {
+        @Override
+        public GitOperation op() {
+            return GitOperation.UPDATE_HEAD;
+        }
+    }
 
 }

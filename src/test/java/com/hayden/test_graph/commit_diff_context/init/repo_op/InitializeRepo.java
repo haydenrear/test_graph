@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 @Component
 public class InitializeRepo implements RepoOpInitNode {
@@ -52,16 +53,25 @@ public class InitializeRepo implements RepoOpInitNode {
     private @NotNull RepoOpInit doPerformRepoInitializations(RepoOpInit c, RepoOpInit.RepositoryData rd) {
         cloneIfRemote(c, rd);
         decompressIfArchive(c, rd);
-        c.getRepoInitializations()
-                .initItems()
-                .stream()
-                .sorted(RepoInitItem.c)
+
+        if (c.getRepoInitializations().simultaneously().optional().orElse(false)) {
+            doSimultaneous(c);
+        } else {
+            doSerially(c);
+        }
+
+        return c;
+    }
+
+    private void doSerially(RepoOpInit c) {
+        c.getRepoInitializations().initItems()
+                .stream().sorted(RepoInitItem.c)
                 .forEach(repoInit -> {
                     assertions.reportAssert("Executing repo init task: %s".formatted(repoInit.getClass().getName()));
                     switch (repoInit) {
                         case RepoInitItem.AddCodeBranch ignored ->
                                 doAddGitOp(c, GitOperation.ADD_BRANCH);
-                        case RepoInitItem.AddEmbeddings()  ->
+                        case RepoInitItem.AddEmbeddings() ->
                                 doAddGitOp(c, GitOperation.SET_EMBEDDINGS);
                         case RepoInitItem.AddBlameNodes ignored ->
                                 doAddGitOp(c, GitOperation.PARSE_BLAME_TREE);
@@ -69,8 +79,18 @@ public class InitializeRepo implements RepoOpInitNode {
                                 doAddGitOp(c, GitOperation.UPDATE_HEAD, updateHeadNode.ctx());
                     }
                 });
+    }
 
-        return c;
+    private void doSimultaneous(RepoOpInit c) {
+        var ops = c.getRepoInitializations().initItems().stream()
+                .sorted(RepoInitItem.c)
+                .map(RepoInitItem::op)
+                .toList();
+        var ctx = c.getRepoInitializations().initItems().stream()
+                .sorted(RepoInitItem.c)
+                .map(RepoInitItem::ctx)
+                .toArray(Object[]::new);
+        doAddGitOp(c, ops, ctx);
     }
 
     private void cloneIfRemote(RepoOpInit c, RepoOpInit.RepositoryData rd) {
@@ -85,11 +105,19 @@ public class InitializeRepo implements RepoOpInitNode {
                 .ifPresent(path -> c.repoData().swap(rd.unzipped(path)));
     }
 
-    private void doAddGitOp(RepoOpInit c, GitOperation gitOperation) {
-        doAddGitOp(c, gitOperation, null);
+    private void doAddGitOp(RepoOpInit c, List<GitOperation> gitOperation) {
+        doAddGitOp(c, gitOperation, (Object) null);
     }
 
-    private void doAddGitOp(RepoOpInit c, GitOperation gitOp, Object ctx) {
+    private void doAddGitOp(RepoOpInit c, GitOperation gitOperation) {
+        doAddGitOp(c, List.of(gitOperation), (Object) null);
+    }
+
+    private void doAddGitOp(RepoOpInit c, GitOperation gitOp, Object ... ctx) {
+        doAddGitOp(c, List.of(gitOp), ctx);
+    }
+
+    private void doAddGitOp(RepoOpInit c, List<GitOperation> gitOp, Object ... ctx) {
         var key = c.retrieveSessionKey();
         CallGraphQlQueryArgs.DoGitArgs addCodeBranchArgs = CallGraphQlQueryArgs.DoGitArgs.builder()
                 .gitRepoPath(c.repoDataOrThrow().url())

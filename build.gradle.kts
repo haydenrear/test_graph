@@ -60,4 +60,28 @@ tasks.test {
     finalizedBy(tasks.stopMountebank)
 }
 
+tasks.register("generateJUnitPlatformProperties") {
+    val tags = System.getenv("cucumber.filter.tags") ?: System.getProperty("cucumber.filter.tags") ?: "@all"
+    val file = project.projectDir.resolve("src/test/resources/junit-platform.properties")
 
+    inputs.property("tags", tags)
+    outputs.file(file)
+
+    doLast {
+
+        if (!file.exists()) {
+            file.parentFile.mkdirs()
+            file.createNewFile()
+        }
+
+        logger.info("JUnit platform properties with tag ${tags}.")
+
+        val content = """
+cucumber.filter.tags=${tags}
+"""
+        file.writeText(content)
+    }
+}
+
+tasks["compileJava"].dependsOn("generateJUnitPlatformProperties")
+tasks["processTestResources"].dependsOn("generateJUnitPlatformProperties")

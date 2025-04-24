@@ -3,7 +3,6 @@ package com.hayden.test_graph.commit_diff_context.step_def;
 import com.hayden.commitdiffmodel.config.CommitDiffContextProperties;
 import com.hayden.commitdiffmodel.entity.CodeBranch;
 import com.hayden.commitdiffmodel.entity.Embedding;
-import com.hayden.commitdiffmodel.git.RepositoryHolder;
 import com.hayden.commitdiffmodel.repo.CodeBranchRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffRepository;
 import com.hayden.test_graph.assertions.Assertions;
@@ -11,12 +10,10 @@ import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAsse
 import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoInitItem;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
-import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.steps.ExecAssertStep;
 import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
-import com.hayden.utilitymodule.db.DbDataSourceTrigger;
 import com.hayden.utilitymodule.result.error.SingleError;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
@@ -248,5 +245,21 @@ public class RepoOperationsStepDefs implements ResettableStep {
     @And("the maximum time blame node runs is {string} minutes")
     public void theMaximumTimeBlameNodeRunsIsMinutes(String maxMinutesBlameTree) {
         commitDiffInit.getCommitDiffContextValue().setMaxTimeBlameTree((int) Duration.ofMinutes(Integer.parseInt(maxMinutesBlameTree)).toMillis());
+    }
+
+    @And("the git ops should be made at the same time")
+    public void theGitOpsShouldBeMadeAtTheSameTime() {
+        commitDiffInit.getRepoInitializations().simultaneously().swap(true);
+    }
+
+    @And("the git ops should be made asynchronously, waiting {string} seconds afterwards for them to start")
+    public void gitOpsAsync(String numTime) {
+        commitDiffInit.toCommitRequestArgs()
+                .commitDiffContextValue()
+                .nextCommitRequest()
+                .setAsync(true);
+        commitDiffInit.toCommitRequestArgs()
+                .commitDiffContextValue()
+                .numSecondsAsync().swap(Integer.valueOf(numTime));
     }
 }
