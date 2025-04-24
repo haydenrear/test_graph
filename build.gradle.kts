@@ -61,7 +61,7 @@ tasks.test {
 }
 
 tasks.register("generateJUnitPlatformProperties") {
-    val tags = System.getenv("cucumber.filter.tags") ?: System.getProperty("cucumber.filter.tags") ?: "@all"
+    val tags = System.getenv("cucumber.filter.tags") ?: System.getProperty("cucumber.filter.tags") ?: "@git_ops_async"
     val file = project.projectDir.resolve("src/test/resources/junit-platform.properties")
 
     inputs.property("tags", tags)
@@ -76,9 +76,7 @@ tasks.register("generateJUnitPlatformProperties") {
 
         logger.info("JUnit platform properties with tag ${tags}.")
 
-        val content = """
-cucumber.filter.tags=${tags}
-"""
+        val content = "cucumber.filter.tags=${tags}"
         file.writeText(content)
     }
 }

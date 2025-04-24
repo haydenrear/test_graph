@@ -166,11 +166,11 @@ public class NextCommitStepDefs implements ResettableStep {
                     // apply commit to the repository for observation
                     // or for then pulling that out as staged information for validation
 
-                    try {
-                        new ObjectMapper().writeValue(new File(FileUtils.randomFilename("next-test.json")), ncm);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+//                    try {
+//                        new ObjectMapper().writeValue(new File(FileUtils.randomFilename("next-test.json")), ncm);
+//                    } catch (IOException e) {
+//                        throw new RuntimeException(e);
+//                    }
 
                     var applied = new GitHandlerActions(Paths.get(repoData.url()), commitDiffContextMapper)
                             .applyCommit(ncm);

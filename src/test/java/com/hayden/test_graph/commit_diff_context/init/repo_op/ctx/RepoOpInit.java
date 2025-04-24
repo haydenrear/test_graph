@@ -196,6 +196,7 @@ public class RepoOpInit implements InitCtx {
         if (this.commitDiffContextValue == null)
             this.commitDiffContextValue = CommitDiffContextGraphQlModel.builder()
                     .sessionKey(SessionKey.newBuilder().build())
+                    .numSecondsAsync(ContextValue.empty())
                     .doGitOperationRequest(GitRepositoryRequest.newBuilder()
                             .sessionKey(new SessionKey())
                             .ragOptions(RagOptions.newBuilder()

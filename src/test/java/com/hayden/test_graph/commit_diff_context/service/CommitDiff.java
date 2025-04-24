@@ -13,6 +13,7 @@ import com.hayden.utilitymodule.result.error.SingleError;
 import com.netflix.graphql.dgs.client.codegen.BaseProjectionNode;
 import com.netflix.graphql.dgs.client.codegen.GraphQLQuery;
 import com.netflix.graphql.dgs.client.codegen.GraphQLQueryRequest;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,8 +49,17 @@ public class CommitDiff implements ResettableThreadLike {
                     this.doWithGraphQl(client -> callValidateBranch(graphQlQueryArgs, branchName, gitRepoPath, client));
             case CallGraphQlQueryArgs.CommitRequestArgs commitRequestArgs ->
                     this.doWithGraphQl(client -> createGraphQlQueryResponse(doCommitOp(commitRequestArgs, client).executeSync(), graphQlQueryArgs));
-            case CallGraphQlQueryArgs.DoGitArgs(String branchName, String gitRepoPath, String sessionKey, List<GitOperation> doGitOp, Object[] ctx) ->
-                    this.doWithGraphQl(client -> doGitOp(graphQlQueryArgs, client, buildRepoReq(branchName, gitRepoPath, sessionKey, doGitOp, ctx)));
+            case CallGraphQlQueryArgs.DoGitArgs(String branchName, String gitRepoPath, String sessionKey, List<GitOperation> doGitOp, Object[] ctx) -> {
+                RepoOpInit.CommitDiffContextGraphQlModel commitDiffContextGraphQlModel = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
+                if (commitDiffContextGraphQlModel.nextCommitRequest().getAsync()) {
+                    Integer numSecondsWait = commitDiffContextGraphQlModel.numSecondsAsync().optional().orElse(5);
+                    assertions.reportAssert("Performing doGit asynchronously, will wait " + numSecondsWait + " seconds");
+                    yield this.doWithGraphQlAsync(client -> doGitOp(graphQlQueryArgs, client, buildRepoReq(branchName, gitRepoPath, sessionKey, doGitOp, ctx)),
+                            numSecondsWait);
+                } else {
+                    yield this.doWithGraphQl(client -> doGitOp(graphQlQueryArgs, client, buildRepoReq(branchName, gitRepoPath, sessionKey, doGitOp, ctx)));
+                }
+            }
             case CallGraphQlQueryArgs.CodeContextQueryArgs codeContextQueryArgs ->
                     this.doWithGraphQl(client -> createGraphQlQueryResponse(doCodeContextOp(codeContextQueryArgs, client).executeSync(), graphQlQueryArgs));
         };
@@ -179,6 +189,21 @@ public class CommitDiff implements ResettableThreadLike {
                 .contextData(commitDiffContextGraphQlModel.getContextData())
                 .build();
         return repoRequest;
+    }
+
+    @SneakyThrows
+    public <T> Result<T, CallGraphQlQueryArgs.CommitDiffContextGraphQlError> doWithGraphQlAsync(Function<DgsGraphQlClient, Result<T, CallGraphQlQueryArgs.CommitDiffContextGraphQlError>> toDo,
+                                                                                                int numSecondsWait) {
+        return doWithGraphQl(toDo)
+                .flatMapResult(f -> {
+                    try {
+                        Thread.sleep(numSecondsWait * 1000L);
+                        return Result.ok(f);
+                    } catch (
+                            InterruptedException e) {
+                        return Result.err(new CallGraphQlQueryArgs.CommitDiffContextGraphQlError("Could not wait for finished: %s.".formatted(SingleError.parseStackTraceToString(e))));
+                    }
+                });
     }
 
     public <T> Result<T, CallGraphQlQueryArgs.CommitDiffContextGraphQlError> doWithGraphQl(Function<DgsGraphQlClient, Result<T, CallGraphQlQueryArgs.CommitDiffContextGraphQlError>> toDo) {

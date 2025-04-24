@@ -260,6 +260,7 @@ public class RepoOperationsStepDefs implements ResettableStep {
                 .setAsync(true);
         commitDiffInit.toCommitRequestArgs()
                 .commitDiffContextValue()
-                .numSecondsAsync().swap(Integer.valueOf(numTime));
+                .numSecondsAsync()
+                .swap(Integer.valueOf(numTime));
     }
 }

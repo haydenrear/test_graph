@@ -117,6 +117,7 @@ public sealed interface CallGraphQlQueryArgs<T> {
                 .gitBranch(GitBranch.newBuilder().branch(branchName).build())
                 .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
                 .ragOptions(ragOptions)
+                .async(repoOpInit.toCommitRequestArgs().commitDiffContextValue().nextCommitRequest().getAsync())
                 .sessionKey(SessionKey.newBuilder().key(sessionKey).build());
         for (var ctx : ctxs) {
             gReq = addCtx(ctx, gReq);
