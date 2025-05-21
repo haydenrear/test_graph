@@ -272,7 +272,8 @@ public class LlmValidationNextCommit implements ResettableStep {
     @And("the staged commit information is retrieved from the repository")
     public void theStagedCommitInformationIsRetrievedFromTheRepository() {
         var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
-        try(var rh = gitArgsFactory.repositoryHolder(repoOpInit.repoDataOrThrow().toRepositoryArgs())) {
+        RepoOpInit.RepositoryData repositoryData = repoOpInit.repoDataOrThrow();
+        try(var rh = gitArgsFactory.repositoryHolder(GitFactory.parseRepoArgs(repositoryData.url(), repositoryData.branchName(), repositoryData.clonedUri()))) {
             stagedFileService.getStagedChanges(rh)
                     .ifPresent(staged -> {
                         var s = Staged.newBuilder()

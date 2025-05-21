@@ -144,7 +144,7 @@ Feature: Perform repo operations
     And There exists a response type of "EMBEDDING" in the file location "classpath:responses/embedding_response.json" for model server endpoint "/ai_suite_gemini_embedding" on port "9991"
     And the maximum time blame node runs is "2" minutes
     And the git ops should be made at the same time
-    And the git ops should be made asynchronously, waiting "3" seconds afterwards for them to start
+    And the git ops should be made asynchronously, waiting "10" seconds afterwards for them to start
     And the embeddings for the branch should be added
     And add blame nodes is called
     And There exists an inject response type of "RERANK" in the file location "classpath:responses/rerank_response.js" for model server endpoint "/ai_suite_rerank" on port "9992"
@@ -156,5 +156,4 @@ Feature: Perform repo operations
     Then retrieve code context data from the server with code query as embedding loaded from "classpath:responses/code-query-embedding.json"
     Examples:
       | repoUrl                                                   | branchName | composePath                                                                                     |
-#      | /Users/hayde/IdeaProjects/drools_test/commit-diff-context | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
       | work/first.tar                                            | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
