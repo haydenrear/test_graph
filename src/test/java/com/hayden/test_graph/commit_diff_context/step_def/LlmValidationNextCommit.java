@@ -273,7 +273,8 @@ public class LlmValidationNextCommit implements ResettableStep {
     public void theStagedCommitInformationIsRetrievedFromTheRepository() {
         var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
         RepoOpInit.RepositoryData repositoryData = repoOpInit.repoDataOrThrow();
-        try(var rh = gitArgsFactory.repositoryHolder(GitFactory.parseRepoArgs(repositoryData.url(), repositoryData.branchName(), repositoryData.clonedUri()))) {
+        try{
+            var rh = gitArgsFactory.repositoryHolder(GitFactory.parseRepoArgs(repositoryData.url(), repositoryData.branchName(), repositoryData.clonedUri()));
             stagedFileService.getStagedChanges(rh)
                     .ifPresent(staged -> {
                         var s = Staged.newBuilder()

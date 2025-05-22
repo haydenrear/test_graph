@@ -88,8 +88,8 @@ Feature: Perform repo operations
       | work/first.tar                                            | main       | /Users/hayde/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/no-model-server |
 
   @retrieve_code_context
-  @all
-  Scenario Outline: call retrieve code context
+  @all @check
+  Scenario Outline: call retrieve code context retrieve code context
     Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
@@ -111,8 +111,8 @@ Feature: Perform repo operations
 
   @retrieve_code_context
   @retrieve_code_context_embed_query
-  @all
-  Scenario Outline: call retrieve code context
+  @all @check
+  Scenario Outline: call retrieve code context embed query
     Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
@@ -136,8 +136,8 @@ Feature: Perform repo operations
   @add_branch
   @add_embeddings
   @add_blame_node
-  @git_ops_async
-  Scenario Outline: call retrieve code context
+  @git_ops_async @check
+  Scenario Outline: call retrieve code context async
     Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
