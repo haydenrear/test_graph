@@ -136,7 +136,8 @@ Feature: Perform repo operations
   @add_branch
   @add_embeddings
   @add_blame_node
-  @git_ops_async @check
+  @git_ops_async
+  @check
   Scenario Outline: call retrieve code context async
     Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"

@@ -6,6 +6,7 @@ Feature: Perform next commit
   @all
   @next_commit_only_no_toolset
   @next_commit_only
+  @next_commit_no_toolset
   Scenario Outline: generate next commit without toolset.
     Given docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"

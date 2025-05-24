@@ -51,7 +51,8 @@ public class CommitDiff implements ResettableThreadLike {
                     this.doWithGraphQl(client -> createGraphQlQueryResponse(doCommitOp(commitRequestArgs, client).executeSync(), graphQlQueryArgs));
             case CallGraphQlQueryArgs.DoGitArgs(String branchName, String gitRepoPath, String sessionKey, List<GitOperation> doGitOp, Object[] ctx) -> {
                 RepoOpInit.CommitDiffContextGraphQlModel commitDiffContextGraphQlModel = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
-                if (commitDiffContextGraphQlModel.nextCommitRequest().getAsync()) {
+                Boolean async = commitDiffContextGraphQlModel.nextCommitRequest().getAsync();
+                if (async) {
                     Integer numSecondsWait = commitDiffContextGraphQlModel.numSecondsAsync().optional().orElse(5);
                     assertions.reportAssert("Performing doGit asynchronously, will wait " + numSecondsWait + " seconds");
                     yield this.doWithGraphQlAsync(client -> doGitOp(graphQlQueryArgs, client, buildRepoReq(branchName, gitRepoPath, sessionKey, doGitOp, ctx)),
