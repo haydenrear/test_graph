@@ -26,33 +26,46 @@ public class Assertions {
     }
 
     public void assertStrongly(boolean v, String fail, String success){
+        logErr(v, fail);
         assertThat(v)
                 .withFailMessage(fail)
                 .isTrue();
+
+    }
+
+    private void logErr(boolean v, String fail) {
+        if (!v) {
+            reporter.logError(fail);
+        }
     }
 
     public void assertSoftly(boolean v, String fail){
         assertSoftly(v, fail, "Assertion with failure message\n%s\nhas passed.".formatted(fail));
+        logErr(v, fail);
     }
 
     public void assertStronglyPattern(boolean v, String fail, Object... args){
+        logErr(v, fail);
         if (!v) {
             assertStrongly(v, fail.formatted(args));
         }
     }
 
     public void assertSoftlyPattern(boolean v, String fail, Object... args){
+        logErr(v, fail);
         if (!v) {
             assertSoftly(v, fail.formatted(args));
         }
     }
 
     public void reportAssert(String message) {
+        reporter.writeTruncated("INFO: ", message);
         assertSoftly(true, "", message);
     }
 
     public void reportAssert(String message, Object... args) {
         log.info("{}", message.formatted(args));
+        reporter.writeTruncated("INFO: ", message.formatted(args));
         assertSoftly(true, "", message.formatted(args));
     }
 
@@ -62,6 +75,8 @@ public class Assertions {
                 .isTrue();
         if (v)
             reporter.info(success);
+        else
+            logErr(false, fail);
 
     }
 
@@ -71,6 +86,8 @@ public class Assertions {
                 .isTrue();
         if (v)
             reporter.info(success.get());
+        else
+            logErr(false, fail);
 
     }
 

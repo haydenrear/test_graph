@@ -217,7 +217,7 @@ public class NextCommitStepDefs implements ResettableStep {
                 }
 
                 if (read != null)
-                    assertions.reportAssert("Found response for %s", read);
+                    assertions.assertSoftlyPattern(true, "Found response for %s", read);
             }
 
             var validResponses = Lists.newArrayList(CdMbInitCtx.AiServerResponse.AiServerResponseType.EMBEDDING,

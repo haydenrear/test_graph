@@ -141,7 +141,7 @@ public class CommitDiff implements ResettableThreadLike {
                                                                       GraphQLQuery query,
                                                                       BaseProjectionNode projection) {
         var serializedQuery = new GraphQLQueryRequest(query, projection).serialize();
-        assertions.reportAssert("GraphQl query serialized for %s\n%s".formatted(query.getClass().getName(), serializedQuery));
+        assertions.reportAssert("GraphQl query to be executed: %s".formatted(serializedQuery));
         var rs = client.request(query).projection(projection);
         return rs;
     }
