@@ -1,0 +1,90 @@
+
+commit-diff-context-server-props:
+  url: http://localhost:8080/graphql
+  port: 8080
+  model-server-base-url: http://localhost:9991
+  model-server-port: 9991
+  model-server-rerank-port: 9992
+  home-dir: /Users/hayde
+  test-embedding-max-side: 10000
+
+env-props:
+  home-dir: /Users/hayde
+  project-dir: /Users/hayde/IdeaProjects/drools/test_graph
+  error-log: file:///Users/hayde/IdeaProjects/drools/runner-logs/test-report-log.log
+
+db-init-ctx:
+  skip-db-cleanup: false
+
+docker-init-ctx:
+  skip-docker: true
+  skip-build-docker: true
+  skip-start-docker: true
+  host: localhost
+  containers:
+    - container-name: "commit-diff-server"
+      log: "Tomcat started on port"
+  docker-host-uri: "unix:///Users/hayde/.docker/run/docker.sock"
+  docker-response-timeout: 30
+  compose-directories:
+    - ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context
+
+spring:
+  docker:
+    compose:
+      enabled: true
+      lifecycle-management: start_only
+      readiness:
+        wait: never
+      skip:
+        in-tests: false
+      file: src/test/docker/init/docker-compose.yml
+  application.name: commit-diff-context-tg
+  jpa:
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: create
+      format_sql: true
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  datasource:
+    validation:
+      driver-class-name: org.postgresql.Driver
+      username: postgres
+      password: postgres
+      jdbc-url: jdbc:postgresql://localhost:5411/postgres
+      url: jdbc:postgresql://localhost:5411/postgres
+    app:
+      driver-class-name: org.postgresql.Driver
+      username: postgres
+      password: postgres
+      jdbc-url: jdbc:postgresql://localhost:5450/postgres
+      url: jdbc:postgresql://localhost:5450/postgres
+
+  liquibase:
+    enabled: false
+  main:
+    allow-bean-definition-overriding: true
+commit-diff-context:
+  diffs-include-pattern:
+    - "*.java"
+    - "*.py"
+    - "*.yml"
+    - "*.properties"
+    - "*.json"
+    - "*.drl"
+    - "*/pom.xml"
+    - "*.md"
+    - "*.adoc"
+    - "*.html"
+    - "*.ts"
+    - "*.js"
+    - "*.mvel"
+    - "*.conf"
+    - "*.yaml"
+  diffs-exclude-pattern:
+    - "**/gradle.properties"
+    - "*/gradle.properties"
+    - "*.puml"

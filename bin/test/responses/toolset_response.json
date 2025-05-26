@@ -1,0 +1,21 @@
+{
+  "type": "tool",
+  "toolCalls": [
+    {
+      "type": "tools/call",
+      "id": "07c80e49-99f4-4676-90ce-a0a42e253fe8",
+      "name": "query",
+      "arguments": {
+        "sql": "SELECT * FROM commit_diff"
+      }
+    },
+    {
+      "type": "tools/call",
+      "id": "07c80e49-99f4-4676-90ce-a0a42e253fe9",
+      "name": "query",
+      "arguments": {
+        "sql": "SELECT * FROM commit_diff"
+      }
+    }
+  ]
+}
