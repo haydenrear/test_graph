@@ -3,3 +3,4 @@ build/
 mb_plugin/**
 work/first
 bin
+\nbin/*
