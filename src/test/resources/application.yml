@@ -1,4 +1,3 @@
-
 commit-diff-context-server-props:
   url: http://localhost:8080/graphql
   port: 8080
