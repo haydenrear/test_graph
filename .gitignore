@@ -3,4 +3,9 @@ build/
 mb_plugin/**
 work/first
 bin
-\nbin/*
+bin/*
+
+.project
+.factorypath
+.classpath
+.settings
