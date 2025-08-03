@@ -19,6 +19,7 @@ version = "1.0.0"
 dependencies {
     implementation(project(":utilitymodule"))
     implementation(project(":commit-diff-model"))
+    implementation(project(":commit-diff-context"))
     implementation(project(":jpa-persistence"))
     implementation(project(":proto"))
 }

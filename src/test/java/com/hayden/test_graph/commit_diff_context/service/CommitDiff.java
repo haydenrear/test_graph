@@ -3,7 +3,7 @@ package com.hayden.test_graph.commit_diff_context.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hayden.commitdiffmodel.codegen.client.*;
 import com.hayden.commitdiffmodel.codegen.types.*;
-import com.hayden.commitdiffmodel.comittdiff.GitGraphQlProjections;
+import com.hayden.commitdiffcontext.comittdiff.GitGraphQlProjections;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.thread.ResettableThread;

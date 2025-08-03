@@ -4,36 +4,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hayden.commitdiffmodel.codegen.types.CodeQuery;
 import com.hayden.commitdiffmodel.codegen.types.CommitMessage;
 import com.hayden.commitdiffmodel.codegen.types.EmbeddingIn;
-import com.hayden.commitdiffmodel.config.CommitDiffContextProperties;
-import com.hayden.commitdiffmodel.entity.CodeBranch;
-import com.hayden.commitdiffmodel.entity.Embedding;
 import com.hayden.commitdiffmodel.repo.CodeBranchRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffRepository;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
-import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
-import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoInitItem;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.steps.ExecAssertStep;
-import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
-import com.hayden.utilitymodule.result.error.SingleError;
-import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Optional;
 
 
 @Slf4j

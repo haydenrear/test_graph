@@ -1,39 +1,30 @@
 package com.hayden.test_graph.commit_diff_context.init.llm_validation;
 
 import com.hayden.commitdiffmodel.codegen.types.CommitMessage;
-import com.hayden.commitdiffmodel.codegen.types.GitOperation;
-import com.hayden.commitdiffmodel.comittdiff.ParseDiff;
+import com.hayden.commitdiffcontext.comittdiff.ParseDiff;
 import com.hayden.commitdiffmodel.entity.CommitDiffId;
-import com.hayden.commitdiffmodel.git.GitErrors;
-import com.hayden.commitdiffmodel.git.GitFactory;
-import com.hayden.commitdiffmodel.git.RepoOperations;
+import com.hayden.commitdiffmodel.err.GitErrors;
+import com.hayden.commitdiffcontext.git.GitFactory;
+import com.hayden.commitdiffcontext.git.RepoOperations;
 import com.hayden.commitdiffmodel.model.GitRefModel;
 import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.llm_validation.ctx.ValidateLlmInit;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
-import com.hayden.test_graph.commit_diff_context.service.CallGraphQlQueryArgs;
-import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.git.RepoUtil;
-import com.hayden.utilitymodule.io.ArchiveUtils;
 import com.hayden.utilitymodule.result.Result;
 import com.hayden.utilitymodule.result.error.SingleError;
-import org.assertj.core.util.Files;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.AnyObjectId;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.util.FS;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 

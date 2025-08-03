@@ -1,8 +1,8 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.hayden.commitdiffmodel.config.CommitDiffContextProperties;
-import com.hayden.commitdiffmodel.entity.CodeBranch;
-import com.hayden.commitdiffmodel.entity.Embedding;
+import com.hayden.commitdiffcontext.entity.repo.CodeBranch;
+import com.hayden.commitdiffcontext.entity.commitdiff.Embedding;
 import com.hayden.commitdiffmodel.repo.CodeBranchRepository;
 import com.hayden.commitdiffmodel.repo.CommitDiffRepository;
 import com.hayden.test_graph.assertions.Assertions;

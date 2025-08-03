@@ -1,8 +1,8 @@
 package com.hayden.test_graph.commit_diff_context.init.repo_op.ctx;
 
 import com.hayden.commitdiffmodel.codegen.types.*;
-import com.hayden.commitdiffmodel.git.GitFactory;
-import com.hayden.commitdiffmodel.git.RepositoryHolder;
+import com.hayden.commitdiffcontext.git.GitFactory;
+import com.hayden.commitdiffcontext.git.RepositoryHolder;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.RepoOpInitNode;
 import com.hayden.test_graph.commit_diff_context.service.CallGraphQlQueryArgs;
@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Consumer;
 
