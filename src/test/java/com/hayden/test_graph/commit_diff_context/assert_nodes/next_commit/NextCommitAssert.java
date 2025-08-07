@@ -1,7 +1,7 @@
 package com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit;
 
+import com.hayden.commitdiffcontext.entity.CommitDiffContextCommitVersion;
 import com.hayden.commitdiffmodel.codegen.types.NextCommit;
-import com.hayden.commitdiffmodel.validation.entity.CommitDiffContextCommitVersion;
 import com.hayden.proto.prototyped.datasources.ai.modelserver.client.ModelServerValidationAiClient;
 import com.hayden.test_graph.assert_g.ctx.AssertBubble;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.CommitDiffAssert;
