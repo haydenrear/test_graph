@@ -20,12 +20,18 @@ dependencies {
     implementation(project(":utilitymodule"))
     implementation(project(":commit-diff-model"))
     implementation(project(":commit-diff-context"))
+    implementation(project(":commit-diff-context-mcp"))
+    implementation(project(":mcp-tool-gateway"))
     implementation(project(":jpa-persistence"))
     implementation(project(":proto"))
+    implementation(project(":runner_code"))
 }
 
 tasks.compileJava {
     dependsOn("copyPromAgent")
+    dependsOn(project(":runner_code").tasks.getByName("runnerTask"))
+    dependsOn(project(":commit-diff-context-mcp").tasks.getByName("commitDiffContextMcpTask"))
+    dependsOn(project(":mcp-tool-gateway").tasks.getByName("mcpToolGatewayTask"))
 //     java -javaagent:commit-diff-context/build/agent/prometheus-javaagent.jar=12345:commit-diff-context/prom-config.yaml -jar ?.jar
 }
 
