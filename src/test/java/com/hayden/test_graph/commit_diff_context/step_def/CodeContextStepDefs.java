@@ -48,7 +48,7 @@ public class CodeContextStepDefs implements ResettableStep {
         doCallAssertCommitContext();
     }
 
-    @Then("retrieve code context data from the server with code query as commit message {string}")
+    @Then("retrieve code context data from the server with code query as commit errorMessage {string}")
     @ExecAssertStep(RepoOpAssertCtx.class)
     public void retrieveCodeContextDataFromTheServerWithCodeQueryAsCommitMessage(String arg0) {
         var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs()
@@ -75,10 +75,10 @@ public class CodeContextStepDefs implements ResettableStep {
                 doCallAssertCommitContext();
             } else {
                 // do something
-                log.info("Commit message file {} does not exist.", arg0);
+                log.info("Commit errorMessage file {} does not exist.", arg0);
             }
         } catch (IOException e) {
-            assertions.assertStrongly(false, "Could not parse commit message: " + arg0);
+            assertions.assertStrongly(false, "Could not parse commit errorMessage: " + arg0);
         }
     }
 

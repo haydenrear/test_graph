@@ -264,7 +264,7 @@ public class RepoOpInit implements InitCtx {
 
     public String getNextCommitMessageExpected() {
         return this.userCodeData.optional().map(UserCodeData::commitMessage).orElseGet(() -> {
-            String error = "Could not find user commit message";
+            String error = "Could not find user commit errorMessage";
             assertions.assertSoftly(false, error);
             return error;
         });

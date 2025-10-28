@@ -71,21 +71,21 @@ public class NextCommitStepDefs implements ResettableStep {
     @Autowired
     EmbeddedGitDiffRepository embeddedGitDiffRepository;
 
-    @And("a request for the next commit is provided with the commit message being provided from {string}")
+    @And("a request for the next commit is provided with the commit errorMessage being provided from {string}")
     @RegisterInitStep(value = {RepoOpInit.class})
     public void setCommitMessageForRequest(String commitMessageJson) {
         try {
             var res = new PathMatchingResourcePatternResolver().getResource(commitMessageJson);
-            assertions.assertStrongly(res.exists(), "Commit message file does not exist.");
+            assertions.assertStrongly(res.exists(), "Commit errorMessage file does not exist.");
             if (res.exists()) {
                 var commitMessage = mapper.readValue(res.getFile(), CommitMessage.class);
                 repoOpInit.setCommitMessage(commitMessage);
             } else {
                 // do something
-                log.info("Commit message file {} does not exist.", commitMessageJson);
+                log.info("Commit errorMessage file {} does not exist.", commitMessageJson);
             }
         } catch (IOException e) {
-            assertions.assertStrongly(false, "Could not parse commit message: " + commitMessageJson);
+            assertions.assertStrongly(false, "Could not parse commit errorMessage: " + commitMessageJson);
         }
     }
 
@@ -98,7 +98,7 @@ public class NextCommitStepDefs implements ResettableStep {
             gitRepoPromptingRequest.nextCommitRequest()
                     .setStaged(staged);
         } catch (IOException e) {
-            assertions.assertStrongly(false, "Could not parse commit message: " + commitMessageJson);
+            assertions.assertStrongly(false, "Could not parse commit errorMessage: " + commitMessageJson);
         }
     }
 
@@ -113,7 +113,7 @@ public class NextCommitStepDefs implements ResettableStep {
                     .nextCommitRequest()
                     .setContextData(staged);
         } catch (IOException e) {
-            assertions.assertStrongly(false, "Could not parse commit message: " + commitMessageJson);
+            assertions.assertStrongly(false, "Could not parse commit errorMessage: " + commitMessageJson);
         }
     }
 
@@ -127,7 +127,7 @@ public class NextCommitStepDefs implements ResettableStep {
                     .nextCommitRequest()
                     .setPrev(staged);
         } catch (IOException e) {
-            assertions.assertStrongly(false, "Could not parse commit message: " + commitMessageJson + "\n" + SingleError.parseStackTraceToString(e));
+            assertions.assertStrongly(false, "Could not parse commit errorMessage: " + commitMessageJson + "\n" + SingleError.parseStackTraceToString(e));
         }
     }
 
@@ -184,7 +184,7 @@ public class NextCommitStepDefs implements ResettableStep {
         try {
             return f.getFile();
         } catch (IOException e) {
-            assertions.assertStrongly(false, "Could not parse commit message: " + commitMessageJson + "\n" + SingleError.parseStackTraceToString(e));
+            assertions.assertStrongly(false, "Could not parse commit errorMessage: " + commitMessageJson + "\n" + SingleError.parseStackTraceToString(e));
             return null;
         }
     }

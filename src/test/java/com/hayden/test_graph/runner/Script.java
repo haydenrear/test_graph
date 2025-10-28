@@ -37,8 +37,8 @@ public class Script {
 //                .build());
 //        om.writeValue(stagedFile, Staged.newBuilder()
 //                .diffs(diffs).build());
-//        var commitMessageFile = new File("/Users/hayde/IdeaProjects/drools/test_graph/src/test/resources/responses/commit-message.json");
-//        CommitMessage b = CommitMessage.newBuilder().value("message!").build();
+//        var commitMessageFile = new File("/Users/hayde/IdeaProjects/drools/test_graph/src/test/resources/responses/commit-errorMessage.json");
+//        CommitMessage b = CommitMessage.newBuilder().value("errorMessage!").build();
 //        om.writeValue(commitMessageFile, b);
 //        var pc = PrevCommit.newBuilder().commitMessage(CommitMessage.newBuilder().value("other!").build())
 //                .diffs(Lists.newArrayList())

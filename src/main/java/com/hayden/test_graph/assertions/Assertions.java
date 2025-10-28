@@ -22,7 +22,7 @@ public class Assertions {
     private Reporter reporter;
 
     public void assertStrongly(boolean v, String fail){
-        assertStrongly(v, fail, "Assertion with failure message\n%s\nhas passed.".formatted(fail));
+        assertStrongly(v, fail, "Assertion with failure errorMessage\n%s\nhas passed.".formatted(fail));
     }
 
     public void assertStrongly(boolean v, String fail, String success){
@@ -40,7 +40,7 @@ public class Assertions {
     }
 
     public void assertSoftly(boolean v, String fail){
-        assertSoftly(v, fail, "Assertion with failure message\n%s\nhas passed.".formatted(fail));
+        assertSoftly(v, fail, "Assertion with failure errorMessage\n%s\nhas passed.".formatted(fail));
         logErr(v, fail);
     }
 

@@ -100,7 +100,7 @@ public class InitializeLlmValidation implements ValidateLlmInitNode {
 
                 assertions.assertSoftly(allErrs.isEmpty(), "Was not successful in generating git commit diffs: %s.".formatted(s));
 
-                assertions.assertSoftly(!lst.results().isEmpty(), "Was not successful in retrieving most recent commit message: %s."
+                assertions.assertSoftly(!lst.results().isEmpty(), "Was not successful in retrieving most recent commit errorMessage: %s."
                         .formatted(s));
 
                 assertions.assertSoftly(latestCommit.isOk(), "Could not retreive latest commit: %s."

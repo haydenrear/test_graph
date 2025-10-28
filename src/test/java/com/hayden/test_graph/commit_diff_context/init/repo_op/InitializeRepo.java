@@ -129,7 +129,7 @@ public class InitializeRepo implements RepoOpInitNode {
 
         var added = commitDiff.callGraphQlQuery(addCodeBranchArgs);
         assertions.assertSoftly(added.isOk(),
-                "Could not perform git operation %s. Error message: %s.".formatted(gitOp, added.errorMessage()),
+                "Could not perform git operation %s. Error errorMessage: %s.".formatted(gitOp, added.errorMessage()),
                 () -> "Git operation %s performed successfully. Response: %s".formatted(gitOp, added.r().get()));
 
         added.ifPresent(gitRepoResult -> c.setSessionKey(new SessionKey(gitRepoResult.getSessionKey().getKey())));
