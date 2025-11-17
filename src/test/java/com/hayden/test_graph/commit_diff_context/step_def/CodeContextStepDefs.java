@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hayden.commitdiffmodel.codegen.types.CodeQuery;
 import com.hayden.commitdiffmodel.codegen.types.CommitMessage;
 import com.hayden.commitdiffmodel.codegen.types.EmbeddingIn;
-import com.hayden.commitdiffmodel.repo.CodeBranchRepository;
-import com.hayden.commitdiffmodel.repo.CommitDiffRepository;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
@@ -40,8 +38,7 @@ public class CodeContextStepDefs implements ResettableStep {
     @Then("retrieve code context data from the server with code query {string}")
     @ExecAssertStep(RepoOpAssertCtx.class)
     public void retrieveCodeContextDataFromTheServerWithQuery(String query) {
-        var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs()
-                .commitDiffContextValue();
+        var gitRepoPromptingRequest = repoOpInit.getCommitDiffContextValue();
         gitRepoPromptingRequest
                 .nextCommitRequest()
                 .setCodeQuery(CodeQuery.newBuilder().codeString(query).build());
@@ -51,8 +48,7 @@ public class CodeContextStepDefs implements ResettableStep {
     @Then("retrieve code context data from the server with code query as commit errorMessage {string}")
     @ExecAssertStep(RepoOpAssertCtx.class)
     public void retrieveCodeContextDataFromTheServerWithCodeQueryAsCommitMessage(String arg0) {
-        var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs()
-                .commitDiffContextValue();
+        var gitRepoPromptingRequest = repoOpInit.getCommitDiffContextValue();
         gitRepoPromptingRequest
                 .nextCommitRequest()
                 .setCommitMessage(CommitMessage.newBuilder().value(arg0).build());
@@ -67,8 +63,7 @@ public class CodeContextStepDefs implements ResettableStep {
             assertions.assertStrongly(res.exists(), "Embedding file does not exist.");
             if (res.exists()) {
                 var embedIn = mapper.readValue(res.getFile(), EmbeddingIn.class);
-                var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs()
-                        .commitDiffContextValue();
+                var gitRepoPromptingRequest = repoOpInit.getCommitDiffContextValue();
                 gitRepoPromptingRequest
                         .nextCommitRequest()
                         .setCodeQuery(CodeQuery.newBuilder().codeEmbedding(embedIn).build());

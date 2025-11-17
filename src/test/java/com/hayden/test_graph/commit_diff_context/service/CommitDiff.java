@@ -1,9 +1,9 @@
 package com.hayden.test_graph.commit_diff_context.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hayden.commitdiffcontext.context.GitGraphQlProjections;
 import com.hayden.commitdiffmodel.codegen.client.*;
 import com.hayden.commitdiffmodel.codegen.types.*;
-import com.hayden.commitdiffcontext.comittdiff.GitGraphQlProjections;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.thread.ResettableThread;
@@ -47,10 +47,8 @@ public class CommitDiff implements ResettableThreadLike {
         return switch (graphQlQueryArgs) {
             case CallGraphQlQueryArgs.ValidateBranchAdded(String branchName, String gitRepoPath) ->
                     this.doWithGraphQl(client -> callValidateBranch(graphQlQueryArgs, branchName, gitRepoPath, client));
-            case CallGraphQlQueryArgs.CommitRequestArgs commitRequestArgs ->
-                    this.doWithGraphQl(client -> createGraphQlQueryResponse(doCommitOp(commitRequestArgs, client).executeSync(), graphQlQueryArgs));
             case CallGraphQlQueryArgs.DoGitArgs(String branchName, String gitRepoPath, String sessionKey, List<GitOperation> doGitOp, Object[] ctx) -> {
-                RepoOpInit.CommitDiffContextGraphQlModel commitDiffContextGraphQlModel = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
+                RepoOpInit.CommitDiffContextGraphQlModel commitDiffContextGraphQlModel = repoOpInit.getCommitDiffContextValue();
                 Boolean async = commitDiffContextGraphQlModel.nextCommitRequest().getAsync();
                 if (async) {
                     Integer numSecondsWait = commitDiffContextGraphQlModel.numSecondsAsync().optional().orElse(5);
@@ -90,25 +88,9 @@ public class CommitDiff implements ResettableThreadLike {
                 .build());
     }
 
-    private DgsGraphQlClient.RequestSpec doCommitOp(CallGraphQlQueryArgs.CommitRequestArgs commitRequestArgs,
-                                                    DgsGraphQlClient client) {
-        return doCommitOpInner(client, DoCommitGraphQLQuery.newRequest()
-                .gitRepoPromptingRequest(buildGitRepoPromptingRequest(commitRequestArgs))
-                .queryName(commitRequestArgs.key())
-                .build());
-    }
-
     private DgsGraphQlClient.@NotNull RequestSpec doCodeContextOpInner(DgsGraphQlClient client, BuildCommitDiffContextGraphQLQuery build) {
         BuildCommitDiffContextGraphQLQuery query = build;
         var projection = GitGraphQlProjections.codeContextProjectionRoot();
-        var rs = doCreateRequestSpec(client, query, projection);
-        return rs;
-    }
-
-    private DgsGraphQlClient.@NotNull RequestSpec doCommitOpInner(DgsGraphQlClient client, DoCommitGraphQLQuery build) {
-        DoCommitGraphQLQuery query = build;
-        DoCommitProjectionRoot projection = GitGraphQlProjections.nextCommitAllProjection();
-
         var rs = doCreateRequestSpec(client, query, projection);
         return rs;
     }
@@ -146,22 +128,9 @@ public class CommitDiff implements ResettableThreadLike {
         return rs;
     }
 
-    private GitRepoPromptingRequest buildGitRepoPromptingRequest(CallGraphQlQueryArgs commitRequestArgs) {
-        if (commitRequestArgs instanceof CallGraphQlQueryArgs.CodeContextQueryArgs c)
-            return buildGitRepoPromptingRequest(c);
-        if (commitRequestArgs instanceof CallGraphQlQueryArgs.CommitRequestArgs c)
-            return buildGitRepoPromptingRequest(c);
-
-        throw new RuntimeException("Did not find valid args for git repo prompting request.");
-    }
-
     private GitRepoPromptingRequest buildGitRepoPromptingRequest(CallGraphQlQueryArgs.CodeContextQueryArgs commitRequestArgs) {
         return buildGitRepoPromptingRequestInner(null,
                 commitRequestArgs.commitDiffContextValue(), commitRequestArgs.branchName(), commitRequestArgs.gitRepoPath());
-    }
-
-    private GitRepoPromptingRequest buildGitRepoPromptingRequest(CallGraphQlQueryArgs.CommitRequestArgs commitRequestArgs) {
-        return buildGitRepoPromptingRequestInner(commitRequestArgs.commitMessage(), commitRequestArgs.commitDiffContextValue(), commitRequestArgs.branchName(), commitRequestArgs.gitRepoPath());
     }
 
     private GitRepoPromptingRequest buildGitRepoPromptingRequestInner(String commitMessage,

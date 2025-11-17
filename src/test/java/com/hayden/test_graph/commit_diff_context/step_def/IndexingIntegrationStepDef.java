@@ -1,13 +1,15 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
+import com.hayden.commitdiffcontext.code_search.libs.res.Dependency;
 import com.hayden.commitdiffcontext.code_search.repo.CodeIndexRepository;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.k3s.ctx.K3sInit;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.indexing.ctx.IndexingMbInitCtx;
 import com.hayden.test_graph.commit_diff_context.data_dep.indexing.ctx.CommitDiffContextIndexingDataDepCtx;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.indexing.ctx.CommitDiffContextIndexingAssertCtx;
-import com.hayden.test_graph.steps.ExecInitStep;
+import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ExecAssertStep;
+import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
 import io.cucumber.java.en.And;
@@ -15,6 +17,8 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Arrays;
 
 /**
  * Step definitions for end-to-end code indexing integration tests.
@@ -45,12 +49,12 @@ public class IndexingIntegrationStepDef implements ResettableStep {
     private Assertions assertions;
 
     @When("the K3s cluster is initialized")
-    @ExecInitStep({K3sInit.class})
+    @RegisterInitStep({K3sInit.class})
     public void k3sClusterInitialized() {
     }
 
     @And("libs resolver reads sources from Maven artifact {string}")
-    @ExecInitStep({IndexingMbInitCtx.class})
+    @RegisterInitStep({IndexingMbInitCtx.class})
     public void libsResolverReadsSources(String mavenArtifact) {
         indexingDataDepCtx.setDeploymentId("libs-resolver-" + System.nanoTime());
         // Maven artifact would be parsed here, e.g., com.example:project:1.0.0
@@ -61,6 +65,23 @@ public class IndexingIntegrationStepDef implements ResettableStep {
             String version = parts[2];
             indexingDataDepCtx.setRepoUrl(groupId + "." + artifactId);
             indexingDataDepCtx.setBranch(version);
+
+            var splitArtifact = Arrays.asList(mavenArtifact.split(":"));
+
+
+            if (splitArtifact.size() == 3) {
+                indexingAssertCtx.setDependency(
+                        Dependency.builder()
+                                .groupId(splitArtifact.getFirst())
+                                .artifactId(splitArtifact.get(1))
+                                .version(splitArtifact.getLast())
+                                .build());
+            } else {
+                assertions.assertThat(splitArtifact.size())
+                        .withFailMessage("Artifact id %s was not a valid artifact ID."
+                                .formatted(splitArtifact))
+                        .isEqualTo(3);
+            }
             
             // Register the Maven artifact for mocking
             indexingMbInitCtx.registerArtifactPath(groupId, artifactId, version, 
@@ -273,5 +294,42 @@ public class IndexingIntegrationStepDef implements ResettableStep {
                     "Mismatch: database has " + dbCount + " indexes but result shows " + 
                     result.indexedFileCount() + " files for repo: " + result.repoUrl());
         });
+    }
+
+    // Infrastructure verification step definitions
+
+    @Then("the K3s cluster is deployed")
+    @ExecAssertStep({CommitDiffContextIndexingAssertCtx.class})
+    public void verifyClusterDeployed() {
+        // This step is handled by VerifyClusterDeployed assert node
+        // which verifies the cluster is accessible via Kubernetes API
+    }
+
+    @Then("MinIO is deployed in the cluster")
+    @ExecAssertStep({CommitDiffContextIndexingAssertCtx.class})
+    public void verifyMinIODeployed() {
+        // This step is handled by VerifyMinIODeployed assert node
+        // which verifies MinIO deployment and namespace are ready
+    }
+
+    @Then("Kafka is deployed in the cluster")
+    @ExecAssertStep({CommitDiffContextIndexingAssertCtx.class})
+    public void verifyKafkaDeployed() {
+        // This step is handled by VerifyKafkaDeployed assert node
+        // which verifies Kafka StatefulSet and namespace are ready
+    }
+
+    @Then("the sources are uploaded to MinIO")
+    @ExecAssertStep({CommitDiffContextIndexingAssertCtx.class})
+    public void verifySourcesUploadedToMinIO() {
+        // This step is handled by VerifySourcesUploadedToMinIO assert node
+        // which verifies source files are accessible in MinIO bucket via S3 client
+    }
+
+    @Then("the PostgreSQL PVC is created in the indexing namespace")
+    @ExecAssertStep({CommitDiffContextIndexingAssertCtx.class})
+    public void verifyPostgresqlPVCCreated() {
+        // This step is handled by VerifyPostgresqlPVCCreated assert node
+        // which verifies the PVC is bound and ready for use
     }
 }

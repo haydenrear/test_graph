@@ -25,6 +25,9 @@ dependencies {
     implementation(project(":jpa-persistence"))
     implementation(project(":proto"))
     implementation(project(":runner_code"))
+    implementation(project(":libs-resolver"))
+    implementation("software.amazon.awssdk:s3:2.38.2")
+    implementation("io.kubernetes:client-java:24.0.0")
 }
 
 tasks.compileJava {

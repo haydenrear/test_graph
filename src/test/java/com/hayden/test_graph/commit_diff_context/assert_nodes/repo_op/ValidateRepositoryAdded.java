@@ -1,6 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op;
 
-import com.hayden.commitdiffmodel.repo.CodeBranchRepository;
+import com.hayden.commitdiffcontext.git.repo.CodeBranchRepository;
 import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;

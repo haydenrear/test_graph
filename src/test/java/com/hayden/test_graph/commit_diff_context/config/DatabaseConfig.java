@@ -9,10 +9,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
 @Import(QueryDslConfig.class)
-@EnableJpaRepositories(basePackages = {
-        "com.hayden.commitdiffcontext.repo",
-        "com.hayden.commitdiffcontext.validation.repo"})
-@ComponentScan(basePackages = "com.hayden.commitdiffcontext.repo")
+@EnableJpaRepositories(basePackages = {"com.hayden.commitdiffcontext"})
+@ComponentScan(basePackages = "com.hayden.commitdiffcontext")
 @EntityScan(basePackages = "com.hayden.commitdiffcontext")
 public class DatabaseConfig {
 }

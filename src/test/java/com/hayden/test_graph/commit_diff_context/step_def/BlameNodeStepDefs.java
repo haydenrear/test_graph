@@ -1,5 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
+import com.hayden.commitdiffcontext.git.entity.*;
 import com.hayden.commitdiffcontext.git.repo.CommitDiffClusterRepository;
 import com.hayden.commitdiffcontext.git.repo.CommitDiffItemRepository;
 import com.hayden.commitdiffcontext.git.repo.CommitDiffRepository;

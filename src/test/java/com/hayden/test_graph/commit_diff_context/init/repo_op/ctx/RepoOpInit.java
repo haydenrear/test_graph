@@ -314,23 +314,6 @@ public class RepoOpInit implements InitCtx {
                 .build();
     }
 
-    public CallGraphQlQueryArgs.CommitRequestArgs toCommitRequestArgs() {
-        initializeCommitDiffContextValue();
-        RepositoryData repoArgs = repoDataOrThrow();
-        addSessionKeyToRequests();
-        return CallGraphQlQueryArgs.CommitRequestArgs.builder()
-                .commitDiffContextValue(this.commitDiffContextValue)
-                .commitMessage(
-                        userCodeData.optional()
-                                .or(() -> Optional.of(UserCodeData.builder()
-                                        .build()))
-                                .map(UserCodeData::commitMessage)
-                                .orElse(null))
-                .gitRepoPath(repoArgs.url)
-                .branchName(repoArgs.branchName)
-                .build();
-    }
-
     public UserCodeData userCodeDataOrThrow() {
         return userCodeData.res().orElseThrow();
     }

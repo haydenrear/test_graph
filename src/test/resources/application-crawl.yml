@@ -1,0 +1,5 @@
+crawl:
+  s3-url: http://localhost:9000
+  s3-bucket: test-sources
+  s3-user: minioadmin
+  s3-password: minioadmin123

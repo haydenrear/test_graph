@@ -1,10 +1,10 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
+import com.hayden.commitdiffcontext.git.entity.CodeBranch;
+import com.hayden.commitdiffcontext.git.repo.CodeBranchRepository;
+import com.hayden.commitdiffcontext.git.repo.CommitDiffRepository;
 import com.hayden.commitdiffmodel.config.CommitDiffContextProperties;
-import com.hayden.commitdiffcontext.entity.repo.CodeBranch;
-import com.hayden.commitdiffcontext.entity.commitdiff.Embedding;
-import com.hayden.commitdiffmodel.repo.CodeBranchRepository;
-import com.hayden.commitdiffmodel.repo.CommitDiffRepository;
+import com.hayden.commitdiffmodel.entity.Embedding;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
@@ -254,12 +254,10 @@ public class RepoOperationsStepDefs implements ResettableStep {
 
     @And("the git ops should be made asynchronously, waiting {string} seconds afterwards for them to start")
     public void gitOpsAsync(String numTime) {
-        commitDiffInit.toCommitRequestArgs()
-                .commitDiffContextValue()
+        commitDiffInit.getCommitDiffContextValue()
                 .nextCommitRequest()
                 .setAsync(true);
-        commitDiffInit.toCommitRequestArgs()
-                .commitDiffContextValue()
+        commitDiffInit.getCommitDiffContextValue()
                 .numSecondsAsync()
                 .swap(Integer.valueOf(numTime));
     }

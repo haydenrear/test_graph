@@ -77,6 +77,7 @@ public class IndexingMbInitCtx implements MbInitCtx {
 
     public Optional<Path> getArtifactPath(String groupId, String artifactId, String version) {
         return this.artifactPathCache.res()
+                .optional()
                 .flatMap(cache -> Optional.ofNullable(
                         cache.get(String.format("%s:%s:%s", groupId, artifactId, version))
                 ));
@@ -84,6 +85,11 @@ public class IndexingMbInitCtx implements MbInitCtx {
 
     public List<MavenRepositoryMock> getMavenMocks() {
         return this.mavenMocks.res().orElse(new ArrayList<>());
+    }
+
+    @Override
+    public Client client() {
+        return this.client;
     }
 
     public void setClient(Client client) {

@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +29,11 @@ public class CommitDiffContextIndexingDataDepCtx implements DataDepCtx {
     public record ServiceConfig(
             String namespace,
             String image,
-            Map<String, String> envVars
+            Map<String, String> envVars,
+            boolean enabled
     ) {
         public ServiceConfig() {
-            this("default", "default:latest", new HashMap<>());
+            this("default", "default:latest", new HashMap<>(), false);
         }
     }
 
@@ -40,10 +43,13 @@ public class CommitDiffContextIndexingDataDepCtx implements DataDepCtx {
             Optional<ServiceConfig> kafkaConfig,
             Optional<ServiceConfig> orchestratorConfig,
             Optional<ServiceConfig> persisterConfig,
+            Optional<Path> kubeConfigPath,
             Map<String, String> indexerEnvVars
     ) {
         public IndexingDeployment() {
-            this(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), new HashMap<>());
+            this(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                    Optional.of(Paths.get(System.getProperty("user.home"), ".kube", "config")),
+                    new HashMap<>());
         }
     }
 
@@ -155,6 +161,44 @@ public class CommitDiffContextIndexingDataDepCtx implements DataDepCtx {
 
     public void setBranch(String branchName) {
         this.branch.swap(branchName);
+    }
+
+    public boolean isKafkaEnabled() {
+        return this.deployment.isPresent()
+                && this.deployment.res().unwrap().kafkaConfig.isPresent()
+                && this.deployment.res().unwrap().kafkaConfig.get().enabled;
+    }
+
+    public boolean isMinIOEnabled() {
+        return this.deployment.isPresent()
+                && this.deployment.res().unwrap().minioConfig.isPresent()
+                && this.deployment.res().unwrap().minioConfig.get().enabled;
+    }
+
+    public boolean isPersisterEnabled() {
+        return this.deployment.isPresent()
+                && this.deployment.res().unwrap().persisterConfig.isPresent()
+                && this.deployment.res().unwrap().persisterConfig.get().enabled;
+    }
+
+    public Optional<ServiceConfig> getMinioConfig() {
+        return this.deployment.res().unwrap().minioConfig;
+    }
+
+    public Optional<ServiceConfig> getKafkaConfig() {
+        return this.deployment.res().unwrap().kafkaConfig;
+    }
+
+    public Optional<ServiceConfig> getOrchestratorConfig() {
+        return this.deployment.res().unwrap().orchestratorConfig;
+    }
+
+    public Optional<ServiceConfig> getPersisterConfig() {
+        return this.deployment.res().unwrap().persisterConfig;
+    }
+
+    public Optional<Path> getKubeConfigPath() {
+        return this.deployment.res().unwrap().kubeConfigPath;
     }
 
     @Override

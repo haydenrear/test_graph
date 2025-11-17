@@ -1,5 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.assert_nodes.indexing.ctx;
 
+import com.hayden.commitdiffcontext.code_search.libs.res.Dependency;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.assert_g.ctx.AssertCtx;
@@ -40,6 +41,9 @@ public class CommitDiffContextIndexingAssertCtx implements AssertCtx {
     @Getter
     private final ContextValue<Boolean> validationPassed;
 
+    @Getter
+    private final ContextValue<Dependency> dep;
+
     @Autowired
     private Assertions assertions;
 
@@ -48,7 +52,7 @@ public class CommitDiffContextIndexingAssertCtx implements AssertCtx {
     }
 
     public CommitDiffContextIndexingAssertCtx() {
-        this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty());
+        this(ContextValue.empty(), ContextValue.empty(), ContextValue.empty(), ContextValue.empty());
     }
 
     @Autowired
@@ -57,13 +61,16 @@ public class CommitDiffContextIndexingAssertCtx implements AssertCtx {
         this.bubbleUnderlying.res().one().get().getIndexingAssertCtx().swap(this);
     }
 
+    public void setDependency(Dependency dep) {
+        this.dep.swap(dep);
+    }
+
     public void setDataDepContext(CommitDiffContextIndexingDataDepCtx ctx) {
         this.dataDepContext.swap(ctx);
     }
 
-    public CommitDiffContextIndexingDataDepCtx getDataDepContext() {
-        return this.dataDepContext.res().orElseThrow(() ->
-                new IllegalStateException("Data dependency context not set"));
+    public ContextValue.MutableContextValue<CommitDiffContextIndexingDataDepCtx, ContextValue.ContextValueError> getDataDepContext() {
+        return this.dataDepContext.res();
     }
 
     public void addResult(IndexingResult result) {
@@ -94,6 +101,74 @@ public class CommitDiffContextIndexingAssertCtx implements AssertCtx {
             assertions.assertSoftly(result.symbolCount() > 0,
                     "No symbols were indexed for repo: " + result.repoUrl());
         });
+    }
+
+    /**
+     * Gets the MinIO configuration if it's enabled.
+     */
+    public boolean isMinIOEnabled() {
+        return dataDepContext.optional()
+                .map(CommitDiffContextIndexingDataDepCtx::isMinIOEnabled)
+                .orElse(false);
+    }
+
+    public boolean isClusterEnabled() {
+        return isMinIOEnabled() || isKafkaEnabled() || isPersisterEnabled();
+    }
+
+    /**
+     * Gets the Kafka configuration if it's enabled.
+     */
+    public boolean isKafkaEnabled() {
+        return dataDepContext.optional()
+                .map(CommitDiffContextIndexingDataDepCtx::isKafkaEnabled)
+                .orElse(false);
+    }
+
+    /**
+     * Gets the persister configuration if it's enabled.
+     */
+    public boolean isPersisterEnabled() {
+        return dataDepContext.optional()
+                .map(CommitDiffContextIndexingDataDepCtx::isPersisterEnabled)
+                .orElse(false);
+    }
+
+    /**
+     * Gets the kubeconfig path from the data dependency context.
+     */
+    public String getKubeConfigPath() {
+        return dataDepContext.optional()
+                .flatMap(CommitDiffContextIndexingDataDepCtx::getKubeConfigPath)
+                .map(java.nio.file.Path::toString)
+                .orElse(null);
+    }
+
+    /**
+     * Gets the MinIO configuration from the data dependency context.
+     */
+    public CommitDiffContextIndexingDataDepCtx.ServiceConfig getMinioConfig() {
+        return dataDepContext.optional()
+                .flatMap(CommitDiffContextIndexingDataDepCtx::getMinioConfig)
+                .orElse(null);
+    }
+
+    /**
+     * Gets the Kafka configuration from the data dependency context.
+     */
+    public CommitDiffContextIndexingDataDepCtx.ServiceConfig getKafkaConfig() {
+        return dataDepContext.optional()
+                .flatMap(CommitDiffContextIndexingDataDepCtx::getKafkaConfig)
+                .orElse(null);
+    }
+
+    /**
+     * Gets the persister configuration from the data dependency context.
+     */
+    public CommitDiffContextIndexingDataDepCtx.ServiceConfig getPersisterConfig() {
+        return dataDepContext.optional()
+                .flatMap(CommitDiffContextIndexingDataDepCtx::getPersisterConfig)
+                .orElse(null);
     }
 
     @Override

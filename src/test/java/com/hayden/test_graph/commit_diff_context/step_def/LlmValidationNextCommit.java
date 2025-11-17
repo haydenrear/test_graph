@@ -3,18 +3,17 @@ package com.hayden.test_graph.commit_diff_context.step_def;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hayden.commitdiffcontext.code_apply.DiffFactory;
+import com.hayden.commitdiffcontext.context.ParseDiff;
+import com.hayden.commitdiffcontext.context.StagedFileService;
+import com.hayden.commitdiffcontext.context.validation.entity.CommitDiffContextCommitVersion;
+import com.hayden.commitdiffcontext.git.entity.GitDiffs;
 import com.hayden.commitdiffmodel.codegen.types.RelevantFileItem;
 import com.hayden.commitdiffmodel.codegen.types.RelevantFileItems;
 import com.hayden.commitdiffmodel.codegen.types.Staged;
-import com.hayden.commitdiffcontext.comittdiff.ParseDiff;
 import com.hayden.commitdiffcontext.convert.CommitDiffContextMapper;
-import com.hayden.commitdiffcontext.entity.commitdiff.GitDiffs;
 import com.hayden.commitdiffmodel.err.GitErrors;
 import com.hayden.commitdiffcontext.git.GitFactory;
-import com.hayden.commitdiffmodel.git_factory.DiffFactory;
-import com.hayden.commitdiffmodel.parsediffs.StagedFileService;
-import com.hayden.commitdiffmodel.validation.entity.CommitDiffContextCommitVersion;
-import com.hayden.commitdiffmodel.validation.repo.CommitDiffContextVersionRepo;
 import com.hayden.proto.prototyped.datasources.ai.modelserver.client.ModelServerValidationAiClient;
 import com.hayden.proto.prototyped.datasources.ai.modelserver.request.ModelServerChatRequest;
 import com.hayden.proto.prototyped.datasources.ai.modelserver.request.RetryParameters;
@@ -44,10 +43,7 @@ import org.springframework.http.HttpHeaders;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 @Slf4j
@@ -78,7 +74,7 @@ public class LlmValidationNextCommit implements ResettableStep {
     @Autowired
     ObjectMapper objectMapper;
     @Autowired
-    CommitDiffContextVersionRepo versionRepo;
+    com.hayden.commitdiffcontext.context.validation.repo.CommitDiffContextVersionRepo versionRepo;
     @Autowired
     DbDataSourceTrigger dbDataSourceTrigger;
     @Autowired
@@ -141,71 +137,6 @@ public class LlmValidationNextCommit implements ResettableStep {
     @RegisterInitStep(ValidateLlmInit.class)
     public void addMostRecentCommitInfo() {
         log.info("Registered to save most recent commit and reset to previous.");
-    }
-
-    @And("the AI generated response is compared to the innerValue commit by calling the validation endpoint {string}")
-    @ExecAssertStep({RepoOpAssertCtx.class, NextCommitAssert.class})
-    public void theAIGeneratedResponseIsComparedToTheActualCommitByCallingTheValidationEndpoint(String endpoint) {
-        this.nextCommit.getNextCommitInfo().optional()
-                .map(NextCommitAssert.NextCommitMetadata::nc)
-                .flatMap(nc -> validateLlmInit.getLlmValidationData().optional()
-                        .map(llm -> Map.entry(nc, llm)))
-                .ifPresent(ncLlm -> {
-                    var nc = ncLlm.getKey();
-                    var llm = ncLlm.getValue();
-
-                    var inputs = Result.from(
-                                    nc.getDiffs().stream().map(mapper::toDiffInput)
-                                            .map(DiffFactory::extractApplications))
-                            .toList();
-
-                    var allErr = GitErrors.GitAggregateError.from(inputs.errsList());
-
-                    assertions.assertSoftly(inputs.errsList().isEmpty(), "There existed some error: %s".formatted(allErr.getMessage()));
-
-                    var actualCommit = llm.diffs()
-                            .stream()
-                            .map(ParseDiff.GitDiffResult::diffs)
-                            .map(GitDiffs::new)
-                            .toList();
-                    var llmProvidedCommit = inputs.results().stream()
-                            .map(GitDiffs::new)
-                            .toList();
-
-                    nextCommit.getActualCommitInfo().swap(CommitDiffContextCommitVersion.AssertedGitDiffs.builder()
-                            .actual(actualCommit).nextCommit(llmProvidedCommit).build());
-
-                    try {
-                        var actual = objectMapper.writeValueAsString(actualCommit);
-                        var llmProvided = objectMapper.writeValueAsString(llmProvidedCommit);
-                        var sent = validationAiClient.send(
-                                        ModelServerChatRequest.builder()
-                                                .content(new ModelServerChatRequest.ModelServerBody("""
-                                                        Please rate the following commit by comparing it to the innerValue commit. Please give it only a rating out of 100 and nothing else.
-                                                        Actual:
-                                                        %s
-                                                        Generated:
-                                                        %s
-                                                        """
-                                                        .formatted(actual, llmProvided),
-                                                        ModelServerChatRequest.ModelServerRequestType.VALIDATION))
-                                                .path(endpoint)
-                                                .url(props.getModelServerBaseUrl())
-                                                .retryParameters(new RetryParameters(0))
-                                                .headers(new HttpHeaders())
-                                                .build()
-                                )
-                                .one();
-
-                        assertions.assertSoftly(sent.isOk(), "Validation was not received from server: %s."
-                                .formatted(sent.errorMessage()));
-
-                        sent.ifPresent(mrc -> nextCommit.getValidationResponse()
-                                .swap(new NextCommitAssert.NextCommitLlmValidation(mrc)));
-                    } catch (JsonProcessingException e) {
-                        assertions.assertSoftly(false, "Could not serialize response to %s".formatted(llmProvidedCommit));
-                    }
-                });
     }
 
     @Then("the validation data is saved for review")
@@ -271,10 +202,10 @@ public class LlmValidationNextCommit implements ResettableStep {
 
     @And("the staged commit information is retrieved from the repository")
     public void theStagedCommitInformationIsRetrievedFromTheRepository() {
-        var gitRepoPromptingRequest = repoOpInit.toCommitRequestArgs().commitDiffContextValue();
+        var gitRepoPromptingRequest = repoOpInit.getCommitDiffContextValue();
         RepoOpInit.RepositoryData repositoryData = repoOpInit.repoDataOrThrow();
         try{
-            var rh = gitArgsFactory.repositoryHolder(GitFactory.parseRepoArgs(repositoryData.url(), repositoryData.branchName(), repositoryData.clonedUri()));
+            var rh = gitArgsFactory.stripedRepoHolder(GitFactory.parseRepoArgs(repositoryData.url(), repositoryData.branchName(), repositoryData.clonedUri()));
             stagedFileService.getStagedChanges(rh)
                     .ifPresent(staged -> {
                         var s = Staged.newBuilder()

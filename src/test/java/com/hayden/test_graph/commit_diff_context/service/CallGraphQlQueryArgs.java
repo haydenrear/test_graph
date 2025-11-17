@@ -76,20 +76,6 @@ public sealed interface CallGraphQlQueryArgs<T> {
     }
 
     @Builder
-    record CommitRequestArgs(String branchName, String gitRepoPath, String commitMessage,
-                             RepoOpInit.CommitDiffContextGraphQlModel commitDiffContextValue) implements CallGraphQlQueryArgs<NextCommit> {
-        @Override
-        public Class<NextCommit> clazz() {
-            return NextCommit.class;
-        }
-
-        @Override
-        public String key() {
-            return "doCommit";
-        }
-    }
-
-    @Builder
     record CommitDiffContextGraphQlError(List<ResponseError> errors, String error) implements SingleError {
 
         public CommitDiffContextGraphQlError(List<ResponseError> errors) {
@@ -117,7 +103,7 @@ public sealed interface CallGraphQlQueryArgs<T> {
                 .gitBranch(GitBranch.newBuilder().branch(branchName).build())
                 .gitRepo(GitRepo.newBuilder().path(gitRepoPath).build())
                 .ragOptions(ragOptions)
-                .async(repoOpInit.toCommitRequestArgs().commitDiffContextValue().nextCommitRequest().getAsync())
+                .async(repoOpInit.getCommitDiffContextValue().nextCommitRequest().getAsync())
                 .sessionKey(SessionKey.newBuilder().key(sessionKey).build());
         for (var ctx : ctxs) {
             gReq = addCtx(ctx, gReq);
