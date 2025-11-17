@@ -1,6 +1,6 @@
 package com.hayden.test_graph.commit_diff_context.init.llm_validation.ctx;
 
-import com.hayden.commitdiffcontext.comittdiff.ParseDiff;
+import com.hayden.commitdiffcontext.context.ParseDiff;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.llm_validation.ValidateLlmInitNode;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;

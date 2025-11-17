@@ -93,6 +93,10 @@ public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
         public T orElseThrow() {
             return orElseThrow(() -> new RuntimeException("Failed to retrieve value."));
         }
+
+        public T orElse(T main) {
+            return orElseRes(main);
+        }
     }
 
 }

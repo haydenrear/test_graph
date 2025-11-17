@@ -12,6 +12,7 @@ import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.init.exec.InitBubbleExec;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.sort.GraphSort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,7 +54,6 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
         return Optional.ofNullable(postMappers).orElse(new ArrayList<>());
     }
 
-
     @Override
     @Idempotent
     public DataDepBubble exec(Class<? extends DataDepCtx> ctx, MetaCtx prev) {
@@ -79,8 +79,8 @@ public class DataDepBubbleExec implements HyperGraphExec<DataDepCtx, DataDepBubb
     }
 
     @Override
-    public List<Class<? extends TestGraphNode<DataDepBubble, DataDepBubble>>> dependsOn() {
-        return List.of();
+    public List<Class<? extends HyperGraphExec>> dependsOn() {
+        return List.of(InitBubbleExec.class);
     }
 
 

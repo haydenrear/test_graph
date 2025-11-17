@@ -1,10 +1,9 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
-import com.hayden.commitdiffcontext.entity.commitdiff.*;
-import com.hayden.commitdiffmodel.repo.CommitDiffClusterRepository;
-import com.hayden.commitdiffmodel.repo.CommitDiffItemRepository;
-import com.hayden.commitdiffmodel.repo.CommitDiffRepository;
-import com.hayden.commitdiffmodel.repo.EmbeddedGitDiffRepository;
+import com.hayden.commitdiffcontext.git.repo.CommitDiffClusterRepository;
+import com.hayden.commitdiffcontext.git.repo.CommitDiffItemRepository;
+import com.hayden.commitdiffcontext.git.repo.CommitDiffRepository;
+import com.hayden.commitdiffcontext.git.repo.EmbeddedGitDiffRepository;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoInitItem;

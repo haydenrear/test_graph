@@ -1,12 +1,12 @@
 package com.hayden.test_graph.commit_diff_context.init.llm_validation;
 
+import com.hayden.commitdiffcontext.context.ParseDiff;
+import com.hayden.commitdiffcontext.git.entity.CommitDiffId;
+import com.hayden.commitdiffcontext.git.res.GitRefModel;
 import com.hayden.commitdiffmodel.codegen.types.CommitMessage;
-import com.hayden.commitdiffcontext.comittdiff.ParseDiff;
-import com.hayden.commitdiffmodel.entity.CommitDiffId;
 import com.hayden.commitdiffmodel.err.GitErrors;
 import com.hayden.commitdiffcontext.git.GitFactory;
 import com.hayden.commitdiffcontext.git.RepoOperations;
-import com.hayden.commitdiffmodel.model.GitRefModel;
 import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.llm_validation.ctx.ValidateLlmInit;
@@ -55,7 +55,7 @@ public class InitializeLlmValidation implements ValidateLlmInitNode {
 
         try (
                 var g = Git.open(repoData.clonedUri().toFile());
-                var rh = gitFactory.repositoryHolder(g)
+                var rh = gitFactory.stripedRepoHolder(g)
         ) {
 
             var secondTo = RepoOperations.walkBackwardFromBranch(repoData.branchName(), g)

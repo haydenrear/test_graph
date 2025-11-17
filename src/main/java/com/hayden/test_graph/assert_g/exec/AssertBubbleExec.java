@@ -10,6 +10,7 @@ import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.graph.edge.EdgeExec;
 import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
 import com.hayden.test_graph.graph.node.TestGraphNode;
+import com.hayden.test_graph.init.exec.InitBubbleExec;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.RequiredArgsConstructor;
@@ -81,8 +82,8 @@ public class AssertBubbleExec implements HyperGraphExec<AssertCtx, AssertBubble>
     }
 
     @Override
-    public List<Class<? extends HyperGraphBubbleNode<? extends HyperGraphContext>>> dependsOn() {
-        return List.of();
+    public List<Class<? extends HyperGraphExec>> dependsOn() {
+        return List.of(InitBubbleExec.class, DataDepBubbleExec.class);
     }
 
     @Override

@@ -21,7 +21,7 @@ public interface HyperGraphContext<SELF extends HyperGraphContext<SELF>> extends
     }
 
     /**
-     * @return list of classes that bubble this context.
+     * @return list of test graph contexts that bubble this context - i.e. the sub-graph contexts for this bubble ctx.
      */
     List<Class<? extends TestGraphContext>> bubblers();
 
