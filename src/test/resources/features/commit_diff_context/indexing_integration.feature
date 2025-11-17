@@ -19,7 +19,7 @@ Feature: End-to-end code indexing workflow
     And the kafka namespace is "kafka"
     And the minio namespace is "minio"
     And the indexing namespace is "indexing"
-    And the Maven central URL is "http://localhost:8080"
+    And the Maven central URL is "http://localhost:8080/maven2//maven2/"
     When the K3s cluster is initialized
     And libs resolver reads sources from Maven artifact "com.example:my-project:1.0.0"
     And the sources are uploaded to MinIO with bucket "sources"
@@ -39,7 +39,7 @@ Feature: End-to-end code indexing workflow
     And the K3s cluster is deployed with persister
     And the indexer environment variable "MAX_CONTEXT_DEPTH" is set to "5"
     And the indexer environment variable "ENABLE_BLAME_TREE" is set to "true"
-    And the Maven central URL is "http://localhost:8080"
+    And the Maven central URL is "http://localhost:8080/maven2/"
     When the K3s cluster is initialized
     And libs resolver reads sources from Maven artifact "com.example:test-project:2.0.0"
     And the sources are uploaded to MinIO
@@ -70,7 +70,7 @@ Feature: End-to-end code indexing workflow
     And the K3s cluster is deployed with Kafka
     And the K3s cluster is deployed with orchestrator
     And the K3s cluster is deployed with persister
-    And the Maven central URL is "http://localhost:8080"
+    And the Maven central URL is "http://localhost:8080/maven2/"
     When the K3s cluster is initialized
     And libs resolver reads sources from Maven artifact "<artifact>"
     And the sources are uploaded to MinIO with bucket "<bucket>"
@@ -92,7 +92,7 @@ Feature: End-to-end code indexing workflow
     And the K3s cluster is deployed with Kafka
     And the K3s cluster is deployed with orchestrator
     And the K3s cluster is deployed with persister
-    And the Maven central URL is "http://localhost:8080"
+    And the Maven central URL is "http://localhost:8080/maven2/"
     When the K3s cluster is initialized
     And libs resolver reads sources from Maven artifact "com.example:broken-project:1.0.0"
     And the sources are uploaded to MinIO
@@ -109,7 +109,7 @@ Feature: End-to-end code indexing workflow
     And the K3s cluster is deployed with orchestrator
     And the K3s cluster is deployed with persister
     And the indexer environment variable "ENABLE_PARALLEL_PROCESSING" is set to "true"
-    And the Maven central URL is "http://localhost:8080"
+    And the Maven central URL is "http://localhost:8080/maven2/"
     When the K3s cluster is initialized
     And libs resolver reads sources from Maven artifact "com.example:large-project:3.0.0"
     And the sources are uploaded to MinIO
