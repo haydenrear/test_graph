@@ -46,7 +46,7 @@ public class KafkaListenerDataDep implements CommitDiffContextIndexingDataDepNod
 
     private final ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
 
-    public void init(List<CommitDiffContextIndexingDataDepCtx.ExpectKafka> expected, String topic) {
+    public void initializeKafkaTopic(List<CommitDiffContextIndexingDataDepCtx.ExpectKafka> expected, String topic) {
         consumer = new KafkaConsumer<>(kafkaProperties.buildConsumerProperties());
         consumer.seekToEnd(Lists.newArrayList(new TopicPartition(topic, 1)));
         service.submit(() -> {
@@ -86,7 +86,7 @@ public class KafkaListenerDataDep implements CommitDiffContextIndexingDataDepNod
                 .collect(Collectors.groupingBy(CommitDiffContextIndexingDataDepCtx.ExpectKafka::queue));
 
         for (var ek : qMatcher.entrySet()) {
-            init(ek.getValue(), ek.getKey());
+            initializeKafkaTopic(ek.getValue(), ek.getKey());
         }
 
         c.getKafkaRecords().swap(retrieved);
