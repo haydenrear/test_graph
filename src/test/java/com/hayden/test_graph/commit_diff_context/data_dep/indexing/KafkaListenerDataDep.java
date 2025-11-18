@@ -1,6 +1,5 @@
 package com.hayden.test_graph.commit_diff_context.data_dep.indexing;
 
-import com.hayden.libsresolver.config.CrawlConfigProps;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.data_dep.indexing.ctx.CommitDiffContextIndexingDataDepCtx;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
@@ -45,7 +44,7 @@ public class KafkaListenerDataDep implements CommitDiffContextIndexingDataDepNod
 
     private boolean stop = false;
 
-    ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
+    private final ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
 
     public void init(List<CommitDiffContextIndexingDataDepCtx.ExpectKafka> expected, String topic) {
         consumer = new KafkaConsumer<>(kafkaProperties.buildConsumerProperties());
