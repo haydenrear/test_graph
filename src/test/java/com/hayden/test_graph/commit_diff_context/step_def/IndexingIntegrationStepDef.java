@@ -3,7 +3,7 @@ package com.hayden.test_graph.commit_diff_context.step_def;
 import com.hayden.commitdiffcontext.code_search.libs.res.Dependency;
 import com.hayden.commitdiffcontext.code_search.repo.CodeIndexRepository;
 import com.hayden.test_graph.assertions.Assertions;
-import com.hayden.test_graph.commit_diff_context.init.k3s.ctx.K3sInit;
+import com.hayden.test_graph.commit_diff_context.init.indexing.ctx.IndexingK3sInit;
 import com.hayden.test_graph.commit_diff_context.init.mountebank.indexing.ctx.IndexingMbInitCtx;
 import com.hayden.test_graph.commit_diff_context.data_dep.indexing.ctx.CommitDiffContextIndexingDataDepCtx;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.indexing.ctx.CommitDiffContextIndexingAssertCtx;
@@ -14,7 +14,6 @@ import com.hayden.test_graph.thread.ResettableThread;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.micrometer.common.util.StringUtils;
 import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -28,7 +27,7 @@ public class IndexingIntegrationStepDef implements ResettableStep {
 
     @Autowired
     @ResettableThread
-    private K3sInit k3sInit;
+    private IndexingK3sInit indexingK3SInit;
 
     @Autowired
     @ResettableThread
@@ -49,7 +48,7 @@ public class IndexingIntegrationStepDef implements ResettableStep {
     private Assertions assertions;
 
     @When("the K3s cluster is initialized")
-    @RegisterInitStep({K3sInit.class})
+    @RegisterInitStep({IndexingK3sInit.class})
     public void k3sClusterInitialized() {
     }
 

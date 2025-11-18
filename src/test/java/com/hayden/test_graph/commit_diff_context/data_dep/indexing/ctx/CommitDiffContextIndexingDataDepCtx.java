@@ -23,6 +23,22 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class CommitDiffContextIndexingDataDepCtx implements DataDepCtx {
 
+    @Override
+    public CommitDiffContextIndexingDataDepBubble bubble() {
+        return this.bubbleUnderlying;
+    }
+
+    @Override
+    public Class<CommitDiffContextIndexingDataDepBubble> bubbleClazz() {
+        return CommitDiffContextIndexingDataDepBubble.class;
+    }
+
+    @Override
+    public boolean executableFor(GraphExec.GraphExecNode n) {
+        return n instanceof CommitDiffContextIndexingDataDepNode;
+    }
+
+
     @Builder
     public record ServiceConfig(
             String namespace,
@@ -51,7 +67,7 @@ public class CommitDiffContextIndexingDataDepCtx implements DataDepCtx {
         }
     }
 
-    private final ContextValue<CommitDiffContextIndexingDataDepBubble> bubbleUnderlying;
+    private CommitDiffContextIndexingDataDepBubble bubbleUnderlying;
     private final ContextValue<IndexingDeployment> deployment;
 
     @Getter
@@ -82,15 +98,13 @@ public class CommitDiffContextIndexingDataDepCtx implements DataDepCtx {
                 ContextValue.empty(),
                 ContextValue.empty(),
                 ContextValue.empty(),
-                ContextValue.empty(),
                 ContextValue.empty()
         );
     }
 
     @Autowired
     public void setBubble(CommitDiffContextIndexingDataDepBubble bubble) {
-        this.bubbleUnderlying.swap(bubble);
-        this.bubbleUnderlying.res().one().get().getIndexingCtx().swap(this);
+        this.bubbleUnderlying = bubble;
     }
 
     public void setDeployment(IndexingDeployment deployment) {
@@ -208,22 +222,6 @@ public class CommitDiffContextIndexingDataDepCtx implements DataDepCtx {
     public Optional<Path> getKubeConfigPath() {
         return this.deployment.res().unwrap().kubeConfigPath;
     }
-
-    @Override
-    public CommitDiffContextIndexingDataDepBubble bubble() {
-        return this.bubbleUnderlying.res().one().get();
-    }
-
-    @Override
-    public Class<CommitDiffContextIndexingDataDepBubble> bubbleClazz() {
-        return CommitDiffContextIndexingDataDepBubble.class;
-    }
-
-    @Override
-    public boolean executableFor(GraphExec.GraphExecNode n) {
-        return n instanceof CommitDiffContextIndexingDataDepNode;
-    }
-
     public ContextValue<IndexingDeployment> deployment() {
         return deployment;
     }

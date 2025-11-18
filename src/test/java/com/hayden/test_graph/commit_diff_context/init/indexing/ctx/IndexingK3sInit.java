@@ -1,10 +1,12 @@
-package com.hayden.test_graph.commit_diff_context.init.k3s.ctx;
+package com.hayden.test_graph.commit_diff_context.init.indexing.ctx;
 
+import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitCtx;
-import com.hayden.test_graph.commit_diff_context.init.k3s.K3sInitNode;
+import com.hayden.test_graph.commit_diff_context.init.indexing.IndexingK3sInitNode;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.result.error.SingleError;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -15,11 +17,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 @Component
 @ResettableThread
 @RequiredArgsConstructor
-public class K3sInit implements InitCtx {
+public class IndexingK3sInit implements InitCtx {
 
     @Builder
     public record K3sClusterConfig(
@@ -54,20 +57,23 @@ public class K3sInit implements InitCtx {
     private final ContextValue<K3sClusterConfig> clusterConfig;
     private final ContextValue<DeploymentConfig> deploymentConfig;
     private final ContextValue<ServiceConfig> serviceConfig;
-    private final ContextValue<K3sBubble> bubbleUnderlying;
+
+    private Assertions assertions;
+    private IndexingK3sBubble bubbleUnderlying;
 
     @Getter
     private final ContextValue<String> kubeConfigPath;
 
+    public record ClusterStatus(boolean ready, Exception err) {}
+
     @Getter
-    private final ContextValue<Boolean> clusterReady;
+    private final ContextValue<ClusterStatus> clusterReady;
 
     @Getter
     private final List<String> deployedServices = new ArrayList<>();
 
-    public K3sInit() {
+    public IndexingK3sInit() {
         this(
-                ContextValue.empty(),
                 ContextValue.empty(),
                 ContextValue.empty(),
                 ContextValue.empty(),
@@ -77,9 +83,14 @@ public class K3sInit implements InitCtx {
     }
 
     @Autowired
-    public void setBubble(K3sBubble bubble) {
-        this.bubbleUnderlying.swap(bubble);
-        this.bubbleUnderlying.res().one().get().getK3sInit().swap(this);
+    public void setAssertions(Assertions assertions) {
+        this.assertions = assertions;
+    }
+
+    @Autowired
+    @ResettableThread
+    public void setBubble(IndexingK3sBubble bubble) {
+        this.bubbleUnderlying = bubble;
     }
 
     public void setClusterConfig(K3sClusterConfig config) {
@@ -158,14 +169,25 @@ public class K3sInit implements InitCtx {
         addMavenRepositoryEnvVar("MAVEN_URL", url);
     }
 
-    private void updateServiceConfig(java.util.function.Function<ServiceConfig, Boolean> toggle) {
+    private void updateServiceConfig(Function<ServiceConfig, Boolean> toggle) {
         var current = getServiceConfig();
         // Note: This is a simplified placeholder; actual toggle logic would be more sophisticated
         setServiceConfig(current);
     }
 
     public void markClusterReady() {
-        this.clusterReady.swap(true);
+        this.clusterReady.swap(new ClusterStatus(true, null));
+    }
+
+    public void markClusterReadyErr() {
+        markClusterReadyErr(new RuntimeException("Unknown failure."));
+    }
+
+    public void markClusterReadyErr(Exception e) {
+        assertions.assertThat(false)
+                .withFailMessage("Failed to deploy cluster with err %s.", SingleError.parseStackTraceToString(e))
+                .isTrue();
+        this.clusterReady.swap(new ClusterStatus(false, e));
     }
 
     public void addDeployedService(String serviceName) {
@@ -173,18 +195,18 @@ public class K3sInit implements InitCtx {
     }
 
     @Override
-    public K3sBubble bubble() {
-        return this.bubbleUnderlying.res().one().get();
+    public IndexingK3sBubble bubble() {
+        return this.bubbleUnderlying;
     }
 
     @Override
-    public Class<K3sBubble> bubbleClazz() {
-        return K3sBubble.class;
+    public Class<IndexingK3sBubble> bubbleClazz() {
+        return IndexingK3sBubble.class;
     }
 
     @Override
     public boolean executableFor(GraphExec.GraphExecNode n) {
-        return n instanceof K3sInitNode;
+        return n instanceof IndexingK3sInitNode;
     }
 
     public ContextValue<K3sClusterConfig> clusterConfig() {

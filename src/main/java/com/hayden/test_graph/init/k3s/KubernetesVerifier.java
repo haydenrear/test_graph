@@ -1,4 +1,4 @@
-package com.hayden.test_graph.commit_diff_context.assert_nodes.indexing;
+package com.hayden.test_graph.init.k3s;
 
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
@@ -24,6 +24,8 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class KubernetesVerifier {
 
+    private final K3sService k3sService;
+
     /**
      * Creates an API client from the kubeconfig file.
      *
@@ -32,11 +34,7 @@ public class KubernetesVerifier {
      * @throws IOException if kubeconfig cannot be read
      */
     private ApiClient createApiClient(String kubeconfig) throws IOException {
-        if (kubeconfig != null && !kubeconfig.isEmpty()) {
-            return Config.fromConfig(kubeconfig);
-        } else {
-            return Config.defaultClient();
-        }
+        return k3sService.getCreateApiClient(kubeconfig);
     }
 
     /**
