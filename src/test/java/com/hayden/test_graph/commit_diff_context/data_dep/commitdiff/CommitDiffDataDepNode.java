@@ -1,4 +1,4 @@
-package com.hayden.test_graph.commit_diff_context.data_dep;
+package com.hayden.test_graph.commit_diff_context.data_dep.commitdiff;
 
 import com.hayden.test_graph.data_dep.exec.single.DataDepNode;
 
