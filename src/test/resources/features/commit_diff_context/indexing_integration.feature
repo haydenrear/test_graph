@@ -23,7 +23,7 @@ Feature: End-to-end code indexing workflow
     When the K3s cluster is initialized
     And libs resolver reads sources from Maven artifact "com.example:my-project:1.0.0"
     And the sources are uploaded to MinIO with bucket "sources"
-    And a message is published to Kafka topic "source-assignments" with source metadata
+    And a message is published to Kafka topic "source-assignments" matching ".*"
     And the orchestrator deploys an indexing job
     Then the indexing job completes successfully
     And the code indexes are published to Kafka topic "code-indexes"
@@ -43,7 +43,7 @@ Feature: End-to-end code indexing workflow
     When the K3s cluster is initialized
     And libs resolver reads sources from Maven artifact "com.example:test-project:2.0.0"
     And the sources are uploaded to MinIO
-    And a message is published to Kafka topic "source-assignments"
+    And a message is published to Kafka topic "source-assignments" matching ".*"
     And the orchestrator deploys an indexing job
     Then the indexing job completes successfully
     And the persister processes and stores the indexes
@@ -58,10 +58,10 @@ Feature: End-to-end code indexing workflow
     When the K3s cluster is initialized
     And libs resolver reads sources from Maven artifact "com.example:mini-project:1.0.0"
     And the sources are uploaded to MinIO
-    And a message is published to Kafka topic "source-assignments"
+    And a message is published to Kafka topic "source-assignments" matching ".*"
     And the orchestrator deploys an indexing job
     Then the indexing job completes successfully
-    And the code indexes are published to Kafka topic "code-indexes"
+    And the code indexes are published to Kafka topic "index-event"
     And the indexes can be consumed but storage is skipped
 
   @indexing_multiple_repos @all
@@ -74,7 +74,7 @@ Feature: End-to-end code indexing workflow
     When the K3s cluster is initialized
     And libs resolver reads sources from Maven artifact "<artifact>"
     And the sources are uploaded to MinIO with bucket "<bucket>"
-    And a message is published to Kafka topic "source-assignments"
+    And a message is published to Kafka topic "source-assignments" matching ".*"
     And the orchestrator deploys an indexing job
     Then the indexing job completes successfully
     And the indexed repository "<repoName>" contains "<expectedFileCount>" files
@@ -96,10 +96,10 @@ Feature: End-to-end code indexing workflow
     When the K3s cluster is initialized
     And libs resolver reads sources from Maven artifact "com.example:broken-project:1.0.0"
     And the sources are uploaded to MinIO
-    And a message is published to Kafka topic "source-assignments"
+    And a message is published to Kafka topic "source-assignments" matching ".*"
     And the orchestrator deploys an indexing job
     Then the indexing job fails gracefully
-    And an error message is published to Kafka topic "indexing-errors"
+    And an error message is published to Kafka topic "index-event"
     And the persister does not write incomplete indexes
 
   @indexing_performance @all
@@ -113,7 +113,7 @@ Feature: End-to-end code indexing workflow
     When the K3s cluster is initialized
     And libs resolver reads sources from Maven artifact "com.example:large-project:3.0.0"
     And the sources are uploaded to MinIO
-    And a message is published to Kafka topic "source-assignments"
+    And a message is published to Kafka topic "source-assignments" matching ".*"
     And the orchestrator deploys an indexing job
     Then the indexing job completes successfully
     And the indexing time is less than "300" seconds

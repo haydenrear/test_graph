@@ -96,5 +96,6 @@ public class K3sClusterDeployNode implements K3sInitNode {
 
         // TODO: Integrate with deploy-helm module to run orchestration
         // Example: ProcessBuilder pb = new ProcessBuilder("uv", "run", "deploy-helm/__main__.py", ...);
+        throw new RuntimeException("Forgot to build the cluster deploy script!");
     }
 }

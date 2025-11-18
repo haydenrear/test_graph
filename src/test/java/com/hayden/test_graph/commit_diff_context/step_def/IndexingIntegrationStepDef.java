@@ -9,13 +9,13 @@ import com.hayden.test_graph.commit_diff_context.data_dep.indexing.ctx.CommitDif
 import com.hayden.test_graph.commit_diff_context.assert_nodes.indexing.ctx.CommitDiffContextIndexingAssertCtx;
 import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ExecAssertStep;
-import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
 import io.cucumber.java.en.And;
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.micrometer.common.util.StringUtils;
+import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
@@ -104,50 +104,30 @@ public class IndexingIntegrationStepDef implements ResettableStep {
         });
     }
 
-    @And("a message is published to Kafka topic {string}")
-    public void messagePublishedToKafka(String topic) {
-        messagePublishedToKafka(topic, null);
-    }
-
-    @And("a message is published to Kafka topic {string} with source metadata")
-    public void messagePublishedToKafka(String topic, String metadata) {
-        indexingDataDepCtx.deployment().res().ifPresent(dep -> {
-            if (dep.kafkaConfig().isPresent()) {
-                // Message published to Kafka topic
-            }
-        });
+    @And("a message is published to Kafka topic {string} matching {string}")
+    public void addMessageToListenToInKafka(String topic, String expr) {
+        if(indexingDataDepCtx.getKafkaQueues().isPresent()) {
+            indexingDataDepCtx.getKafkaQueues().res().get()
+                    .add(new CommitDiffContextIndexingDataDepCtx.ExpectKafka(topic, s -> s.matches(expr)));
+        } else {
+            indexingDataDepCtx.getKafkaQueues()
+                    .swap(Lists.newArrayList(new CommitDiffContextIndexingDataDepCtx.ExpectKafka(topic, s -> s.matches(expr))));
+        }
     }
 
     @And("the orchestrator deploys an indexing job")
     public void orchestratorDeploysJob() {
-        indexingDataDepCtx.deployment().res().ifPresent(dep -> {
-            if (dep.orchestratorConfig().isPresent()) {
-                // Job deployment triggered
-                indexingDataDepCtx.markReady();
-            }
-        });
+        throw new RuntimeException("Not implemented yet");
     }
 
     @Then("the indexing job completes successfully")
     public void indexingJobCompletes() {
-        // Verify job completion
-        indexingAssertCtx.addResult(CommitDiffContextIndexingAssertCtx.IndexingResult.builder()
-                .repoUrl(indexingDataDepCtx.getRepoUrl().res().orElseRes("unknown"))
-                .branch(indexingDataDepCtx.getBranch().res().orElseRes("main"))
-                .indexedFileCount(150)
-                .symbolCount(2500)
-                .indexingSuccessful(true)
-                .statusMessage("Indexing completed successfully")
-                .build());
+        throw new RuntimeException("Not implemented yet");
     }
 
     @And("the code indexes are published to Kafka topic {string}")
     public void codeIndexesPublished(String topic) {
-        indexingDataDepCtx.deployment().res().ifPresent(dep -> {
-            if (dep.kafkaConfig().isPresent()) {
-                // Code indexes published to topic
-            }
-        });
+        throw new RuntimeException("Code indexes are not published to Kafka topic " + topic);
     }
 
     @And("the persister processes and stores the indexes in the database")

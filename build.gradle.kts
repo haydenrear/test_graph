@@ -30,7 +30,10 @@ dependencies {
     implementation("io.kubernetes:client-java:24.0.0")
 }
 
+
+
 tasks.compileJava {
+//    TODO: add depends on docker task for each profile - so as to build the docker images for the workflow.
     dependsOn("copyPromAgent")
     dependsOn(project(":runner_code").tasks.getByName("runnerTask"))
     dependsOn(project(":commit-diff-context-mcp").tasks.getByName("commitDiffContextMcpTask"))

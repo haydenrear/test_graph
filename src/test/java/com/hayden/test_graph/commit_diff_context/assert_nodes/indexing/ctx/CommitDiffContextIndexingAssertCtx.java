@@ -33,6 +33,7 @@ public class CommitDiffContextIndexingAssertCtx implements AssertCtx {
     ) {}
 
     private final ContextValue<CommitDiffContextIndexingAssertBubble> bubbleUnderlying;
+
     private final ContextValue<CommitDiffContextIndexingDataDepCtx> dataDepContext;
 
     @Getter

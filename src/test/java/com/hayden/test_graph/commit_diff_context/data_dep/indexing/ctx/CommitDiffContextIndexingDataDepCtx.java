@@ -1,24 +1,22 @@
 package com.hayden.test_graph.commit_diff_context.data_dep.indexing.ctx;
 
+import com.hayden.test_graph.commit_diff_context.data_dep.indexing.KafkaListenerDataDep;
 import com.hayden.test_graph.ctx.ContextValue;
-import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
 import com.hayden.test_graph.commit_diff_context.data_dep.indexing.CommitDiffContextIndexingDataDepNode;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.thread.ResettableThread;
-import com.hayden.utilitymodule.sort.GraphSort;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Predicate;
 
 @Component
 @ResettableThread
@@ -68,8 +66,18 @@ public class CommitDiffContextIndexingDataDepCtx implements DataDepCtx {
     @Getter
     private final ContextValue<String> branch;
 
+    public record ExpectKafka(String queue, Predicate<String> matcher) {}
+
+    @Getter
+    private final ContextValue<List<ExpectKafka>> kafkaQueues;
+
+    @Getter
+    private final ContextValue<Queue<KafkaListenerDataDep.ExpectedConsumerRecords>> kafkaRecords;
+
     public CommitDiffContextIndexingDataDepCtx() {
         this(
+                ContextValue.empty(),
+                ContextValue.empty(),
                 ContextValue.empty(),
                 ContextValue.empty(),
                 ContextValue.empty(),
