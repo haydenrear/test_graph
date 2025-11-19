@@ -1,6 +1,6 @@
-package com.hayden.test_graph.commit_diff_context.init.mountebank.ctx;
+package com.hayden.test_graph.commit_diff_context.init.mountebank.commitdiff.ctx;
 
-import com.hayden.test_graph.commit_diff_context.init.mountebank.CdMbInitBubbleNode;
+import com.hayden.test_graph.commit_diff_context.init.mountebank.commitdiff.CdMbInitBubbleNode;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitBubble;

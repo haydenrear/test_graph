@@ -7,22 +7,21 @@ import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.commit_diff_context.init.indexing.IndexingK3sInitNode;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.result.error.SingleError;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Path;
+import java.util.*;
 import java.util.function.Function;
 
+@Slf4j
 @Component
 @ResettableThread
 @RequiredArgsConstructor
 public class IndexingK3sInit implements InitCtx {
+
 
     @Builder
     public record K3sClusterConfig(
@@ -33,12 +32,33 @@ public class IndexingK3sInit implements InitCtx {
             String networkName
     ) {}
 
-    @Builder
-    public record DeploymentConfig(
-            String kafkaNamespace,
-            String minioNamespace,
-            String indexingNamespace
-    ) {}
+    @Builder(toBuilder = true)
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class DeploymentConfig {
+        private String kafkaNamespace;
+        private String minioNamespace;
+        private String indexingNamespace;
+        private KubeValues values;
+
+        public String kafkaNamespace() {
+            return kafkaNamespace;
+        }
+
+        public String minioNamespace() {
+            return minioNamespace;
+        }
+
+        public String indexingNamespace() {
+            return indexingNamespace;
+        }
+
+        public KubeValues values() {
+            return values;
+        }
+
+    }
 
     @Builder
     public record ServiceConfig(
@@ -57,6 +77,8 @@ public class IndexingK3sInit implements InitCtx {
     private final ContextValue<K3sClusterConfig> clusterConfig;
     private final ContextValue<DeploymentConfig> deploymentConfig;
     private final ContextValue<ServiceConfig> serviceConfig;
+
+    public record KubeValues(Path path) {}
 
     private Assertions assertions;
     private IndexingK3sBubble bubbleUnderlying;
@@ -91,6 +113,17 @@ public class IndexingK3sInit implements InitCtx {
     @ResettableThread
     public void setBubble(IndexingK3sBubble bubble) {
         this.bubbleUnderlying = bubble;
+    }
+
+    public void cdcIndexingValuesYaml(KubeValues config) {
+        deploymentConfig.update(
+                dep -> {
+                    dep.values = config;
+                    return dep;
+                },
+                DeploymentConfig.builder()
+                        .values(config)
+                        .build());
     }
 
     public void setClusterConfig(K3sClusterConfig config) {

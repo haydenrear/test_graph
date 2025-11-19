@@ -1,10 +1,15 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
+import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.indexing.ctx.IndexingK3sInit;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Step definitions for configuring K3s cluster deployment options.
@@ -17,23 +22,40 @@ public class K3sDeploymentStepDef implements ResettableStep {
     @ResettableThread
     private IndexingK3sInit indexingK3SInit;
 
+    @Autowired
+    @ResettableThread
+    private Assertions assertions;
+
     @Given("the K3s cluster is deployed with MinIO")
     public void deployWithMinIO() {
         indexingK3SInit.enableMinIO();
     }
 
+    @And("the values.yaml file for the indexing test is located in {string}")
+    public void persisterProcessesIndexes(String valuesYaml) {
+        Path path = Paths.get(valuesYaml);
+        assertions.assertThat(path.toFile())
+                .withFailMessage("Path for values yaml %s was supposed to exist!", valuesYaml)
+                .exists();
+        this.indexingK3SInit.cdcIndexingValuesYaml(new IndexingK3sInit.KubeValues(path));
+    }
+
+
     @Given("the K3s cluster is deployed without MinIO")
     public void deployWithoutMinIO() {
+//        still needed for assertions...
         indexingK3SInit.disableMinIO();
     }
 
     @Given("the K3s cluster is deployed with Kafka")
     public void deployWithKafka() {
+//        still needed for assertions...
         indexingK3SInit.enableKafka();
     }
 
     @Given("the K3s cluster is deployed without Kafka")
     public void deployWithoutKafka() {
+//        still needed for assertions...
         indexingK3SInit.disableKafka();
     }
 

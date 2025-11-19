@@ -17,6 +17,8 @@ import io.cucumber.java.en.When;
 import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 /**

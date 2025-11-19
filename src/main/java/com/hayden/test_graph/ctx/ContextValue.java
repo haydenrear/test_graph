@@ -6,6 +6,7 @@ import lombok.experimental.Delegate;
 
 import java.util.Optional;
 import java.util.Stack;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -39,6 +40,13 @@ public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
 
     public synchronized void swap(T t) {
         this.res.set(t);
+    }
+
+    public synchronized void update(Function<T, T> curr, T defaultValue) {
+        if (!this.res.isPresent())
+            this.res.set(defaultValue);
+        else
+            this.res.set(curr.apply(this.res.r().get()));
     }
 
     public synchronized void compareAndSwap(Predicate<T> curr, T t) {

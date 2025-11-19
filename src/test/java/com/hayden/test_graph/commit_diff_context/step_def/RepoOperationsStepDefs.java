@@ -7,7 +7,7 @@ import com.hayden.commitdiffmodel.config.CommitDiffContextProperties;
 import com.hayden.commitdiffmodel.entity.Embedding;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
-import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
+import com.hayden.test_graph.commit_diff_context.init.mountebank.commitdiff.ctx.CdMbInitCtx;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoInitItem;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
 import com.hayden.test_graph.steps.ExecAssertStep;

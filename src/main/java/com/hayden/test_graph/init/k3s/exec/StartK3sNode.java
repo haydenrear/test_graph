@@ -34,7 +34,6 @@ public class StartK3sNode implements K3sInitNode {
 
     @Override
     public K3sInitCtx exec(K3sInitCtx c, MetaCtx h) {
-
 //        todo: use process builder to run __main__.py
         c.getStarted().swap(true);
         return c;

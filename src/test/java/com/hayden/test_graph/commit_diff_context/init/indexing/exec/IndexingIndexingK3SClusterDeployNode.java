@@ -24,56 +24,13 @@ public class IndexingIndexingK3SClusterDeployNode implements IndexingK3sInitNode
     @Override
     public IndexingK3sInit exec(IndexingK3sInit ctx, MetaCtx metaCtx) {
         log.info("Starting K3s cluster initialization");
-
-        // Set default configuration if not already provided
-        if (ctx.clusterConfig().optional().isEmpty()) {
-            var defaultConfig = IndexingK3sInit.K3sClusterConfig.builder()
-                    .clusterName("commit-diff-context-test")
-                    .kubeApiPort(6443)
-                    .registryName("local-registry")
-                    .registryPort(5000)
-                    .networkName("test-network")
-                    .build();
-            ctx.setClusterConfig(defaultConfig);
-        }
-
-        // Set default deployment namespaces
-        if (ctx.deploymentConfig().optional().isEmpty()) {
-            var deployConfig = IndexingK3sInit.DeploymentConfig.builder()
-                    .kafkaNamespace("kafka")
-                    .minioNamespace("minio")
-                    .indexingNamespace("indexing")
-                    .build();
-            ctx.setDeploymentConfig(deployConfig);
-        }
-
-        log.info("K3s cluster configuration prepared: {}", ctx.getClusterConfig());
         log.info("Deployment namespaces configured: {}", ctx.getDeploymentConfig());
 
-        // Set default configuration if not already provided
-        if (ctx.clusterConfig().optional().isEmpty()) {
-            var defaultConfig = IndexingK3sInit.K3sClusterConfig.builder()
-                    .clusterName("commit-diff-context-test")
-                    .kubeApiPort(6443)
-                    .registryName("local-registry")
-                    .registryPort(5000)
-                    .networkName("test-network")
-                    .build();
-            ctx.setClusterConfig(defaultConfig);
+        if (ctx.deploymentConfig().isEmpty()) {
+            assertions.assertThat(false).withFailMessage("Deployment namespaces are not configured!").isTrue();
+            return ctx;
         }
 
-        // Set default deployment namespaces
-        if (ctx.deploymentConfig().optional().isEmpty()) {
-            var deployConfig = IndexingK3sInit.DeploymentConfig.builder()
-                    .kafkaNamespace("kafka")
-                    .minioNamespace("minio")
-                    .indexingNamespace("indexing")
-                    .build();
-            ctx.setDeploymentConfig(deployConfig);
-        }
-
-        log.info("K3s cluster configuration: {}", ctx.getClusterConfig());
-        log.info("Deployment namespaces: {}", ctx.getDeploymentConfig());
 
         try {
             // Run the deployment orchestrator via Python uv
@@ -98,8 +55,8 @@ public class IndexingIndexingK3SClusterDeployNode implements IndexingK3sInitNode
 
     private boolean deployToK3sCluster(IndexingK3sInit ctx) {
         log.debug("Deploying to K3s cluster with config: {}", ctx.getClusterConfig());
+        var dep = ctx.getDeploymentConfig();
 
-        // TODO: Integrate with deploy-helm module to run orchestration
-        throw new RuntimeException("Forgot to build the cluster deploy script!");
+        throw new RuntimeException("Forgot to run the helm command with values.yaml!");
     }
 }

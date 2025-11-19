@@ -1,13 +1,10 @@
-package com.hayden.test_graph.commit_diff_context.init.mountebank;
+package com.hayden.test_graph.commit_diff_context.init.mountebank.commitdiff;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.hayden.test_graph.commit_diff_context.init.mountebank.ctx.CdMbInitCtx;
+import com.hayden.test_graph.commit_diff_context.init.mountebank.commitdiff.ctx.CdMbInitCtx;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
-import org.mbtest.javabank.fluent.ImposterBuilder;
-import org.mbtest.javabank.fluent.ResponseBuilder;
-import org.mbtest.javabank.fluent.StubBuilder;
 import org.mbtest.javabank.http.core.Stub;
 import org.mbtest.javabank.http.imposters.Imposter;
 import org.mbtest.javabank.http.predicates.Predicate;
