@@ -38,11 +38,6 @@ public class VerifySourcesUploadedToMinIO implements CommitDiffContextIndexingAs
     private CrawlConfigProps crawlConfigProps;
 
     @Override
-    public Class<? extends CommitDiffContextIndexingAssertCtx> clzz() {
-        return CommitDiffContextIndexingAssertCtx.class;
-    }
-
-    @Override
     @Idempotent(returnArg = 0)
     public CommitDiffContextIndexingAssertCtx exec(CommitDiffContextIndexingAssertCtx c, MetaCtx h) {
         // Skip assertion if MinIO is not enabled for deployment

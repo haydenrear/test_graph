@@ -27,11 +27,6 @@ public class VerifyClusterDeployed implements CommitDiffContextIndexingAssertNod
     private KubernetesVerifier kubernetesVerifier;
 
     @Override
-    public Class<? extends CommitDiffContextIndexingAssertCtx> clzz() {
-        return CommitDiffContextIndexingAssertCtx.class;
-    }
-
-    @Override
     @Idempotent(returnArg = 0)
     public CommitDiffContextIndexingAssertCtx exec(CommitDiffContextIndexingAssertCtx c, MetaCtx h) {
         if (!c.isClusterEnabled())

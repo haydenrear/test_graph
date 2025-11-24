@@ -19,7 +19,7 @@ Feature: End-to-end code indexing workflow
     And the kafka namespace is "kafka"
     And the minio namespace is "minio"
     And the indexing namespace is "indexing"
-    And the Maven central URL is "http://localhost:8080/maven2//maven2/"
+    And the Maven central URL is "http://localhost:8080/maven2/"
     When the K3s cluster is initialized
     And libs resolver reads sources from Maven artifact "com.example:my-project:1.0.0"
     And the sources are uploaded to MinIO with bucket "sources"
