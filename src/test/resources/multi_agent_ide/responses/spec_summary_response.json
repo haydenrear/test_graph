@@ -1,0 +1,42 @@
+{
+  "status": "success",
+  "summary": {
+    "goal": "Build authentication service",
+    "completion": 45,
+    "currentStep": "Implementing JWT token validation",
+    "sections": [
+      {
+        "name": "Plan",
+        "path": "#/Plan",
+        "itemCount": 4
+      },
+      {
+        "name": "Status",
+        "path": "#/Status",
+        "lastUpdated": "2025-12-10T10:25:00Z"
+      },
+      {
+        "name": "Submodules",
+        "path": "#/Submodules",
+        "submodules": [
+          {
+            "name": "auth-lib",
+            "path": "#/Submodules/auth-lib",
+            "completion": 60
+          },
+          {
+            "name": "utils-lib",
+            "path": "#/Submodules/utils-lib",
+            "completion": 30
+          }
+        ]
+      }
+    ],
+    "estimatedRemainingWork": "3-4 hours"
+  },
+  "metadata": {
+    "specPath": ".multi-agent-plan.md",
+    "nodeId": "work-node-123",
+    "summaryGeneratedAt": "2025-12-10T10:30:00Z"
+  }
+}

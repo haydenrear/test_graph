@@ -1,0 +1,38 @@
+{
+  "status": "success",
+  "plan": {
+    "goal": "Build authentication service",
+    "steps": [
+      {
+        "id": "step-1",
+        "description": "Create authentication module structure",
+        "priority": "high",
+        "estimatedTokens": 2000
+      },
+      {
+        "id": "step-2",
+        "description": "Implement JWT token generation",
+        "priority": "high",
+        "estimatedTokens": 3000
+      },
+      {
+        "id": "step-3",
+        "description": "Add token validation logic",
+        "priority": "high",
+        "estimatedTokens": 2500
+      },
+      {
+        "id": "step-4",
+        "description": "Create unit tests for auth module",
+        "priority": "medium",
+        "estimatedTokens": 2000
+      }
+    ],
+    "totalEstimatedTokens": 9500
+  },
+  "metadata": {
+    "modelUsed": "claude-haiku",
+    "completionTime": "1.23s",
+    "tokensUsed": 1500
+  }
+}
