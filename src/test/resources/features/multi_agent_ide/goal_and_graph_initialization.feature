@@ -9,6 +9,8 @@ Feature: Goal and Computation Graph Initialization
     And the multi-agent-ide service is running
     And the event subscription type is "websocket"
     And a test event listener is subscribed to all events
+    And mock LangChain4j planning response is configured
+    And spec file configuration is set to standard markdown format
 
   @graph_initialization @core
   Scenario Outline: Creating a new goal initializes an orchestrator node

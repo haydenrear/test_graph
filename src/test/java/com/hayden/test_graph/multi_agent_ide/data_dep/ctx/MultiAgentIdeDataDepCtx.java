@@ -17,8 +17,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 /**
  * Data dependency context for multi-agent-ide test graph.
@@ -79,14 +81,96 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
         }
     }
 
+    @Builder
+    public record EventSubscriptionConfig(
+            String subscriptionProtocol,  // "websocket", "http", "kafka", etc.
+            String eventEndpoint,
+            Integer pollIntervalMs,
+            Long subscriptionTimeoutMs,
+            boolean autoStart
+    ) {
+        public EventSubscriptionConfig(String subscriptionProtocol, String eventEndpoint) {
+            this(subscriptionProtocol, eventEndpoint, 100, 30000L, true);
+        }
+    }
+
+    /**
+     * Thread-safe queue for storing events received from the subscription.
+     * Events are stored as generic Object type and transferred to assert context.
+     */
+    public static class EventQueue {
+        private final Queue<Object> events = new LinkedList<>();
+        private volatile boolean subscriptionActive = false;
+
+        public void enqueue(Object event) {
+            synchronized (events) {
+                events.offer(event);
+            }
+        }
+
+        public Object dequeue() {
+            synchronized (events) {
+                return events.poll();
+            }
+        }
+
+        public Object peek() {
+            synchronized (events) {
+                return events.peek();
+            }
+        }
+
+        public int size() {
+            synchronized (events) {
+                return events.size();
+            }
+        }
+
+        public boolean isEmpty() {
+            synchronized (events) {
+                return events.isEmpty();
+            }
+        }
+
+        public List<Object> drainAll() {
+            synchronized (events) {
+                List<Object> allEvents = new ArrayList<>(events);
+                events.clear();
+                return allEvents;
+            }
+        }
+
+        public void setSubscriptionActive(boolean active) {
+            this.subscriptionActive = active;
+        }
+
+        public boolean isSubscriptionActive() {
+            return subscriptionActive;
+        }
+    }
+
     private final ContextValue<TestEventListenerConfig> eventListenerConfig = ContextValue.empty();
     private final ContextValue<LangChain4jMockConfig> langChain4jMockConfig = ContextValue.empty();
     private final ContextValue<SpecToolsConfig> specToolsConfig = ContextValue.empty();
     private final ContextValue<SubmoduleConfig> submoduleConfig = ContextValue.empty();
+    private final ContextValue<EventSubscriptionConfig> eventSubscriptionConfig = ContextValue.empty();
+    private final EventQueue eventQueue = new EventQueue();
     private final Map<String, Object> testData = new HashMap<>();
 
     @Getter
     private final ContextValue<MultiAgentIdeInit> initContext = ContextValue.empty();
+
+    public void setEventSubscriptionConfig(EventSubscriptionConfig config) {
+        eventSubscriptionConfig.set(config);
+    }
+
+    public EventSubscriptionConfig getEventSubscriptionConfig() {
+        return eventSubscriptionConfig.get();
+    }
+
+    public EventQueue getEventQueue() {
+        return eventQueue;
+    }
 
     @Autowired
     @ResettableThread

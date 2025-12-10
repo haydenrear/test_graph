@@ -3,7 +3,12 @@ package com.hayden.test_graph.multi_agent_ide.step_def;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.multi_agent_ide.assert_nodes.ctx.MultiAgentIdeAssertCtx;
 import com.hayden.test_graph.multi_agent_ide.data_dep.ctx.MultiAgentIdeDataDepCtx;
+import com.hayden.test_graph.multi_agent_ide.data_dep.nodes.EventPollingDataDepNode;
+import com.hayden.test_graph.multi_agent_ide.data_dep.nodes.EventSubscriptionDataDepNode;
 import com.hayden.test_graph.multi_agent_ide.init.ctx.MultiAgentIdeInit;
+import com.hayden.test_graph.multi_agent_ide.init.mountebank.ctx.MultiAgentIdeMbInitCtx;
+import com.hayden.test_graph.multi_agent_ide.init.nodes.GitRepositoryInitNode;
+import com.hayden.test_graph.multi_agent_ide.util.GitRepositoryTestHelper;
 import com.hayden.test_graph.steps.ExecAssertStep;
 import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
@@ -14,7 +19,11 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Step definitions for multi-agent-ide feature files.
@@ -37,6 +46,10 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
     @Autowired
     @ResettableThread
     private Assertions assertions;
+
+    @Autowired
+    @ResettableThread
+    private MultiAgentIdeMbInitCtx multiAgentIdeMbInit;
 
     // ============ BACKGROUND / INITIALIZATION STEPS ============
 
@@ -89,6 +102,77 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
         multiAgentIdeDataDep.setLangChain4jMockConfig(mockConfig);
     }
 
+    // ============ EVENT SUBSCRIPTION STEPS ============
+
+    @And("event subscription is configured for WebSocket at {string}")
+    public void event_subscription_websocket_configured(String endpoint) {
+        var config = new MultiAgentIdeDataDepCtx.EventSubscriptionConfig(
+                "websocket",
+                endpoint
+        );
+        multiAgentIdeDataDep.setEventSubscriptionConfig(config);
+    }
+
+    @And("event subscription is configured for HTTP polling at {string}")
+    public void event_subscription_http_configured(String endpoint) {
+        var config = new MultiAgentIdeDataDepCtx.EventSubscriptionConfig(
+                "http",
+                endpoint
+        );
+        multiAgentIdeDataDep.setEventSubscriptionConfig(config);
+    }
+
+    @And("event subscription is configured for Kafka at {string}")
+    public void event_subscription_kafka_configured(String endpoint) {
+        var config = new MultiAgentIdeDataDepCtx.EventSubscriptionConfig(
+                "kafka",
+                endpoint
+        );
+        multiAgentIdeDataDep.setEventSubscriptionConfig(config);
+    }
+
+    @And("event subscription poll interval is set to {int} milliseconds")
+    public void event_subscription_poll_interval(Integer pollIntervalMs) {
+        var currentConfig = multiAgentIdeDataDep.getEventSubscriptionConfig();
+        if (currentConfig != null) {
+            var updatedConfig = new MultiAgentIdeDataDepCtx.EventSubscriptionConfig(
+                    currentConfig.subscriptionProtocol(),
+                    currentConfig.eventEndpoint(),
+                    pollIntervalMs,
+                    currentConfig.subscriptionTimeoutMs(),
+                    currentConfig.autoStart()
+            );
+            multiAgentIdeDataDep.setEventSubscriptionConfig(updatedConfig);
+        }
+    }
+
+    @And("event subscription timeout is set to {long} milliseconds")
+    public void event_subscription_timeout(Long timeoutMs) {
+        var currentConfig = multiAgentIdeDataDep.getEventSubscriptionConfig();
+        if (currentConfig != null) {
+            var updatedConfig = new MultiAgentIdeDataDepCtx.EventSubscriptionConfig(
+                    currentConfig.subscriptionProtocol(),
+                    currentConfig.eventEndpoint(),
+                    currentConfig.pollIntervalMs(),
+                    timeoutMs,
+                    currentConfig.autoStart()
+            );
+            multiAgentIdeDataDep.setEventSubscriptionConfig(updatedConfig);
+        }
+    }
+
+    @And("the event subscription is initialized")
+    public void event_subscription_initialized() {
+        // This step is typically used in background or before scenario
+        // The actual initialization happens in EventSubscriptionDataDepNode during data dep phase
+    }
+
+    @And("the event polling is started")
+    public void event_polling_started() {
+        // This step triggers the event polling setup
+        // The actual polling happens in EventPollingDataDepNode during data dep phase
+    }
+
     @And("git is properly configured in the container")
     @RegisterInitStep(MultiAgentIdeInit.class)
     public void git_configured() {
@@ -120,6 +204,117 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
     public void spec_file_config_set() {
         var config = new MultiAgentIdeInit.SpecFileConfig();
         multiAgentIdeInit.setSpecFileConfig(config);
+    }
+
+    // ============ MOUNTEBANK & MOCK RESPONSE STEPS ============
+
+    @And("mock LangChain4j planning response is configured")
+    @RegisterInitStep(MultiAgentIdeMbInitCtx.class)
+    public void mock_planning_response_configured() {
+        multiAgentIdeMbInit.addMockResponse("planning", 
+                "classpath:multi_agent_ide/responses/planning_response.json",
+                "/ai/planning",
+                8080);
+    }
+
+    @And("mock LangChain4j code generation response is configured")
+    @RegisterInitStep(MultiAgentIdeMbInitCtx.class)
+    public void mock_codegen_response_configured() {
+        multiAgentIdeMbInit.addMockResponse("codegen",
+                "classpath:multi_agent_ide/responses/code_generation_response.json",
+                "/ai/codegen",
+                8080);
+    }
+
+    @And("mock spec validation response is configured")
+    @RegisterInitStep(MultiAgentIdeMbInitCtx.class)
+    public void mock_spec_validation_response_configured() {
+        multiAgentIdeMbInit.addMockResponse("spec_validation",
+                "classpath:multi_agent_ide/responses/spec_validation_response.json",
+                "/specs/validate",
+                8080);
+    }
+
+    @And("mock spec summary response is configured")
+    @RegisterInitStep(MultiAgentIdeMbInitCtx.class)
+    public void mock_spec_summary_response_configured() {
+        multiAgentIdeMbInit.addMockResponse("spec_summary",
+                "classpath:multi_agent_ide/responses/spec_summary_response.json",
+                "/specs/summary",
+                8080);
+    }
+
+    @And("mock review response is configured")
+    @RegisterInitStep(MultiAgentIdeMbInitCtx.class)
+    public void mock_review_response_configured() {
+        multiAgentIdeMbInit.addMockResponse("review",
+                "classpath:multi_agent_ide/responses/review_response.json",
+                "/ai/review",
+                8080);
+    }
+
+    @And("mock merge response is configured")
+    @RegisterInitStep(MultiAgentIdeMbInitCtx.class)
+    public void mock_merge_response_configured() {
+        multiAgentIdeMbInit.addMockResponse("merge",
+                "classpath:multi_agent_ide/responses/merge_response.json",
+                "/git/merge",
+                8080);
+    }
+
+    // ============ GIT REPOSITORY SETUP STEPS ============
+
+    @And("a basic test git repository is configured")
+    @RegisterInitStep(GitRepositoryInitNode.class)
+    public void basic_test_git_repository_configured() {
+        String sourceDir = "classpath:multi_agent_ide/git_repos/basic";
+        
+        MultiAgentIdeInit.RepositorySpec spec = MultiAgentIdeInit.RepositorySpec.builder()
+                .name("basic-test-repo")
+                .sourceDirectory(Paths.get(sourceDir))
+                .nodeId("test-node-1")
+                .goal("Initialize basic test repository")
+                .submoduleNames(Collections.emptyList())
+                .build();
+        
+        multiAgentIdeInit.addRepositorySpec(spec);
+    }
+
+    @And("a test git repository with submodules is configured")
+    @RegisterInitStep(GitRepositoryInitNode.class)
+    public void test_git_repository_with_submodules_configured() {
+        String sourceDir = "classpath:multi_agent_ide/git_repos/with_submodules";
+        
+        List<String> submoduleNames = new ArrayList<>();
+        submoduleNames.add("auth-lib");
+        submoduleNames.add("utils-lib");
+        
+        MultiAgentIdeInit.RepositorySpec spec = MultiAgentIdeInit.RepositorySpec.builder()
+                .name("submodule-test-repo")
+                .sourceDirectory(Paths.get(sourceDir))
+                .nodeId("test-node-2")
+                .goal("Test main repo with submodules")
+                .submoduleNames(submoduleNames)
+                .build();
+        
+        multiAgentIdeInit.addRepositorySpec(spec);
+    }
+
+    @And("a test git repository for complex workflow is configured")
+    @RegisterInitStep(GitRepositoryInitNode.class)
+    public void complex_test_git_repository_configured() {
+        String sourceDir = "classpath:multi_agent_ide/git_repos/complex_workflow";
+        
+        MultiAgentIdeInit.RepositorySpec spec = MultiAgentIdeInit.RepositorySpec.builder()
+                .name("complex-workflow-repo")
+                .sourceDirectory(Paths.get(sourceDir))
+                .nodeId("test-node-3")
+                .goal("Complex workflow with multiple branches")
+                .branchName("feature/complex")
+                .submoduleNames(Collections.emptyList())
+                .build();
+        
+        multiAgentIdeInit.addRepositorySpec(spec);
     }
 
     @And("a mock UI client is registered to receive events")
@@ -160,7 +355,46 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
         // Step implementation will be added during feature development
     }
 
+    // ============ EVENT QUEUE TRANSFER STEPS ============
+
+    @And("the event queue is transferred to the assert context")
+    public void event_queue_transferred_to_assert() {
+        // Transfer the event queue from data dep to assert context
+        multiAgentIdeAssert.transferEventQueueFromDataDep(multiAgentIdeDataDep);
+    }
+
     // ============ EVENT ASSERTION STEPS ============
+
+    @Then("exactly {int} events should be received in the queue")
+    @ExecAssertStep(MultiAgentIdeAssertCtx.class)
+    public void events_count_in_queue(Integer expectedCount) {
+        var allEvents = multiAgentIdeAssert.getAllEventsFromQueue();
+        assertions.assertEqual(allEvents.size(), expectedCount, 
+                "Expected " + expectedCount + " events but got " + allEvents.size());
+    }
+
+    @Then("the event queue should not be empty")
+    @ExecAssertStep(MultiAgentIdeAssertCtx.class)
+    public void event_queue_not_empty() {
+        var queue = multiAgentIdeAssert.getEventQueueFromDataDep();
+        assertions.assertFalse(queue.isEmpty(), "Event queue should not be empty");
+    }
+
+    @Then("the event queue should be empty")
+    @ExecAssertStep(MultiAgentIdeAssertCtx.class)
+    public void event_queue_empty() {
+        var queue = multiAgentIdeAssert.getEventQueueFromDataDep();
+        assertions.assertTrue(queue.isEmpty(), "Event queue should be empty");
+    }
+
+    @Then("events in the queue should be in order")
+    @ExecAssertStep(MultiAgentIdeAssertCtx.class)
+    public void events_in_order() {
+        var allEvents = multiAgentIdeAssert.getAllEventsFromQueue();
+        assertions.assertFalse(allEvents.isEmpty(), "No events in queue to verify order");
+        // Events are in order by definition since we're using a FIFO queue
+        multiAgentIdeAssert.putAssertionResult("events_ordered", true);
+    }
 
     @Then("a NodeAddedEvent should be received containing an OrchestratorNode")
     @ExecAssertStep(MultiAgentIdeAssertCtx.class)

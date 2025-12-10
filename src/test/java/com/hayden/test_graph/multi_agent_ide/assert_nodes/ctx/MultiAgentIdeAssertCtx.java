@@ -72,6 +72,7 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
     private final ContextValue<GraphAssertions> graphAssertions = ContextValue.empty();
     private final List<Object> capturedEvents = new ArrayList<>();
     private final Map<String, Object> assertionResults = new HashMap<>();
+    private MultiAgentIdeDataDepCtx.EventQueue eventQueueFromDataDep;
 
     @Autowired
     @ResettableThread
@@ -117,6 +118,35 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
 
     public Object getAssertionResult(String key) {
         return assertionResults.get(key);
+    }
+
+    /**
+     * Transfer the event queue from data dep context to assert context.
+     * This should be called after data dep phase to make events available for assertions.
+     */
+    public void transferEventQueueFromDataDep(MultiAgentIdeDataDepCtx dataDepCtx) {
+        if (dataDepCtx != null) {
+            this.eventQueueFromDataDep = dataDepCtx.getEventQueue();
+        }
+    }
+
+    /**
+     * Get the event queue that was transferred from data dep context.
+     * Contains all events received during the polling phase.
+     */
+    public MultiAgentIdeDataDepCtx.EventQueue getEventQueueFromDataDep() {
+        return eventQueueFromDataDep;
+    }
+
+    /**
+     * Get all events from the transferred queue as a list.
+     * This drains the queue, so subsequent calls will return an empty list.
+     */
+    public List<Object> getAllEventsFromQueue() {
+        if (eventQueueFromDataDep != null) {
+            return eventQueueFromDataDep.drainAll();
+        }
+        return new ArrayList<>();
     }
 
     @Override

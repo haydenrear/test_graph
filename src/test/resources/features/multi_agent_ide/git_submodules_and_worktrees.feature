@@ -10,6 +10,9 @@ Feature: Git Submodules and Recursive Worktree Management
     And the event subscription type is "websocket"
     And a test event listener is subscribed to all events
     And git is properly configured in the container
+    And mock LangChain4j code generation response is configured
+    And a test git repository with submodules is configured to be created
+    And spec file configuration is set to standard markdown format
 
   @submodules @initialization @core
   Scenario: WorkNode detects submodules and creates worktrees for each

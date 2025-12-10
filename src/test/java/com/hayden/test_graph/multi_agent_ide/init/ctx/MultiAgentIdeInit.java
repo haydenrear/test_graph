@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,10 +79,30 @@ public class MultiAgentIdeInit implements InitCtx {
         }
     }
 
+    @Builder
+    public record RepositorySpec(
+            String name,
+            Path sourceDirectory,  // classpath or filesystem path to source files
+            String nodeId,
+            String goal,
+            String parentWorktreeId,
+            List<String> submoduleNames,  // null if no submodules
+            String branchName
+    ) {
+        public RepositorySpec(String name, Path sourceDirectory, String nodeId, String goal) {
+            this(name, sourceDirectory, nodeId, goal, null, null, null);
+        }
+
+        public RepositorySpec(String name, Path sourceDirectory, String nodeId, String goal, List<String> submoduleNames) {
+            this(name, sourceDirectory, nodeId, goal, null, submoduleNames, null);
+        }
+    }
+
     private final ContextValue<DockerComposeConfig> dockerComposeConfig = ContextValue.empty();
     private final ContextValue<EventSubscriptionConfig> eventSubscriptionConfig = ContextValue.empty();
     private final ContextValue<GitRepositoryConfig> gitRepositoryConfig = ContextValue.empty();
     private final ContextValue<SpecFileConfig> specFileConfig = ContextValue.empty();
+    private final List<RepositorySpec> repositorySpecs = new ArrayList<>();
     private final Map<String, Object> mockResponses = new HashMap<>();
     
     @Getter
@@ -125,6 +146,14 @@ public class MultiAgentIdeInit implements InitCtx {
 
     public SpecFileConfig getSpecFileConfig() {
         return specFileConfig.get();
+    }
+
+    public void addRepositorySpec(RepositorySpec spec) {
+        repositorySpecs.add(spec);
+    }
+
+    public List<RepositorySpec> getRepositorySpecs() {
+        return repositorySpecs;
     }
 
     public void registerMockResponse(String key, Object response) {

@@ -10,6 +10,9 @@ Feature: Planning and Work Generation
     And the event subscription type is "websocket"
     And a test event listener is subscribed to all events
     And LangChain4j models are mocked with predictable responses
+    And mock LangChain4j planning response is configured
+    And a test git repository is configured to be created with initial spec file
+    And spec file configuration is set to standard markdown format
 
   @planning @core
   Scenario: Orchestrator agent creates planning tickets from goal
