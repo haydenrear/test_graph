@@ -28,6 +28,10 @@ public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
         return res.res.one().isPresent();
     }
 
+    public void set(T t) {
+        this.swap(t);
+    }
+
     public static <T> ContextValue<T> empty() {
         return new ContextValue<>(MutableContextValue.empty());
     }
@@ -47,6 +51,10 @@ public record ContextValue<T>(MutableContextValue<T, ContextValueError> res) {
             this.res.set(defaultValue);
         else
             this.res.set(curr.apply(this.res.r().get()));
+    }
+
+    public T get() {
+        return res.get();
     }
 
     public synchronized void compareAndSwap(Predicate<T> curr, T t) {
