@@ -10,6 +10,7 @@ import com.hayden.utilitymodule.result.error.SingleError;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
@@ -20,6 +21,7 @@ import java.util.function.Function;
 @Component
 @ResettableThread
 @RequiredArgsConstructor
+@Profile("indexing")
 public class IndexingK3sInit implements InitCtx {
 
 

@@ -15,6 +15,7 @@ import org.mbtest.javabank.http.predicates.Predicate;
 import org.mbtest.javabank.http.predicates.PredicateType;
 import org.mbtest.javabank.http.responses.Is;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Files;
@@ -32,6 +33,7 @@ import java.util.stream.Stream;
 @Component
 @Slf4j
 @ResettableThread
+@Profile("indexing")
 public class MavenRepositoryResponseNode implements IndexingMbInitNode {
 
     private static final int MAVEN_PORT = 8080;

@@ -25,7 +25,7 @@ import java.net.URI;
  */
 @Component
 @ResettableThread
-@Profile("crawl")
+@Profile("crawl & indexing")
 public class VerifySourcesUploadedToMinIO implements CommitDiffContextIndexingAssertNode {
 
     @Autowired

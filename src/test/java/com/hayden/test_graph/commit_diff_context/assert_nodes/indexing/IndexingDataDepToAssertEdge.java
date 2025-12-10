@@ -5,6 +5,7 @@ import com.hayden.test_graph.commit_diff_context.data_dep.indexing.ctx.CommitDif
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @ResettableThread
+@Profile("indexing")
 public class IndexingDataDepToAssertEdge implements CommitDiffContextIndexingAssertNode {
 
     CommitDiffContextIndexingDataDepCtx dataDepBubble;

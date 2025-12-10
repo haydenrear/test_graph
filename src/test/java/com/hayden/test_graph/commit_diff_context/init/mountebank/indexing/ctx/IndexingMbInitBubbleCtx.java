@@ -8,6 +8,7 @@ import com.hayden.test_graph.init.mountebank.ctx.MbInitBubbleCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
 @Component
 @ResettableThread
 @RequiredArgsConstructor
+@Profile("indexing")
 public class IndexingMbInitBubbleCtx implements MbInitBubbleCtx {
 
     @Getter

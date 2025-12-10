@@ -6,6 +6,7 @@ import com.hayden.test_graph.commit_diff_context.init.indexing.ctx.IndexingK3sIn
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 @RequiredArgsConstructor
+@Profile("indexing")
 public class IndexingIndexingK3SClusterDeployNode implements IndexingK3sInitNode {
 
     private final Assertions assertions;

@@ -7,6 +7,7 @@ import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.sort.GraphSort;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.List;
  */
 @Component
 @ResettableThread
+@Profile("indexing")
 public class K3sToIndexingDataDepEdge implements CommitDiffContextIndexingDataDepNode {
 
     IndexingK3sInit indexingK3sInit;

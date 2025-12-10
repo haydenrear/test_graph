@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
@@ -21,6 +22,7 @@ import java.util.function.Predicate;
 @Component
 @ResettableThread
 @RequiredArgsConstructor
+@Profile("indexing")
 public class CommitDiffContextIndexingDataDepCtx implements DataDepCtx {
 
     @Override

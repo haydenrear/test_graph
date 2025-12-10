@@ -12,6 +12,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import java.util.List;
 @Component
 @ResettableThread
 @RequiredArgsConstructor
+@Profile("indexing")
 public class CommitDiffContextIndexingAssertCtx implements AssertCtx {
 
     @Builder

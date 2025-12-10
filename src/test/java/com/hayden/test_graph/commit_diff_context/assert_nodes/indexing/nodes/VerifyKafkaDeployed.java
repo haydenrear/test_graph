@@ -8,6 +8,7 @@ import com.hayden.test_graph.init.k3s.KubernetesVerifier;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @ResettableThread
+@Profile("indexing")
 public class VerifyKafkaDeployed implements CommitDiffContextIndexingAssertNode {
 
     @Autowired
