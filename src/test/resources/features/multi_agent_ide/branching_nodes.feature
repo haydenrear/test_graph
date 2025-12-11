@@ -33,7 +33,6 @@ Feature: Branching Nodes with Submodules
       | orch-1 | ORCHESTRATOR | READY  | null     | null     | Build payment system |
     And the expected events for this scenario are:
     And the mock response file ""
-    When the user branches work-B with submodule repository
     Then the expected events should have been received
     And a WorkNode should be created for the original work
     And worktrees should be created for main repo and all submodules
