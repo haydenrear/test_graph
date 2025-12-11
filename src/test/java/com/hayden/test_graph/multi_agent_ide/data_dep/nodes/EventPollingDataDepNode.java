@@ -1,6 +1,7 @@
 package com.hayden.test_graph.multi_agent_ide.data_dep.nodes;
 
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.multi_agent_ide.data_dep.ctx.MultiAgentIdeDataDepCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class EventPollingDataDepNode implements MultiAgentIdeDataDepNode {
 
     @Override
-    public MultiAgentIdeDataDepCtx exec(MultiAgentIdeDataDepCtx ctx, TestGraphContext h) {
+    public MultiAgentIdeDataDepCtx exec(MultiAgentIdeDataDepCtx ctx, MetaCtx h) {
         try {
             MultiAgentIdeDataDepCtx.EventSubscriptionConfig config = ctx.getEventSubscriptionConfig();
             MultiAgentIdeDataDepCtx.EventQueue eventQueue = ctx.getEventQueue();

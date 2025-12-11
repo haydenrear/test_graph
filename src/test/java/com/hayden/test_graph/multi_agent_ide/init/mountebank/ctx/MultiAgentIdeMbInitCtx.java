@@ -5,62 +5,57 @@ import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.mountebank.ctx.MbInitCtx;
 import com.hayden.test_graph.multi_agent_ide.init.mountebank.nodes.MultiAgentIdeMbInitNode;
 import com.hayden.test_graph.thread.ResettableThread;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.mbtest.javabank.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * Mountebank context for multi-agent-ide.
  * Handles mocking of LangChain4j responses and other external services.
+ * 
+ * Uses a single consolidated JSON payload file with matchers for multiple agent turns.
+ * Structure: { impostors: [ { port, protocol, stubs: [ { predicates: [...], responses: [...] } ] } ] }
  */
 @Component
 @ResettableThread
-@RequiredArgsConstructor
+@Slf4j
 public class MultiAgentIdeMbInitCtx implements MbInitCtx {
 
-    public record LangChain4jMockResponse(
-            String responseType,  // "planning", "codegen", "review", "merge", "spec_validation", etc.
-            String filePath,      // classpath path to response JSON
-            String endpoint,      // HTTP endpoint path
-            int port             // Mock server port
-    ) {}
-
-    public record MockResponses(List<LangChain4jMockResponse> responses) {
+    /**
+     * Consolidated configuration for all mock responses.
+     * Contains multiple impostors, each with their own stubs.
+     */
+    public record MockResponses(
+            Map<String, Path> impostorsByName,
+            String sourceJsonPath
+    ) {
         public MockResponses() {
-            this(new ArrayList<>());
+            this(new LinkedHashMap<>(), null);
+        }
+        
+        public MockResponses(String sourceJsonPath) {
+            this(new LinkedHashMap<>(), sourceJsonPath);
         }
     }
 
     private Client client;
-    private final ContextValue<MockResponses> mockResponses = ContextValue.empty();
+
+    @Getter
+    private final MockResponses mockResponses;
+
     private final ContextValue<MultiAgentIdeMbInitBubbleCtx> bubbleUnderlying = ContextValue.empty();
 
     public MultiAgentIdeMbInitCtx() {
-        this.mockResponses.swap(new MockResponses());
+        this.mockResponses = new MockResponses();
     }
 
-    public void addMockResponse(LangChain4jMockResponse response) {
-        MockResponses current = mockResponses.get();
-        if (current == null) {
-            current = new MockResponses();
-            mockResponses.swap(current);
-        }
-        current.responses.add(response);
-    }
-
-    public void addMockResponse(String responseType, String filePath, String endpoint, int port) {
-        addMockResponse(new LangChain4jMockResponse(responseType, filePath, endpoint, port));
-    }
-
-    public MockResponses getMockResponses() {
-        return mockResponses.get();
-    }
 
     @Override
     public Client client() {
@@ -71,6 +66,10 @@ public class MultiAgentIdeMbInitCtx implements MbInitCtx {
     @Autowired
     public void setClient(Client client) {
         this.client = client;
+    }
+
+    public void registerImposterFile(String mocks) {
+        this.mockResponses.impostorsByName.put(mocks, Paths.get(mocks));
     }
 
     @Autowired

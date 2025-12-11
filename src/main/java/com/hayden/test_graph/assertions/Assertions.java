@@ -8,6 +8,7 @@ import org.assertj.core.api.SoftAssertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 @ResettableThread
@@ -91,4 +92,15 @@ public class Assertions {
 
     }
 
+    public void assertTrue(boolean b, String s) {
+        this.assertSoftly(b, s);
+    }
+
+    public void assertEqual(Object configuredTokens, Object expectedTokens, String tokenCountMismatch) {
+        this.assertSoftly(Objects.equals(configuredTokens, expectedTokens), tokenCountMismatch);
+    }
+
+    public void assertFalse(boolean empty, String s) {
+        this.assertSoftly(!empty, s);
+    }
 }

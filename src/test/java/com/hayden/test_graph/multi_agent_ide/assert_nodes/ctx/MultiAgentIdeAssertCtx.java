@@ -33,6 +33,187 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
 
     private MultiAgentIdeAssertBubble bubble;
 
+    // ============ SEALED ASSERTION TYPE HIERARCHY ============
+    // Extensible sealed interface pattern for type-safe assertion handling.
+    // Add new assertion types by creating new records that implement this interface.
+
+    /**
+     * Sealed interface for all MultiAgentIde assertion types.
+     * Enables pattern matching and exhaustive checking of assertion types.
+     * Extend this interface to add new assertion types for other feature files.
+     */
+    public sealed interface MultiAgentIdeAssertion permits
+            EventAssertion,
+            NodeStatusAssertion,
+            NodePersistenceAssertion,
+            NodeCapabilityAssertion,
+            ChildNodeCountAssertion,
+            CompletionStatusAssertion,
+            EventCountAssertion,
+            UniqueNodeIdAssertion,
+            DatabasePersistenceAssertion,
+            ProtocolReceptionAssertion,
+            EventDeserializationAssertion,
+            NodeIdMatchAssertion,
+            MessageBusPublicationAssertion,
+            EventContentAssertion,
+            NodeStatusChangedEventAssertion
+    {}
+
+    /**
+     * Assertion for event reception and validation.
+     */
+    @Builder
+    public record EventAssertion(
+            String eventType,
+            String nodeType,
+            String nodeId,
+            boolean shouldExist
+    ) implements MultiAgentIdeAssertion {}
+
+    /**
+     * Assertion for node status validation.
+     */
+    @Builder
+    public record NodeStatusAssertion(
+            String nodeId,
+            String expectedStatus,
+            String assertionType
+    ) implements MultiAgentIdeAssertion {}
+
+    /**
+     * Assertion for node persistence in database.
+     */
+    @Builder
+    public record NodePersistenceAssertion(
+            String nodeId,
+            String assertionType,
+            boolean shouldBePersisted,
+            String database
+    ) implements MultiAgentIdeAssertion {}
+
+    /**
+     * Assertion for node capabilities (Branchable, Interruptable, etc).
+     */
+    @Builder
+    public record NodeCapabilityAssertion(
+            String nodeId,
+            String capability,
+            boolean shouldHaveCapability
+    ) implements MultiAgentIdeAssertion {}
+
+    /**
+     * Assertion for child node count.
+     */
+    @Builder
+    public record ChildNodeCountAssertion(
+            String nodeId,
+            int expectedChildCount,
+            String assertionType
+    ) implements MultiAgentIdeAssertion {}
+
+    /**
+     * Assertion for node completion status.
+     */
+    @Builder
+    public record CompletionStatusAssertion(
+            String nodeId,
+            int expectedCompletionPercentage,
+            String assertionType
+    ) implements MultiAgentIdeAssertion {}
+
+    /**
+     * Assertion for event count validation.
+     */
+    @Builder
+    public record EventCountAssertion(
+            String eventType,
+            int expectedEventCount,
+            String assertionType
+    ) implements MultiAgentIdeAssertion {}
+
+    /**
+     * Assertion for unique node IDs.
+     */
+    @Builder
+    public record UniqueNodeIdAssertion(
+            int expectedOrchestratorCount,
+            boolean shouldHaveDifferentIds,
+            String assertionType
+    ) implements MultiAgentIdeAssertion {}
+
+    /**
+     * Assertion for database persistence of multiple nodes.
+     */
+    @Builder
+    public record DatabasePersistenceAssertion(
+            int expectedNodeCount,
+            String database,
+            boolean shouldBeSeparateEntries
+    ) implements MultiAgentIdeAssertion {}
+
+    /**
+     * Assertion for protocol-specific event reception.
+     */
+    @Builder
+    public record ProtocolReceptionAssertion(
+            String eventType,
+            String protocol,
+            boolean shouldBeReceived
+    ) implements MultiAgentIdeAssertion {}
+
+    /**
+     * Assertion for event data deserialization.
+     */
+    @Builder
+    public record EventDeserializationAssertion(
+            String eventType,
+            boolean shouldDeserializeCorrectly,
+            String assertionType
+    ) implements MultiAgentIdeAssertion {}
+
+    /**
+     * Assertion for node ID matching.
+     */
+    @Builder
+    public record NodeIdMatchAssertion(
+            String expectedNodeId,
+            String assertionType
+    ) implements MultiAgentIdeAssertion {}
+
+    /**
+     * Assertion for message bus event publication.
+     */
+    @Builder
+    public record MessageBusPublicationAssertion(
+            String eventType,
+            String publishDestination,
+            boolean shouldBePublished
+    ) implements MultiAgentIdeAssertion {}
+
+    /**
+     * Assertion for event content validation.
+     */
+    @Builder
+    public record EventContentAssertion(
+            String eventType,
+            String nodeId,
+            String[] expectedFields,
+            boolean shouldContainAllFields
+    ) implements MultiAgentIdeAssertion {}
+
+    /**
+     * Assertion for node status change events.
+     */
+    @Builder
+    public record NodeStatusChangedEventAssertion(
+            String eventType,
+            String nodeId,
+            String newStatus,
+            String fromStatus,
+            boolean shouldBeReceived
+    ) implements MultiAgentIdeAssertion {}
+
     @Builder
     public record EventAssertions(
             int expectedEventCount,
@@ -73,6 +254,12 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
     private final List<Object> capturedEvents = new ArrayList<>();
     private final Map<String, Object> assertionResults = new HashMap<>();
     private MultiAgentIdeDataDepCtx.EventQueue eventQueueFromDataDep;
+    
+    // ============ ASSERTION LIFECYCLE MANAGEMENT ============
+    // Pending, executed, and failed assertions for goal_and_graph_initialization and other features
+    private final List<MultiAgentIdeAssertion> pendingAssertions = new ArrayList<>();
+    private final List<MultiAgentIdeAssertion> executedAssertions = new ArrayList<>();
+    private final List<MultiAgentIdeAssertion> failedAssertions = new ArrayList<>();
 
     @Autowired
     @ResettableThread
@@ -121,24 +308,6 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
     }
 
     /**
-     * Transfer the event queue from data dep context to assert context.
-     * This should be called after data dep phase to make events available for assertions.
-     */
-    public void transferEventQueueFromDataDep(MultiAgentIdeDataDepCtx dataDepCtx) {
-        if (dataDepCtx != null) {
-            this.eventQueueFromDataDep = dataDepCtx.getEventQueue();
-        }
-    }
-
-    /**
-     * Get the event queue that was transferred from data dep context.
-     * Contains all events received during the polling phase.
-     */
-    public MultiAgentIdeDataDepCtx.EventQueue getEventQueueFromDataDep() {
-        return eventQueueFromDataDep;
-    }
-
-    /**
      * Get all events from the transferred queue as a list.
      * This drains the queue, so subsequent calls will return an empty list.
      */
@@ -147,6 +316,97 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
             return eventQueueFromDataDep.drainAll();
         }
         return new ArrayList<>();
+    }
+
+    // ============ ASSERTION MANAGEMENT METHODS ============
+    // These methods manage the lifecycle of MultiAgentIdeAssertion types
+    // Used by step definitions to add assertions and by assertion nodes to execute them
+
+    /**
+     * Add an assertion to the pending assertions list.
+     * Called by step definitions to register assertions that will be validated.
+     * @param assertion The assertion to add
+     */
+    public void addPendingAssertion(MultiAgentIdeAssertion assertion) {
+        pendingAssertions.add(assertion);
+    }
+
+    /**
+     * Get all pending assertions that have not yet been executed.
+     * @return List of pending assertions
+     */
+    public List<MultiAgentIdeAssertion> getPendingAssertions() {
+        return new ArrayList<>(pendingAssertions);
+    }
+
+    /**
+     * Get the count of pending assertions.
+     * @return Number of pending assertions
+     */
+    public int getPendingAssertionCount() {
+        return pendingAssertions.size();
+    }
+
+    /**
+     * Mark an assertion as executed after validation passes.
+     * Moves assertion from pending to executed list.
+     * @param assertion The assertion that was executed
+     */
+    public void markAssertionExecuted(MultiAgentIdeAssertion assertion) {
+        pendingAssertions.remove(assertion);
+        executedAssertions.add(assertion);
+    }
+
+    /**
+     * Mark an assertion as failed when validation fails.
+     * Moves assertion from pending to failed list.
+     * @param assertion The assertion that failed
+     */
+    public void markAssertionFailed(MultiAgentIdeAssertion assertion) {
+        pendingAssertions.remove(assertion);
+        failedAssertions.add(assertion);
+    }
+
+    /**
+     * Get all executed assertions that passed validation.
+     * @return List of executed assertions
+     */
+    public List<MultiAgentIdeAssertion> getExecutedAssertions() {
+        return new ArrayList<>(executedAssertions);
+    }
+
+    /**
+     * Get all failed assertions that did not pass validation.
+     * @return List of failed assertions
+     */
+    public List<MultiAgentIdeAssertion> getFailedAssertions() {
+        return new ArrayList<>(failedAssertions);
+    }
+
+    /**
+     * Clear all assertions (pending, executed, and failed).
+     * Called during test context reset.
+     */
+    public void clearAllAssertions() {
+        pendingAssertions.clear();
+        executedAssertions.clear();
+        failedAssertions.clear();
+    }
+
+    /**
+     * Check if there are any assertions to validate.
+     * @return true if there are pending assertions
+     */
+    public boolean hasAssertionsToValidate() {
+        return !pendingAssertions.isEmpty();
+    }
+
+    /**
+     * Check if all assertions have passed (no failures, all executed).
+     * @return true if all assertions passed
+     */
+    public boolean allAssertionsPassed() {
+        return pendingAssertions.isEmpty() && failedAssertions.isEmpty();
     }
 
     @Override

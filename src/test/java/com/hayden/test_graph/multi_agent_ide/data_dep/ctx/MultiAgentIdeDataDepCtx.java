@@ -1,5 +1,6 @@
 package com.hayden.test_graph.multi_agent_ide.data_dep.ctx;
 
+import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
@@ -12,6 +13,7 @@ import com.hayden.test_graph.thread.ResettableThread;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +34,8 @@ import java.util.Queue;
 public class MultiAgentIdeDataDepCtx implements DataDepCtx {
 
     private MultiAgentIdeDataDepBubble bubble;
+
+    private Assertions assertions;
 
     @Builder
     public record TestEventListenerConfig(
@@ -100,6 +104,8 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
      */
     public static class EventQueue {
         private final Queue<Object> events = new LinkedList<>();
+        @Setter
+        @Getter
         private volatile boolean subscriptionActive = false;
 
         public void enqueue(Object event) {
@@ -140,13 +146,6 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
             }
         }
 
-        public void setSubscriptionActive(boolean active) {
-            this.subscriptionActive = active;
-        }
-
-        public boolean isSubscriptionActive() {
-            return subscriptionActive;
-        }
     }
 
     private final ContextValue<TestEventListenerConfig> eventListenerConfig = ContextValue.empty();
@@ -154,28 +153,26 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
     private final ContextValue<SpecToolsConfig> specToolsConfig = ContextValue.empty();
     private final ContextValue<SubmoduleConfig> submoduleConfig = ContextValue.empty();
     private final ContextValue<EventSubscriptionConfig> eventSubscriptionConfig = ContextValue.empty();
+    @Getter
     private final EventQueue eventQueue = new EventQueue();
-    private final Map<String, Object> testData = new HashMap<>();
 
     @Getter
     private final ContextValue<MultiAgentIdeInit> initContext = ContextValue.empty();
 
-    public void setEventSubscriptionConfig(EventSubscriptionConfig config) {
-        eventSubscriptionConfig.set(config);
-    }
-
     public EventSubscriptionConfig getEventSubscriptionConfig() {
         return eventSubscriptionConfig.get();
-    }
-
-    public EventQueue getEventQueue() {
-        return eventQueue;
     }
 
     @Autowired
     @ResettableThread
     public void setBubble(MultiAgentIdeDataDepBubble bubble) {
         this.bubble = bubble;
+    }
+
+    @Autowired
+    @ResettableThread
+    public void setAssertions(Assertions assertions) {
+        this.assertions = assertions;
     }
 
     public void setEventListenerConfig(TestEventListenerConfig config) {
@@ -210,14 +207,6 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
         return submoduleConfig.get();
     }
 
-    public void putTestData(String key, Object value) {
-        testData.put(key, value);
-    }
-
-    public Object getTestData(String key) {
-        return testData.get(key);
-    }
-
     @Override
     public boolean executableFor(GraphExec.GraphExecNode n) {
         return n instanceof MultiAgentIdeDataDepNode;
@@ -237,4 +226,5 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
     public List<Class<? extends TestGraphContext>> dependsOn() {
         return List.of();
     }
+
 }
