@@ -80,7 +80,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
 
     /**
      * Define expected events table with comprehensive event details and mock responses.
-     * Table columns: eventType, sourceNodeId, targetNodeId, payloadFile, mockResponseFile, order (optional)
+     * Table columns: eventType, nodeType, payloadFile, order (optional)
      * Creates assertions for each expected event and loads mock responses from Mountebank.
      * 
      * Mock response files are loaded from: /multi_agent_ide/responses/ directory
@@ -91,12 +91,10 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
     public void expected_events_scenario(io.cucumber.datatable.DataTable table) {
         var rows = table.asMaps(String.class, String.class);
         int eventIndex = 0;
-        var mockResponsesList = new ArrayList<String>();
         
         for (var row : rows) {
             String eventType = row.get("eventType");
-            String sourceNodeId = row.get("sourceNodeId");
-            String targetNodeId = row.get("targetNodeId");
+            String nodeType = row.get("nodeType");
             String payloadFile = row.get("payloadFile");  // Event payload file reference
             String orderStr = row.get("order");
             
@@ -105,8 +103,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
             // Create assertion for this event
             var assertion = MultiAgentIdeAssertCtx.EventAssertion.builder()
                     .eventType(eventType)
-                    .nodeType(sourceNodeId)
-                    .nodeId(sourceNodeId)
+                    .nodeType(nodeType)
                     .shouldExist(true)
                     .build();
             
