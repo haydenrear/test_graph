@@ -105,6 +105,7 @@ public class CommitDiffContextIndexingDataDepCtx implements DataDepCtx {
     }
 
     @Autowired
+    @ResettableThread
     public void setBubble(CommitDiffContextIndexingDataDepBubble bubble) {
         this.bubbleUnderlying = bubble;
     }
