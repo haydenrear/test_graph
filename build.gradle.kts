@@ -21,7 +21,7 @@ dependencies {
     implementation(project(":commit-diff-model"))
     implementation(project(":commit-diff-context"))
     implementation(project(":commit-diff-context-mcp"))
-    implementation(project(":multi-agent-ide"))
+//    implementation(project(":multi-agent-ide"))
     implementation(project(":mcp-tool-gateway"))
     implementation(project(":jpa-persistence"))
     implementation(project(":proto"))
