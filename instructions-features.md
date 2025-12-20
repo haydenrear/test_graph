@@ -38,3 +38,12 @@ By defining it as a state and then actions over the state, we can minimize the n
 the testing of the contracts. Additionally, because the cucumber tags match with the acceptance criteria in our spec,
 we can see just how that contract maps to events, which are communication of our domain model across application 
 boundaries.
+
+
+### Invariants
+
+So it can be easy to include in the given a state that cannot be created by simply calling the service, but this is wrong. For instance, if I have a computation graph in the service of the memory I test, it would be incorrect to say given the state of that computation graph is such. Instead, the givens must be a state that can be created using the interfaces provided by the service, and typically this means rest endpoints or websocket endpoints.
+
+Instead, we provide the starting state for the service that can be produced by calling the service, and then we mock out the service's dependencies that are required to produce the state in memory that cannot be produced explicitly. We do this using mountbank imposters. You can see in instructions.md more information about how to use mountbank imposters.
+
+Please never assume you can create an arbitrary state that cannot be created by calling the service. Instead, use the provided starting state and mock out the service's dependencies to create the state in memory that cannot be produced explicitly. This may mean mocking out the responses to an LLM call over the network, and then that in-memory state will be produced by the service itself.

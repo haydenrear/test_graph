@@ -60,20 +60,6 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
     }
 
     @Builder
-    public record SpecToolsConfig(
-            boolean enableValidation,
-            boolean enableGetSummary,
-            boolean enableGetSection,
-            boolean enableMerge,
-            Integer maxContextTokens,
-            boolean cacheSpecSummaries
-    ) {
-        public SpecToolsConfig() {
-            this(true, true, true, true, 8000, true);
-        }
-    }
-
-    @Builder
     public record SubmoduleConfig(
             boolean enableSubmoduleSupport,
             boolean autoDetectSubmodules,
@@ -150,7 +136,6 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
 
     private final ContextValue<TestEventListenerConfig> eventListenerConfig = ContextValue.empty();
     private final ContextValue<LangChain4jMockConfig> langChain4jMockConfig = ContextValue.empty();
-    private final ContextValue<SpecToolsConfig> specToolsConfig = ContextValue.empty();
     private final ContextValue<SubmoduleConfig> submoduleConfig = ContextValue.empty();
     private final ContextValue<EventSubscriptionConfig> eventSubscriptionConfig = ContextValue.empty();
     @Getter
@@ -189,14 +174,6 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
 
     public LangChain4jMockConfig getLangChain4jMockConfig() {
         return langChain4jMockConfig.get();
-    }
-
-    public void setSpecToolsConfig(SpecToolsConfig config) {
-        specToolsConfig.set(config);
-    }
-
-    public SpecToolsConfig getSpecToolsConfig() {
-        return specToolsConfig.get();
     }
 
     public void setSubmoduleConfig(SubmoduleConfig config) {
