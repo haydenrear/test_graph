@@ -3,7 +3,7 @@ plugins {
     id("com.hayden.observable-app")
     id("com.hayden.no-main-class")
     id("com.hayden.git")
-    id("com.hayden.dgs-graphql")
+    id("com.hayden.graphql")
     id("com.hayden.docker-compose")
     id("com.hayden.mb")
     id("com.hayden.cucumber")
@@ -40,12 +40,6 @@ tasks.compileJava {
     dependsOn(project(":commit-diff-context-mcp").tasks.getByName("commitDiffContextMcpTask"))
     dependsOn(project(":mcp-tool-gateway").tasks.getByName("mcpToolGatewayTask"))
 //     java -javaagent:commit-diff-context/build/agent/prometheus-javaagent.jar=12345:commit-diff-context/prom-config.yaml -jar ?.jar
-}
-
-tasks.generateJava {
-    typeMapping = mutableMapOf(
-        Pair("ByteArray", "com.hayden.commitdiffmodel.scalar.ByteArray")
-    )
 }
 
 project.mountebank.allowInjection = true
