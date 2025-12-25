@@ -1,5 +1,4 @@
 commit-diff-context-server-props:
-  url: http://localhost:8080/graphql
   port: 8080
   model-server-base-url: http://localhost:9991
   model-server-port: 9991
@@ -7,6 +6,8 @@ commit-diff-context-server-props:
   home-dir: /Users/hayde
   test-embedding-max-side: 10000
 
+graphql-client:
+  url: http://localhost:8080/graphql
 env-props:
   home-dir: /Users/hayde
   project-dir: /Users/hayde/IdeaProjects/drools/test_graph
