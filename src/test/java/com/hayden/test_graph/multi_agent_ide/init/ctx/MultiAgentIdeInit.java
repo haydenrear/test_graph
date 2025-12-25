@@ -265,6 +265,7 @@ public class MultiAgentIdeInit implements InitCtx {
     private final ContextValue<EventSubscriptionConfig> eventSubscriptionConfig = ContextValue.empty();
     private final ContextValue<GitRepositoryConfig> gitRepositoryConfig = ContextValue.empty();
     private final ContextValue<SpecFileConfig> specFileConfig = ContextValue.empty();
+    @Getter
     private final List<RepositorySpec> repositorySpecs = new ArrayList<>();
     private final Map<String, Object> mockResponses = new HashMap<>();
     

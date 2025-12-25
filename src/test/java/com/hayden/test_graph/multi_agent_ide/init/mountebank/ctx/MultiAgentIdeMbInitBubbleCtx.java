@@ -4,6 +4,7 @@ import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.docker.ctx.DockerInitBubbleCtx;
+import com.hayden.test_graph.init.mountebank.ctx.MbInitBubbleCtx;
 import com.hayden.test_graph.multi_agent_ide.init.mountebank.nodes.MultiAgentIdeMbInitBubbleNode;
 import com.hayden.test_graph.thread.ResettableThread;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,7 @@ import java.util.List;
  */
 @Component
 @ResettableThread
-public class MultiAgentIdeMbInitBubbleCtx implements InitBubble {
+public class MultiAgentIdeMbInitBubbleCtx implements MbInitBubbleCtx {
 
     @Override
     public boolean executableFor(GraphExec.GraphExecNode n) {

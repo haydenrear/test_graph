@@ -1,6 +1,7 @@
 package com.hayden.test_graph.multi_agent_ide.init.nodes;
 
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.multi_agent_ide.init.ctx.MultiAgentIdeInit;
 import com.hayden.test_graph.multi_agent_ide.util.GitRepositoryTestHelper;
 import com.hayden.test_graph.thread.ResettableThread;
@@ -28,7 +29,7 @@ import java.util.stream.Stream;
 public class GitRepositoryInitNode implements MultiAgentIdeInitNode {
 
     @Override
-    public MultiAgentIdeInit exec(MultiAgentIdeInit ctx, TestGraphContext h) {
+    public MultiAgentIdeInit exec(MultiAgentIdeInit ctx, MetaCtx h) {
         try {
             // Get all repository specifications from context
             List<MultiAgentIdeInit.RepositorySpec> specs = ctx.getRepositorySpecs();

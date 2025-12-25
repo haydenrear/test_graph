@@ -256,7 +256,7 @@ public class GitRepositoryTestHelper {
      *
      * @param git Git instance
      */
-    private static void configureGit(Git git) throws GitAPIException {
+    private static void configureGit(Git git) throws GitAPIException, IOException {
         git.getRepository().getConfig().setString("user", null, "name", "Test User");
         git.getRepository().getConfig().setString("user", null, "email", "test@example.com");
         git.getRepository().getConfig().save();

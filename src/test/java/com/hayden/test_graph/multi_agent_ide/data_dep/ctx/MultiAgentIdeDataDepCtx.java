@@ -138,6 +138,7 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
     private final ContextValue<LangChain4jMockConfig> langChain4jMockConfig = ContextValue.empty();
     private final ContextValue<SubmoduleConfig> submoduleConfig = ContextValue.empty();
     private final ContextValue<EventSubscriptionConfig> eventSubscriptionConfig = ContextValue.empty();
+    private final ContextValue<MultiAgentIdeInit> initCtx = ContextValue.empty();
     @Getter
     private final EventQueue eventQueue = new EventQueue();
 
@@ -158,6 +159,10 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
     @ResettableThread
     public void setAssertions(Assertions assertions) {
         this.assertions = assertions;
+    }
+
+    public void setInitCtx(MultiAgentIdeInit init) {
+        initCtx.set(init);
     }
 
     public void setEventListenerConfig(TestEventListenerConfig config) {

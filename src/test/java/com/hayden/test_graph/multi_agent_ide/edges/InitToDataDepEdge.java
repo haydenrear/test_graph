@@ -1,6 +1,7 @@
 package com.hayden.test_graph.multi_agent_ide.edges;
 
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.multi_agent_ide.data_dep.ctx.MultiAgentIdeDataDepCtx;
 import com.hayden.test_graph.multi_agent_ide.data_dep.nodes.MultiAgentIdeDataDepNode;
 import com.hayden.test_graph.multi_agent_ide.init.ctx.MultiAgentIdeInit;
@@ -21,19 +22,9 @@ public class InitToDataDepEdge implements MultiAgentIdeDataDepNode {
     private MultiAgentIdeInit initContext;
 
     @Override
-    public MultiAgentIdeDataDepCtx exec(MultiAgentIdeDataDepCtx c, TestGraphContext h) {
+    public MultiAgentIdeDataDepCtx exec(MultiAgentIdeDataDepCtx c, MetaCtx h) {
         // Transfer initialization configuration to data dependency context
-        if (initContext != null) {
-            if (initContext.getDockerComposeConfig() != null) {
-                c.putTestData("dockerComposeConfig", initContext.getDockerComposeConfig());
-            }
-            if (initContext.getEventSubscriptionConfig() != null) {
-                c.putTestData("eventSubscriptionConfig", initContext.getEventSubscriptionConfig());
-            }
-            if (initContext.getGitRepositoryConfig() != null) {
-                c.putTestData("gitRepositoryConfig", initContext.getGitRepositoryConfig());
-            }
-        }
+        c.setInitCtx(initContext);
         return c;
     }
 }

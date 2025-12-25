@@ -86,18 +86,5 @@ public class MultiAgentIdeConsolidatedSpecsToDataDepEdge implements MultiAgentId
         return ctx;
     }
 
-    /**
-     * Defines dependencies for this edge component within the data dependency phase.
-     * 
-     * This edge component has no dependencies on other MultiAgentIdeDataDepNode implementations,
-     * meaning it can execute as soon as the data dep phase begins.
-     * 
-     * @return empty list (no dependencies)
-     */
-    @Override
-    public List<Class<? extends MultiAgentIdeDataDepNode>> dependsOn() {
-        return new ArrayList<>();
-    }
-
 
 }

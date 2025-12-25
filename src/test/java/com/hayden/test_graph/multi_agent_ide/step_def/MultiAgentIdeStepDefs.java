@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Step definitions for multi-agent-ide feature files.
@@ -151,6 +152,43 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
             graphMap.put(graphId, nodeCount);
         }
         
+    }
+
+    /**
+     * Configure test settings such as model type and streaming behavior.
+     * Expected columns: key, value
+     */
+    @Given("the test configuration is:")
+    public void test_configuration(io.cucumber.datatable.DataTable table) {
+        var rows = table.asMaps(String.class, String.class);
+        String modelType = null;
+        Boolean useStreamingModel = null;
+
+        for (var row : rows) {
+            String key = row.get("key");
+            String value = row.get("value");
+            if (key == null || value == null) {
+                continue;
+            }
+            if ("MODEL_TYPE".equalsIgnoreCase(key)) {
+                modelType = value;
+            } else if ("USE_STREAMING_MODEL".equalsIgnoreCase(key)) {
+                useStreamingModel = Boolean.parseBoolean(value);
+            }
+        }
+
+        var existing = multiAgentIdeDataDep.getLangChain4jMockConfig();
+        Map<String, String> mockResponses = existing != null ? new HashMap<>(existing.mockResponses()) : new HashMap<>();
+        boolean resolvedStreaming = useStreamingModel != null ? useStreamingModel : existing == null || existing.useStreamingModel();
+        String resolvedModelType = modelType != null ? modelType : (existing != null ? existing.modelType() : "http");
+
+        multiAgentIdeDataDep.setLangChain4jMockConfig(
+                MultiAgentIdeDataDepCtx.LangChain4jMockConfig.builder()
+                        .useStreamingModel(resolvedStreaming)
+                        .modelType(resolvedModelType)
+                        .mockResponses(mockResponses)
+                        .build()
+        );
     }
 
     /**

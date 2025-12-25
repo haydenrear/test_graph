@@ -1,6 +1,7 @@
 package com.hayden.test_graph.multi_agent_ide.edges;
 
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.multi_agent_ide.assert_nodes.ctx.MultiAgentIdeAssertCtx;
 import com.hayden.test_graph.multi_agent_ide.assert_nodes.nodes.MultiAgentIdeAssertNode;
 import com.hayden.test_graph.multi_agent_ide.init.ctx.MultiAgentIdeInit;
@@ -21,7 +22,7 @@ public class InitToAssertEdge implements MultiAgentIdeAssertNode {
     private MultiAgentIdeInit initContext;
 
     @Override
-    public MultiAgentIdeAssertCtx exec(MultiAgentIdeAssertCtx c, TestGraphContext h) {
+    public MultiAgentIdeAssertCtx exec(MultiAgentIdeAssertCtx c, MetaCtx h) {
         // Transfer initialization configuration to assert context
         c.setInitContext(initContext);
         return c;

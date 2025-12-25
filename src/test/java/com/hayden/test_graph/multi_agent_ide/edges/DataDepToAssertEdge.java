@@ -1,6 +1,7 @@
 package com.hayden.test_graph.multi_agent_ide.edges;
 
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.multi_agent_ide.assert_nodes.ctx.MultiAgentIdeAssertCtx;
 import com.hayden.test_graph.multi_agent_ide.assert_nodes.nodes.MultiAgentIdeAssertNode;
 import com.hayden.test_graph.multi_agent_ide.data_dep.ctx.MultiAgentIdeDataDepCtx;
@@ -21,7 +22,7 @@ public class DataDepToAssertEdge implements MultiAgentIdeAssertNode {
     private MultiAgentIdeDataDepCtx dataDepContext;
 
     @Override
-    public MultiAgentIdeAssertCtx exec(MultiAgentIdeAssertCtx c, TestGraphContext h) {
+    public MultiAgentIdeAssertCtx exec(MultiAgentIdeAssertCtx c, MetaCtx h) {
         // Transfer data dependency configuration to assert context
         c.setDataDepContext(dataDepContext);
         
