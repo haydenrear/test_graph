@@ -1,0 +1,28 @@
+{
+  "impostors": [
+    {
+      "port": 4545,
+      "protocol": "http",
+      "stubs": [
+        {
+          "predicates": [
+            {
+              "equals": {
+                "method": "POST",
+                "path": "/"
+              }
+            }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "body": "{ \"consolidatedOutput\": \"collector summary\", \"collectorDecision\": { \"decisionType\": \"ADVANCE_PHASE\", \"rationale\": \"default\", \"requestedPhase\": \"next\" } }"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
