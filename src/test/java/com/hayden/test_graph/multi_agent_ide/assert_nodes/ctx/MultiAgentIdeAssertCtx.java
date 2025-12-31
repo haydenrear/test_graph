@@ -68,6 +68,7 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
             String eventType,
             String nodeType,
             String nodeId,
+            String payloadFile,
             boolean shouldExist
     ) implements MultiAgentIdeAssertion {}
 

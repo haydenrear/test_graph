@@ -105,6 +105,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
             var assertion = MultiAgentIdeAssertCtx.EventAssertion.builder()
                     .eventType(eventType)
                     .nodeType(nodeType)
+                    .payloadFile(payloadFile)
                     .shouldExist(true)
                     .build();
             
@@ -285,6 +286,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
         var assertion = MultiAgentIdeAssertCtx.EventAssertion.builder()
                 .eventType("NODE_ADDED")
                 .nodeType("SUMMARY")
+                .payloadFile(null)
                 .shouldExist(true)
                 .build();
         
