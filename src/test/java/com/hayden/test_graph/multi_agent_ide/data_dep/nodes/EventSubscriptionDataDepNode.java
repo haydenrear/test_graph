@@ -82,6 +82,9 @@ public class EventSubscriptionDataDepNode implements MultiAgentIdeDataDepNode {
         String protocol = config.subscriptionProtocol().toLowerCase();
         
         switch (protocol) {
+            case "sse":
+                initializeSseSubscription(config, ctx);
+                break;
             case "websocket":
                 initializeWebSocketSubscription(config, ctx);
                 break;
@@ -94,6 +97,21 @@ public class EventSubscriptionDataDepNode implements MultiAgentIdeDataDepNode {
             default:
                 throw new IllegalArgumentException("Unsupported subscription protocol: " + protocol);
         }
+    }
+
+    /**
+     * Initialize SSE subscription.
+     */
+    private void initializeSseSubscription(
+            MultiAgentIdeDataDepCtx.EventSubscriptionConfig config,
+            MultiAgentIdeDataDepCtx ctx) {
+
+        log.debug("Initializing SSE subscription to {}", config.eventEndpoint());
+
+        MultiAgentIdeDataDepCtx.EventQueue eventQueue = ctx.getEventQueue();
+        eventQueue.setSubscriptionActive(true);
+
+        log.debug("SSE subscription initialized and ready");
     }
 
     /**

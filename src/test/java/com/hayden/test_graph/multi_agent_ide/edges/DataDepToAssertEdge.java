@@ -25,6 +25,7 @@ public class DataDepToAssertEdge implements MultiAgentIdeAssertNode {
     public MultiAgentIdeAssertCtx exec(MultiAgentIdeAssertCtx c, MetaCtx h) {
         // Transfer data dependency configuration to assert context
         c.setDataDepContext(dataDepContext);
+        c.setUiEvents(dataDepContext.getUiEvents());
         
         // Copy test data from data dep context
         if (dataDepContext.getEventListenerConfig() != null) {
@@ -32,6 +33,9 @@ public class DataDepToAssertEdge implements MultiAgentIdeAssertNode {
         }
         if (dataDepContext.getLangChain4jMockConfig() != null) {
             c.putAssertionResult("langChain4jMockConfig", dataDepContext.getLangChain4jMockConfig());
+        }
+        if (dataDepContext.getExpectedEventCount() != null) {
+            c.putAssertionResult("expectedEventCount", dataDepContext.getExpectedEventCount());
         }
         
         return c;

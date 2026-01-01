@@ -39,6 +39,21 @@ public class MultiAgentIdeInit implements InitCtx {
     }
 
     @Builder
+    public record AppLaunchConfig(
+            String jarPath,
+            Integer port,
+            String baseUrl,
+            String worktreesBasePath,
+            List<String> jvmArgs,
+            List<String> appArgs,
+            boolean skipIfHealthy
+    ) {
+        public AppLaunchConfig(String jarPath) {
+            this(jarPath, 8080, null, null, List.of(), List.of(), true);
+        }
+    }
+
+    @Builder
     public record GitRepositoryConfig(
             Path repositoryPath,
             String initialBranch,
@@ -265,6 +280,8 @@ public class MultiAgentIdeInit implements InitCtx {
     private final ContextValue<EventSubscriptionConfig> eventSubscriptionConfig = ContextValue.empty();
     private final ContextValue<GitRepositoryConfig> gitRepositoryConfig = ContextValue.empty();
     private final ContextValue<SpecFileConfig> specFileConfig = ContextValue.empty();
+    private final ContextValue<AppLaunchConfig> appLaunchConfig = ContextValue.empty();
+    private final ContextValue<Process> appProcess = ContextValue.empty();
     @Getter
     private final List<RepositorySpec> repositorySpecs = new ArrayList<>();
     private final Map<String, Object> mockResponses = new HashMap<>();
@@ -302,6 +319,22 @@ public class MultiAgentIdeInit implements InitCtx {
 
     public EventSubscriptionConfig getEventSubscriptionConfig() {
         return eventSubscriptionConfig.get();
+    }
+
+    public void setAppLaunchConfig(AppLaunchConfig config) {
+        appLaunchConfig.set(config);
+    }
+
+    public AppLaunchConfig getAppLaunchConfig() {
+        return appLaunchConfig.get();
+    }
+
+    public void setAppProcess(Process process) {
+        appProcess.set(process);
+    }
+
+    public Process getAppProcess() {
+        return appProcess.get();
     }
 
     public void setGitRepositoryConfig(GitRepositoryConfig config) {

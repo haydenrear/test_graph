@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":libs-resolver"))
     implementation("software.amazon.awssdk:s3:2.38.2")
     implementation("io.kubernetes:client-java:24.0.0")
+    testImplementation("org.seleniumhq.selenium:selenium-java:4.25.0")
 }
 
 

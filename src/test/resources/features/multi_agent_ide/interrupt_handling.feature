@@ -9,6 +9,7 @@ Feature: Interrupt handling and continuation routing
     And the test configuration is:
       | key        | value |
       | MODEL_TYPE | acp   |
+    And the mock response file "multi_agent_ide/interrupt_handling.json"
     And the expected events for this scenario are:
       | eventType             | nodeType     | payloadFile | order |
       | NODE_REVIEW_REQUESTED | WORK         | none        |     0 |
@@ -26,6 +27,7 @@ Feature: Interrupt handling and continuation routing
     And the test configuration is:
       | key        | value |
       | MODEL_TYPE | acp   |
+    And the mock response file "multi_agent_ide/interrupt_handling.json"
     And the expected events for this scenario are:
       | eventType           | nodeType  | payloadFile | order |
       | PAUSE_EVENT         | WORK      | none        |     0 |
@@ -43,6 +45,7 @@ Feature: Interrupt handling and continuation routing
     And the test configuration is:
       | key        | value |
       | MODEL_TYPE | acp   |
+    And the mock response file "multi_agent_ide/interrupt_handling.json"
     And the expected events for this scenario are:
       | eventType           | nodeType  | payloadFile | order |
       | STOP_AGENT          | WORK      | none        |     0 |

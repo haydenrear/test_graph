@@ -253,6 +253,7 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
     private final ContextValue<EventAssertions> eventAssertions = ContextValue.empty();
     private final ContextValue<GraphAssertions> graphAssertions = ContextValue.empty();
     private final List<Object> capturedEvents = new ArrayList<>();
+    private final List<MultiAgentIdeDataDepCtx.UiEventObservation> uiEvents = new ArrayList<>();
     private final Map<String, Object> assertionResults = new HashMap<>();
     private MultiAgentIdeDataDepCtx.EventQueue eventQueueFromDataDep;
     
@@ -298,6 +299,15 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
 
     public List<Object> getCapturedEvents() {
         return capturedEvents;
+    }
+
+    public void setUiEvents(List<MultiAgentIdeDataDepCtx.UiEventObservation> events) {
+        uiEvents.clear();
+        uiEvents.addAll(events);
+    }
+
+    public List<MultiAgentIdeDataDepCtx.UiEventObservation> getUiEvents() {
+        return new ArrayList<>(uiEvents);
     }
 
     public void putAssertionResult(String key, Object result) {
