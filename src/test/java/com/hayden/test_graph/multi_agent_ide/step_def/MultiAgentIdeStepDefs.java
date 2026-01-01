@@ -5,6 +5,7 @@ import com.hayden.test_graph.multi_agent_ide.assert_nodes.ctx.MultiAgentIdeAsser
 import com.hayden.test_graph.multi_agent_ide.data_dep.ctx.MultiAgentIdeDataDepCtx;
 import com.hayden.test_graph.multi_agent_ide.init.ctx.MultiAgentIdeInit;
 import com.hayden.test_graph.multi_agent_ide.init.mountebank.ctx.MultiAgentIdeMbInitCtx;
+import com.hayden.test_graph.meta.exec.MetaProgExec;
 import com.hayden.test_graph.steps.ExecAssertStep;
 import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
@@ -15,8 +16,8 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,7 +29,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
     @Autowired
     @ResettableThread
     private MultiAgentIdeInit multiAgentIdeInit;
-    
+
     @Autowired
     @ResettableThread
     private Assertions assertions;
@@ -45,6 +46,10 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
     @ResettableThread
     private MultiAgentIdeMbInitCtx multiAgentIdeMbInit;
 
+    @Autowired
+    @ResettableThread
+    private MetaProgExec metaProgExec;
+
     /**
      * Define computation graph structure from data table.
      * Table columns: nodeId, nodeType, status, parentId, children, prompt (optional)
@@ -55,7 +60,9 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
     public void computation_graph_structure(io.cucumber.datatable.DataTable table) {
         // Parse the graph structure from data table
         var rows = table.asMaps(String.class, String.class);
-        
+        MultiAgentIdeDataDepCtx.OrchestrationRequestConfig requestConfig = null;
+        String fallbackGoal = null;
+
         for (var row : rows) {
             String nodeId = row.get("nodeId");
             String nodeType = row.get("nodeType");
@@ -63,7 +70,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
             String parentId = row.get("parentId");
             String children = row.get("children");
             String prompt = row.get("prompt");  // New: agent prompt/goal
-            
+
             // Create WorkNodeStateSpec for each node
             var nodeSpec = MultiAgentIdeInit.NodeStateSpec.builder()
                     .nodeId(nodeId)
@@ -73,17 +80,46 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
                     .hasWorktree(false)
                     .completionPercentage(status.equals("COMPLETED") ? 100 : 0)
                     .build();
-            
+
             multiAgentIdeInit.addWorkNodeStateSpec(nodeSpec);
+
+            if (fallbackGoal == null && prompt != null && !prompt.isBlank()) {
+                fallbackGoal = prompt;
+            }
+
+            if (requestConfig == null && "ORCHESTRATOR".equalsIgnoreCase(nodeType)) {
+                String goal = prompt != null && !prompt.isBlank()
+                        ? prompt
+                        : "Execute orchestration workflow";
+                requestConfig = MultiAgentIdeDataDepCtx.OrchestrationRequestConfig.builder()
+                        .baseUrl(resolveBaseUrl())
+                        .goal(goal)
+                        .repositoryUrl(resolveRepositoryUrl())
+                        .baseBranch("main")
+                        .nodeId(nodeId)
+                        .build();
+            }
         }
-        
+
+        if (requestConfig != null) {
+            multiAgentIdeDataDep.addOrchestrationRequest(requestConfig);
+        } else if (fallbackGoal != null) {
+            multiAgentIdeDataDep.addOrchestrationRequest(
+                    MultiAgentIdeDataDepCtx.OrchestrationRequestConfig.builder()
+                            .baseUrl(resolveBaseUrl())
+                            .goal(fallbackGoal)
+                            .repositoryUrl(resolveRepositoryUrl())
+                            .baseBranch("main")
+                            .build()
+            );
+        }
     }
 
     /**
      * Define expected events table with comprehensive event details and mock responses.
      * Table columns: eventType, nodeType, payloadFile, order (optional)
      * Creates assertions for each expected event and loads mock responses from Mountebank.
-     * 
+     *
      * Mock response files are loaded from: /multi_agent_ide/responses/ directory
      * Files should contain JSON payloads that represent model responses (tool calls, code, etc.)
      */
@@ -92,27 +128,28 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
     public void expected_events_scenario(io.cucumber.datatable.DataTable table) {
         var rows = table.asMaps(String.class, String.class);
         int eventIndex = 0;
-        
+
         for (var row : rows) {
             String eventType = row.get("eventType");
             String nodeType = row.get("nodeType");
             String payloadFile = row.get("payloadFile");  // Event payload file reference
             String orderStr = row.get("order");
-            
+
             int eventOrder = orderStr != null ? Integer.parseInt(orderStr) : eventIndex;
-            
+
             // Create assertion for this event
             var assertion = MultiAgentIdeAssertCtx.EventAssertion.builder()
                     .eventType(eventType)
                     .nodeType(nodeType)
+                    .payloadFile(payloadFile)
                     .shouldExist(true)
                     .build();
-            
+
             multiAgentIdeAssert.addPendingAssertion(assertion);
-            
+
             eventIndex++;
         }
-        
+
     }
 
 
@@ -126,7 +163,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
     public void multiple_computation_graphs(io.cucumber.datatable.DataTable table) {
         var rows = table.asMaps(String.class, String.class);
         var graphMap = new HashMap<String, Integer>();
-        
+
         for (var row : rows) {
             String graphId = row.get("graphId");
             String nodeId = row.get("nodeId");
@@ -134,7 +171,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
             String status = row.get("status");
             String parentId = row.get("parentId");
             String prompt = row.get("prompt");  // Agent prompt for this node
-            
+
             // Create spec for node
             var nodeSpec = MultiAgentIdeInit.NodeStateSpec.builder()
                     .nodeId(nodeId)
@@ -144,14 +181,29 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
                     .hasWorktree(false)
                     .completionPercentage(status.equals("COMPLETED") ? 100 : 0)
                     .build();
-            
+
             multiAgentIdeInit.addWorkNodeStateSpec(nodeSpec);
 
             // Track nodes per graph
             int nodeCount = graphMap.getOrDefault(graphId, 0) + 1;
             graphMap.put(graphId, nodeCount);
+
+            if ("ORCHESTRATOR".equalsIgnoreCase(nodeType)) {
+                String goal = prompt != null && !prompt.isBlank()
+                        ? prompt
+                        : "Execute orchestration workflow";
+                multiAgentIdeDataDep.addOrchestrationRequest(
+                        MultiAgentIdeDataDepCtx.OrchestrationRequestConfig.builder()
+                                .baseUrl(resolveBaseUrl())
+                                .goal(goal)
+                                .repositoryUrl(resolveRepositoryUrl())
+                                .baseBranch("main")
+                                .nodeId(nodeId)
+                                .build()
+                );
+            }
         }
-        
+
     }
 
     /**
@@ -163,6 +215,12 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
         var rows = table.asMaps(String.class, String.class);
         String modelType = null;
         Boolean useStreamingModel = null;
+        String explicitProfiles = null;
+        Boolean recordVideo = null;
+        String videoName = null;
+        String videoOutputPath = null;
+        String videoScreenSize = null;
+        String subscriptionType = null;
 
         for (var row : rows) {
             String key = row.get("key");
@@ -174,6 +232,18 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
                 modelType = value;
             } else if ("USE_STREAMING_MODEL".equalsIgnoreCase(key)) {
                 useStreamingModel = Boolean.parseBoolean(value);
+            } else if ("SPRING_PROFILES".equalsIgnoreCase(key) || "PROFILE".equalsIgnoreCase(key)) {
+                explicitProfiles = value;
+            } else if ("SUBSCRIPTION_TYPE".equalsIgnoreCase(key)) {
+                subscriptionType = value;
+            } else if ("RECORD_VIDEO".equalsIgnoreCase(key)) {
+                recordVideo = Boolean.parseBoolean(value);
+            } else if ("VIDEO_NAME".equalsIgnoreCase(key)) {
+                videoName = value;
+            } else if ("VIDEO_OUTPUT_PATH".equalsIgnoreCase(key)) {
+                videoOutputPath = value;
+            } else if ("VIDEO_SCREEN_SIZE".equalsIgnoreCase(key)) {
+                videoScreenSize = value;
             }
         }
 
@@ -189,6 +259,50 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
                         .mockResponses(mockResponses)
                         .build()
         );
+
+        String appProfiles = explicitProfiles != null && !explicitProfiles.isBlank()
+                ? explicitProfiles
+                : resolveAppProfiles(modelType);
+        if (appProfiles != null) {
+            MultiAgentIdeInit.AppLaunchConfig existing = multiAgentIdeInit.getAppLaunchConfig();
+            if (existing == null) {
+                multiAgentIdeInit.setAppLaunchConfig(
+                        new MultiAgentIdeInit.AppLaunchConfig(
+                                null,
+                                8080,
+                                null,
+                                null,
+                                List.of(),
+                                List.of(),
+                                true,
+                                appProfiles
+                        )
+                );
+            } else {
+                multiAgentIdeInit.setAppLaunchConfig(
+                        new MultiAgentIdeInit.AppLaunchConfig(
+                                existing.jarPath(),
+                                existing.port(),
+                                existing.baseUrl(),
+                                existing.worktreesBasePath(),
+                                existing.jvmArgs(),
+                                existing.appArgs(),
+                                existing.skipIfHealthy(),
+                                appProfiles
+                        )
+                );
+            }
+        }
+
+        if (subscriptionType != null) {
+            if ("sse".equalsIgnoreCase(subscriptionType)) {
+                configureSseSubscription();
+            } else if ("selenium".equalsIgnoreCase(subscriptionType)) {
+                configureSeleniumSubscription(recordVideo, videoName, videoOutputPath, videoScreenSize);
+            } else {
+                throw new IllegalArgumentException("Unsupported subscription type: " + subscriptionType);
+            }
+        }
     }
 
     /**
@@ -204,6 +318,29 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
      */
     @When("the graph execution completes")
     public void graph_execution_completes() {
+        if (multiAgentIdeInit.getAppLaunchConfig() == null) {
+            multiAgentIdeInit.setAppLaunchConfig(new MultiAgentIdeInit.AppLaunchConfig((String) null));
+        }
+        if (multiAgentIdeDataDep.getEventSubscriptionConfig() == null
+                && multiAgentIdeDataDep.getSeleniumUiConfig() == null) {
+            String baseUrl = resolveBaseUrl();
+            String endpoint = baseUrl.endsWith("/")
+                    ? baseUrl + "api/events/stream"
+                    : baseUrl + "/api/events/stream";
+            multiAgentIdeDataDep.setEventSubscriptionConfig(
+                    MultiAgentIdeDataDepCtx.EventSubscriptionConfig.builder()
+                            .subscriptionProtocol("sse")
+                            .eventEndpoint(endpoint)
+                            .pollIntervalMs(100)
+                            .subscriptionTimeoutMs(30000L)
+                            .autoStart(true)
+                            .build()
+            );
+        }
+        int expectedCount = multiAgentIdeAssert.getPendingAssertionCount();
+        if (expectedCount > 0) {
+            multiAgentIdeDataDep.setExpectedEventCount(expectedCount);
+        }
     }
 
     /**
@@ -211,6 +348,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
      */
     @When("the graph execution completes with SummaryGraphAgent enabled")
     public void graph_execution_with_summary_agent() {
+        graph_execution_completes();
     }
 
     /**
@@ -232,6 +370,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
      */
     @When("the graph execution completes and persistence is triggered")
     public void graph_execution_with_persistence() {
+        graph_execution_completes();
     }
 
     /**
@@ -285,9 +424,10 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
         var assertion = MultiAgentIdeAssertCtx.EventAssertion.builder()
                 .eventType("NODE_ADDED")
                 .nodeType("SUMMARY")
+                .payloadFile(null)
                 .shouldExist(true)
                 .build();
-        
+
         multiAgentIdeAssert.addPendingAssertion(assertion);
     }
 
@@ -302,19 +442,19 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
                 .expectedStatus("READY")
                 .assertionType("transition_check")
                 .build();
-        
+
         var runningAssertion = MultiAgentIdeAssertCtx.NodeStatusAssertion.builder()
                 .nodeId("summary-1")
                 .expectedStatus("RUNNING")
                 .assertionType("transition_check")
                 .build();
-        
+
         var completedAssertion = MultiAgentIdeAssertCtx.NodeStatusAssertion.builder()
                 .nodeId("summary-1")
                 .expectedStatus("COMPLETED")
                 .assertionType("transition_check")
                 .build();
-        
+
         multiAgentIdeAssert.addPendingAssertion(readyAssertion);
         multiAgentIdeAssert.addPendingAssertion(runningAssertion);
         multiAgentIdeAssert.addPendingAssertion(completedAssertion);
@@ -367,7 +507,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
                 .expectedFields(requiredFields)
                 .shouldContainAllFields(true)
                 .build();
-        
+
         multiAgentIdeAssert.addPendingAssertion(assertion);
     }
 
@@ -409,8 +549,88 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
     }
 
     @And("the mock response file {string}")
+    @RegisterInitStep({MultiAgentIdeMbInitCtx.class})
     public void theMockResponseFile(String imposterFile) {
         this.multiAgentIdeMbInit.registerImposterFile(imposterFile);
+    }
+
+    private String resolveBaseUrl() {
+        String configured = System.getProperty("multiagentide.baseUrl");
+        if (configured != null && !configured.isBlank()) {
+            return configured;
+        }
+        return "http://localhost:8080";
+    }
+
+    private String resolveRepositoryUrl() {
+        String repoRoot = System.getProperty("user.dir");
+        if (repoRoot != null && repoRoot.endsWith("test_graph")) {
+            return java.nio.file.Paths.get(repoRoot).getParent().toString();
+        }
+        return repoRoot;
+    }
+
+    private void configureSseSubscription() {
+        String baseUrl = resolveBaseUrl();
+        String endpoint = baseUrl.endsWith("/")
+                ? baseUrl + "api/events/stream"
+                : baseUrl + "/api/events/stream";
+        multiAgentIdeDataDep.setEventSubscriptionConfig(
+                MultiAgentIdeDataDepCtx.EventSubscriptionConfig.builder()
+                        .subscriptionProtocol("sse")
+                        .eventEndpoint(endpoint)
+                        .pollIntervalMs(100)
+                        .subscriptionTimeoutMs(30000L)
+                        .autoStart(true)
+                        .build()
+        );
+    }
+
+    private void configureSeleniumSubscription(
+            Boolean recordVideo,
+            String videoName,
+            String videoOutputPath,
+            String videoScreenSize) {
+        MultiAgentIdeDataDepCtx.SeleniumUiConfig existingSelenium = multiAgentIdeDataDep.getSeleniumUiConfig();
+        if (existingSelenium == null) {
+            multiAgentIdeDataDep.setSeleniumUiConfig(
+                    MultiAgentIdeDataDepCtx.SeleniumUiConfig.builder()
+                            .recordVideo(recordVideo)
+                            .videoName(videoName)
+                            .videoOutputPath(videoOutputPath)
+                            .videoScreenSize(videoScreenSize)
+                            .build()
+            );
+            return;
+        }
+        multiAgentIdeDataDep.setSeleniumUiConfig(
+                MultiAgentIdeDataDepCtx.SeleniumUiConfig.builder()
+                        .baseUrl(existingSelenium.baseUrl())
+                        .goal(existingSelenium.goal())
+                        .repositoryUrl(existingSelenium.repositoryUrl())
+                        .baseBranch(existingSelenium.baseBranch())
+                        .waitTimeoutMs(existingSelenium.waitTimeoutMs())
+                        .expectedEventCount(existingSelenium.expectedEventCount())
+                        .driver(existingSelenium.driver())
+                        .recordVideo(recordVideo != null ? recordVideo : existingSelenium.recordVideo())
+                        .videoName(videoName != null ? videoName : existingSelenium.videoName())
+                        .videoOutputPath(videoOutputPath != null ? videoOutputPath : existingSelenium.videoOutputPath())
+                        .videoScreenSize(videoScreenSize != null ? videoScreenSize : existingSelenium.videoScreenSize())
+                        .build()
+        );
+    }
+
+    private String resolveAppProfiles(String modelType) {
+        if (modelType == null || modelType.isBlank()) {
+            return null;
+        }
+        if ("openai".equalsIgnoreCase(modelType)) {
+            return "openai";
+        }
+        if ("acp".equalsIgnoreCase(modelType)) {
+            return "acp";
+        }
+        return null;
     }
 
 }

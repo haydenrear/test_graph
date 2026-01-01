@@ -14,18 +14,24 @@ import com.hayden.test_graph.thread.ResettableThread;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Assert context for multi-agent-ide test graph.
  * Validates execution results and manages test assertions.
  */
+@Slf4j
 @Component
 @ResettableThread
 @RequiredArgsConstructor
@@ -33,9 +39,25 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
 
     private MultiAgentIdeAssertBubble bubble;
 
-    // ============ SEALED ASSERTION TYPE HIERARCHY ============
-    // Extensible sealed interface pattern for type-safe assertion handling.
-    // Add new assertion types by creating new records that implement this interface.
+    public List<MultiAgentIdeDataDepCtx.UiEventObservation> getUiEvents() {
+        return this.getAllEventsFromQueue()
+                .stream()
+                .flatMap(s -> s instanceof MultiAgentIdeDataDepCtx.UiEventObservation u
+                        ? Stream.of(u)
+                        : getEmpty(s))
+                .toList();
+    }
+
+    private static Stream<MultiAgentIdeDataDepCtx.UiEventObservation> getEmpty(Object o) {
+        log.error("Found unknown event observation - {}.", o);
+        return Stream.empty();
+    }
+
+    public record IdeAssertConfigProps(Duration maxWait) { }
+
+    @Setter
+    @Getter
+    private IdeAssertConfigProps config = new IdeAssertConfigProps(Duration.ofSeconds(30));
 
     /**
      * Sealed interface for all MultiAgentIde assertion types.
@@ -68,6 +90,7 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
             String eventType,
             String nodeType,
             String nodeId,
+            String payloadFile,
             boolean shouldExist
     ) implements MultiAgentIdeAssertion {}
 
@@ -249,17 +272,18 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
     @Getter
     private final ContextValue<MultiAgentIdeDataDepCtx> dataDepContext = ContextValue.empty();
 
+
     private final ContextValue<EventAssertions> eventAssertions = ContextValue.empty();
     private final ContextValue<GraphAssertions> graphAssertions = ContextValue.empty();
     private final List<Object> capturedEvents = new ArrayList<>();
     private final Map<String, Object> assertionResults = new HashMap<>();
-    private MultiAgentIdeDataDepCtx.EventQueue eventQueueFromDataDep;
-    
+
     // ============ ASSERTION LIFECYCLE MANAGEMENT ============
     // Pending, executed, and failed assertions for goal_and_graph_initialization and other features
     private final List<MultiAgentIdeAssertion> pendingAssertions = new ArrayList<>();
     private final List<MultiAgentIdeAssertion> executedAssertions = new ArrayList<>();
     private final List<MultiAgentIdeAssertion> failedAssertions = new ArrayList<>();
+
 
     @Autowired
     @ResettableThread
@@ -295,23 +319,21 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
         capturedEvents.add(event);
     }
 
-    public List<Object> getCapturedEvents() {
-        return capturedEvents;
-    }
-
     public void putAssertionResult(String key, Object result) {
         assertionResults.put(key, result);
     }
 
-    public Object getAssertionResult(String key) {
-        return assertionResults.get(key);
-    }
 
     /**
      * Get all events from the transferred queue as a list.
      * This drains the queue, so subsequent calls will return an empty list.
      */
     public List<Object> getAllEventsFromQueue() {
+        if (this.dataDepContext.isEmpty())
+            return new ArrayList<>();
+
+        var eventQueueFromDataDep = this.dataDepContext.get().getEventQueue();
+
         if (eventQueueFromDataDep != null) {
             return eventQueueFromDataDep.drainAll();
         }
@@ -365,48 +387,6 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
     public void markAssertionFailed(MultiAgentIdeAssertion assertion) {
         pendingAssertions.remove(assertion);
         failedAssertions.add(assertion);
-    }
-
-    /**
-     * Get all executed assertions that passed validation.
-     * @return List of executed assertions
-     */
-    public List<MultiAgentIdeAssertion> getExecutedAssertions() {
-        return new ArrayList<>(executedAssertions);
-    }
-
-    /**
-     * Get all failed assertions that did not pass validation.
-     * @return List of failed assertions
-     */
-    public List<MultiAgentIdeAssertion> getFailedAssertions() {
-        return new ArrayList<>(failedAssertions);
-    }
-
-    /**
-     * Clear all assertions (pending, executed, and failed).
-     * Called during test context reset.
-     */
-    public void clearAllAssertions() {
-        pendingAssertions.clear();
-        executedAssertions.clear();
-        failedAssertions.clear();
-    }
-
-    /**
-     * Check if there are any assertions to validate.
-     * @return true if there are pending assertions
-     */
-    public boolean hasAssertionsToValidate() {
-        return !pendingAssertions.isEmpty();
-    }
-
-    /**
-     * Check if all assertions have passed (no failures, all executed).
-     * @return true if all assertions passed
-     */
-    public boolean allAssertionsPassed() {
-        return pendingAssertions.isEmpty() && failedAssertions.isEmpty();
     }
 
     @Override

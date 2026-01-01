@@ -6,18 +6,454 @@
       "stubs": [
         {
           "predicates": [
-            {
-              "equals": {
-                "method": "POST",
-                "path": "/"
-              }
-            }
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } },
+            { "contains": { "body": "Current phase" } }
           ],
           "responses": [
             {
               "is": {
                 "statusCode": 200,
-                "body": "{ \"consolidatedOutput\": \"collector summary\", \"collectorDecision\": { \"decisionType\": \"ADVANCE_PHASE\", \"rationale\": \"default\", \"requestedPhase\": \"next\" } }"
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-orchestrator",
+                  "object": "chat.completion",
+                  "created": 1710000000,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"delegation\":{\"summary\":\"Discovery kickoff\",\"subAgentGoals\":{\"overview\":\"Repository overview\"}},\"interruptsRequested\":[],\"output\":\"Proceed to discovery.\"}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } },
+            { "contains": { "body": "divide up the discovery phase" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-discovery-orch",
+                  "object": "chat.completion",
+                  "created": 1710000001,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"delegation\":{\"summary\":\"Discovery plan\",\"subAgentGoals\":{\"focus\":\"Repository overview\"}},\"interruptsRequested\":[],\"output\":\"Repository overview\"}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } },
+            { "contains": { "body": "Discover and analyze the codebase for the following subdomain" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-discovery-agent",
+                  "object": "chat.completion",
+                  "created": 1710000002,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"output\":\"Discovery findings summary\",\"interruptsRequested\":[]}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } },
+            { "contains": { "body": "Merge and consolidate the following discovery results" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-discovery-collector",
+                  "object": "chat.completion",
+                  "created": 1710000003,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"consolidatedOutput\":\"Discovery summary\",\"interruptsRequested\":[],\"collectorDecision\":{\"decisionType\":\"ADVANCE_PHASE\",\"rationale\":\"complete\",\"requestedPhase\":\"planning\"}}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } },
+            { "contains": { "body": "Decompose the planning for the goal" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-planning-orch",
+                  "object": "chat.completion",
+                  "created": 1710000004,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"delegation\":{\"summary\":\"Planning plan\",\"subAgentGoals\":{\"plan\":\"Draft tickets\"}},\"interruptsRequested\":[],\"output\":\"Ticket 1 - Setup\\nTicket 2 - Implement\"}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } },
+            { "contains": { "body": "Analyze the following goal and break it down into 3 work items" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-planning-agent",
+                  "object": "chat.completion",
+                  "created": 1710000005,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"output\":\"Ticket 1 - Setup\\nTicket 2 - Implement\",\"interruptsRequested\":[]}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } },
+            { "contains": { "body": "Merge and consolidate the following planning results" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-planning-collector",
+                  "object": "chat.completion",
+                  "created": 1710000006,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"consolidatedOutput\":\"Ticket 1 - Setup\\nTicket 2 - Implement\",\"interruptsRequested\":[],\"collectorDecision\":{\"decisionType\":\"ADVANCE_PHASE\",\"rationale\":\"ready\",\"requestedPhase\":\"ticket\"}}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } },
+            { "contains": { "body": "Orchestrate ticket-based implementation" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-ticket-orch",
+                  "object": "chat.completion",
+                  "created": 1710000007,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"delegation\":{\"summary\":\"Ticket execution plan\",\"subAgentGoals\":{\"ticket-1\":\"Implement Ticket 1\"}},\"interruptsRequested\":[],\"output\":\"Execute tickets sequentially.\"}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } },
+            { "contains": { "body": "Implement the following ticket with complete, production-ready code" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-ticket-agent",
+                  "object": "chat.completion",
+                  "created": 1710000008,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"output\":\"Implemented Ticket 1 changes.\",\"interruptsRequested\":[]}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } },
+            { "contains": { "body": "Merge and consolidate the following ticket execution results" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-ticket-collector",
+                  "object": "chat.completion",
+                  "created": 1710000009,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"consolidatedOutput\":\"All tickets consolidated.\",\"interruptsRequested\":[],\"collectorDecision\":{\"decisionType\":\"ADVANCE_PHASE\",\"rationale\":\"done\",\"requestedPhase\":\"final\"}}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } },
+            { "contains": { "body": "Review the following content against these criteria" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-review",
+                  "object": "chat.completion",
+                  "created": 1710000010,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"output\":\"Needs human review. Overall assessment: NEEDS_REVISION.\",\"interruptsRequested\":[]}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } },
+            { "contains": { "body": "Review the merge outcome and validate it is correct" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-merge",
+                  "object": "chat.completion",
+                  "created": 1710000011,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"output\":\"Merge acceptable.\",\"interruptsRequested\":[]}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } },
+            { "contains": { "body": "Consolidate the workflow results and provide a routing decision" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-orch-collector",
+                  "object": "chat.completion",
+                  "created": 1710000012,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"consolidatedOutput\":\"Workflow summary.\",\"interruptsRequested\":[],\"collectorDecision\":{\"decisionType\":\"ADVANCE_PHASE\",\"rationale\":\"complete\",\"requestedPhase\":\"final\"}}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/embeddings" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "object": "list",
+                  "data": [
+                    { "object": "embedding", "index": 0, "embedding": [0.0, 0.1, 0.2] }
+                  ],
+                  "model": "text-embedding-3-small",
+                  "usage": { "prompt_tokens": 3, "total_tokens": 3 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-fallback",
+                  "object": "chat.completion",
+                  "created": 1710000099,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"delegation\":{\"summary\":\"Default delegation\",\"subAgentGoals\":{\"default\":\"Default goal\"}},\"interruptsRequested\":[],\"output\":\"Default output\",\"consolidatedOutput\":\"Default consolidated output\",\"collectorDecision\":{\"decisionType\":\"ADVANCE_PHASE\",\"rationale\":\"default\",\"requestedPhase\":\"next\"}}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 10, "completion_tokens": 10, "total_tokens": 20 }
+                }
               }
             }
           ]

@@ -4,8 +4,11 @@ import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.multi_agent_ide.data_dep.ctx.MultiAgentIdeDataDepCtx;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.sort.GraphSort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Data dependency node for setting up event subscriptions.
@@ -50,6 +53,11 @@ public class EventSubscriptionDataDepNode implements MultiAgentIdeDataDepNode {
         return ctx;
     }
 
+    @Override
+    public List<Class<? extends MultiAgentIdeDataDepNode>> dependsOn() {
+        return List.of(SeleniumUiDataDepNode.class, EventPollingDataDepNode.class);
+    }
+
     /**
      * Validate the event subscription configuration.
      */
@@ -82,6 +90,9 @@ public class EventSubscriptionDataDepNode implements MultiAgentIdeDataDepNode {
         String protocol = config.subscriptionProtocol().toLowerCase();
         
         switch (protocol) {
+            case "sse":
+                initializeSseSubscription(config, ctx);
+                break;
             case "websocket":
                 initializeWebSocketSubscription(config, ctx);
                 break;
@@ -94,6 +105,21 @@ public class EventSubscriptionDataDepNode implements MultiAgentIdeDataDepNode {
             default:
                 throw new IllegalArgumentException("Unsupported subscription protocol: " + protocol);
         }
+    }
+
+    /**
+     * Initialize SSE subscription.
+     */
+    private void initializeSseSubscription(
+            MultiAgentIdeDataDepCtx.EventSubscriptionConfig config,
+            MultiAgentIdeDataDepCtx ctx) {
+
+        log.debug("Initializing SSE subscription to {}", config.eventEndpoint());
+
+        MultiAgentIdeDataDepCtx.EventQueue eventQueue = ctx.getEventQueue();
+        eventQueue.setSubscriptionActive(true);
+
+        log.debug("SSE subscription initialized and ready");
     }
 
     /**
