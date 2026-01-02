@@ -6,7 +6,7 @@ import com.hayden.test_graph.init.selenium.ctx.SeleniumInitCtx;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.multi_agent_ide.assert_nodes.ctx.MultiAgentIdeAssertCtx;
 import com.hayden.test_graph.multi_agent_ide.data_dep.ctx.MultiAgentIdeDataDepCtx;
-import com.hayden.test_graph.multi_agent_ide.edges.InitToAssertEdge;
+import com.hayden.test_graph.multi_agent_ide.edges.MultiAgentIdeDataDepToAssertEdge;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -49,10 +49,13 @@ public class MultiAgentSeleniumGoalRequestNode implements MultiAgentIdeAssertNod
 
         for (MultiAgentIdeDataDepCtx.OrchestrationRequestConfig request : ctx.getOrchestrationRequests()) {
             var baseUrl = request.baseUrl();
-            var waitTimeout = request.waitTimeoutMs();
+            if (baseUrl == null || baseUrl.isBlank()) {
+                baseUrl = "http://localhost:8080";
+            }
+            var waitTimeout = request.waitTimeoutMs() != null ? request.waitTimeoutMs() : 30000L;
             var goal = request.goal();
             var repoUrl = request.repositoryUrl();
-            var baseBranch = request.baseBranch();
+            var baseBranch = request.baseBranch() != null ? request.baseBranch() : "main";
             driver.get(baseUrl);
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(waitTimeout));
             wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[data-testid='goal-input']")));
@@ -77,7 +80,7 @@ public class MultiAgentSeleniumGoalRequestNode implements MultiAgentIdeAssertNod
 
     @Override
     public List<Class<? extends MultiAgentIdeAssertNode>> dependsOn() {
-        return List.of(InitToAssertEdge.class);
+        return List.of(MultiAgentIdeDataDepToAssertEdge.class);
     }
 
 

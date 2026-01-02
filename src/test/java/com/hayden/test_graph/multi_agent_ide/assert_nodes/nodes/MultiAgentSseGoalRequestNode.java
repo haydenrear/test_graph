@@ -5,7 +5,7 @@ import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.multi_agent_ide.assert_nodes.ctx.MultiAgentIdeAssertCtx;
 import com.hayden.test_graph.multi_agent_ide.data_dep.ctx.MultiAgentIdeDataDepCtx;
-import com.hayden.test_graph.multi_agent_ide.edges.InitToAssertEdge;
+import com.hayden.test_graph.multi_agent_ide.edges.MultiAgentIdeDataDepToAssertEdge;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -42,7 +42,7 @@ public class MultiAgentSseGoalRequestNode implements MultiAgentIdeAssertNode {
 
     @Override
     public List<Class<? extends MultiAgentIdeAssertNode>> dependsOn() {
-        return List.of(InitToAssertEdge.class);
+        return List.of(MultiAgentIdeDataDepToAssertEdge.class);
     }
 
     private void submitOrchestrationRequest(MultiAgentIdeDataDepCtx.OrchestrationRequestConfig request) {

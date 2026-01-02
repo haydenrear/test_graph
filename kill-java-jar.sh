@@ -1,6 +1,10 @@
 #!/usr/bin/env zsh
 echo "Killing port $1"
 
+pids=($(ps aux | grep "[j]ava -jar"))
+
+echo "Found java processes $pids"
+
 # Find all PIDs of java -jar processes (excluding grep)
 pids=($(ps aux | grep "[j]ava -jar" | tr -s ' ' | cut -d ' ' -f 2))
 

@@ -151,6 +151,17 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
             eventIndex++;
         }
 
+        if (multiAgentIdeDataDep.getOrchestrationRequests().isEmpty()) {
+            multiAgentIdeDataDep.addOrchestrationRequest(
+                    MultiAgentIdeDataDepCtx.OrchestrationRequestConfig.builder()
+                            .baseUrl(resolveBaseUrl())
+                            .goal("Execute orchestration workflow")
+                            .repositoryUrl(resolveRepositoryUrl())
+                            .baseBranch("main")
+                            .build()
+            );
+        }
+
     }
 
 
@@ -268,35 +279,24 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
         String appProfiles = explicitProfiles != null && !explicitProfiles.isBlank()
                 ? explicitProfiles
                 : resolveAppProfiles(modelType);
-        if (appProfiles != null) {
-            var existingAppLaunchConfig = multiAgentIdeInit.getAppLaunchConfig();
-            if (existingAppLaunchConfig == null) {
-                multiAgentIdeInit.setAppLaunchConfig(
-                        new MultiAgentIdeInit.AppLaunchConfig(
-                                null,
-                                8080,
-                                null,
-                                null,
-                                List.of(),
-                                List.of(),
-                                true,
-                                appProfiles
-                        )
-                );
-            } else {
-                multiAgentIdeInit.setAppLaunchConfig(
-                        new MultiAgentIdeInit.AppLaunchConfig(
-                                existingAppLaunchConfig.jarPath(),
-                                existingAppLaunchConfig.port(),
-                                existingAppLaunchConfig.baseUrl(),
-                                existingAppLaunchConfig.worktreesBasePath(),
-                                existingAppLaunchConfig.jvmArgs(),
-                                existingAppLaunchConfig.appArgs(),
-                                existingAppLaunchConfig.skipIfHealthy(),
-                                appProfiles
-                        )
-                );
-            }
+        var existingAppLaunchConfig = multiAgentIdeInit.getAppLaunchConfig();
+        String resolvedBaseUrl = baseUrl != null && !baseUrl.isBlank()
+                ? baseUrl
+                : existingAppLaunchConfig != null ? existingAppLaunchConfig.baseUrl() : null;
+        if (appProfiles != null || resolvedBaseUrl != null || existingAppLaunchConfig != null) {
+            multiAgentIdeInit.setAppLaunchConfig(
+                    new MultiAgentIdeInit.AppLaunchConfig(
+                            existingAppLaunchConfig != null ? existingAppLaunchConfig.jarPath() : null,
+                            existingAppLaunchConfig != null ? existingAppLaunchConfig.port() : 8080,
+                            resolvedBaseUrl,
+                            existingAppLaunchConfig != null ? existingAppLaunchConfig.worktreesBasePath() : null,
+                            existingAppLaunchConfig != null ? existingAppLaunchConfig.jvmArgs() : List.of(),
+                            existingAppLaunchConfig != null ? existingAppLaunchConfig.appArgs() : List.of(),
+                            existingAppLaunchConfig != null ? existingAppLaunchConfig.skipIfHealthy() : true,
+                            appProfiles != null ? appProfiles
+                                    : existingAppLaunchConfig != null ? existingAppLaunchConfig.profiles() : null
+                    )
+            );
         }
 
         if (subscriptionType != null) {
@@ -509,7 +509,47 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
     }
 
     private String resolveBaseUrl() {
-        return multiAgentIdeDataDep.getEventSubscriptionConfig().eventEndpoint();
+        String baseUrl = resolveConfiguredBaseUrl();
+        if (baseUrl != null) {
+            return baseUrl;
+        }
+        var subscriptionConfig = multiAgentIdeDataDep.getEventSubscriptionConfig();
+        if (subscriptionConfig != null) {
+            String derived = deriveBaseUrlFromEndpoint(subscriptionConfig.eventEndpoint());
+            if (derived != null && !derived.isBlank()) {
+                return derived;
+            }
+        }
+        return "http://localhost:8080";
+    }
+
+    private String resolveConfiguredBaseUrl() {
+        var seleniumConfig = seleniumInitCtx.getConfig().orElse(null);
+        if (seleniumConfig != null && seleniumConfig.baseUrl() != null && !seleniumConfig.baseUrl().isBlank()) {
+            return seleniumConfig.baseUrl();
+        }
+        var appLaunchConfig = multiAgentIdeInit.getAppLaunchConfig();
+        if (appLaunchConfig != null && appLaunchConfig.baseUrl() != null && !appLaunchConfig.baseUrl().isBlank()) {
+            return appLaunchConfig.baseUrl();
+        }
+        return null;
+    }
+
+    private String deriveBaseUrlFromEndpoint(String endpoint) {
+        if (endpoint == null || endpoint.isBlank()) {
+            return null;
+        }
+        String marker = "/api/events/stream";
+        int index = endpoint.indexOf(marker);
+        if (index > 0) {
+            return endpoint.substring(0, index);
+        }
+        marker = "/api/events";
+        index = endpoint.indexOf(marker);
+        if (index > 0) {
+            return endpoint.substring(0, index);
+        }
+        return endpoint;
     }
 
     private String resolveRepositoryUrl() {
