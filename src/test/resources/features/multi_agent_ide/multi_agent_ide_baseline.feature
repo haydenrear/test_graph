@@ -3,10 +3,11 @@ Feature: Multi-agent IDE end-to-end orchestration coverage
 
   Background:
     Given the test configuration is:
-      | key               | value  |
-      | MODEL_TYPE        | openai |
-      | SPRING_PROFILES   | openai |
-      | SUBSCRIPTION_TYPE | sse    |
+      | key               | value                 |
+      | MODEL_TYPE        | openai                |
+      | SPRING_PROFILES   | openai                |
+      | SUBSCRIPTION_TYPE | sse                   |
+      | BASE_URL          | http://localhost:8080 |
 
   @multi_agent_ide_end_to_end_no_submodules
   Scenario: End-to-end orchestration completes without submodules
@@ -16,11 +17,11 @@ Feature: Multi-agent IDE end-to-end orchestration coverage
     And the mock response file "multi_agent_ide/end_to_end_no_submodules.json"
     And the expected events for this scenario are:
       | eventType             | nodeType     | payloadFile | order |
-      | NODE_ADDED            | ORCHESTRATOR | none        | 0     |
-      | NODE_STATUS_CHANGED   | ORCHESTRATOR | none        | 1     |
-      | NODE_STATUS_CHANGED   | WORK         | none        | 2     |
-      | NODE_STATUS_CHANGED   | PLANNING     | none        | 3     |
-      | NODE_REVIEW_REQUESTED | AGENT_REVIEW | none        | 4     |
+      | NODE_ADDED            | ORCHESTRATOR | none        |     0 |
+      | NODE_STATUS_CHANGED   | ORCHESTRATOR | none        |     1 |
+      | NODE_STATUS_CHANGED   | WORK         | none        |     2 |
+      | NODE_STATUS_CHANGED   | PLANNING     | none        |     3 |
+      | NODE_REVIEW_REQUESTED | AGENT_REVIEW | none        |     4 |
     When the graph execution completes
     Then the expected events should have been received
     And no additional events should have been captured
@@ -33,10 +34,10 @@ Feature: Multi-agent IDE end-to-end orchestration coverage
     And the mock response file "multi_agent_ide/end_to_end_with_submodules.json"
     And the expected events for this scenario are:
       | eventType           | nodeType | payloadFile | order |
-      | WORKTREE_CREATED    | WORKTREE | none        | 0     |
-      | WORKTREE_CREATED    | WORKTREE | none        | 1     |
-      | NODE_STATUS_CHANGED | WORK     | none        | 2     |
-      | NODE_STATUS_CHANGED | PLANNING | none        | 3     |
+      | WORKTREE_CREATED    | WORKTREE | none        |     0 |
+      | WORKTREE_CREATED    | WORKTREE | none        |     1 |
+      | NODE_STATUS_CHANGED | WORK     | none        |     2 |
+      | NODE_STATUS_CHANGED | PLANNING | none        |     3 |
     When the graph execution completes
     Then the expected events should have been received
     And no additional events should have been captured
@@ -49,9 +50,9 @@ Feature: Multi-agent IDE end-to-end orchestration coverage
     And the mock response file "multi_agent_ide/revision_failure_cycle.json"
     And the expected events for this scenario are:
       | eventType             | nodeType     | payloadFile | order |
-      | NODE_REVIEW_REQUESTED | AGENT_REVIEW | none        | 0     |
-      | NODE_STATUS_CHANGED   | AGENT_REVIEW | none        | 1     |
-      | NODE_STATUS_CHANGED   | WORK         | none        | 2     |
+      | NODE_REVIEW_REQUESTED | AGENT_REVIEW | none        |     0 |
+      | NODE_STATUS_CHANGED   | AGENT_REVIEW | none        |     1 |
+      | NODE_STATUS_CHANGED   | WORK         | none        |     2 |
     When the graph execution completes
     Then the expected events should have been received
     And no additional events should have been captured

@@ -67,11 +67,6 @@ public class EventPollingDataDepNode implements MultiAgentIdeDataDepNode {
         return ctx;
     }
 
-    @Override
-    public List<Class<? extends MultiAgentIdeDataDepNode>> dependsOn() {
-        return List.of(EventSubscriptionDataDepNode.class);
-    }
-
     private void readSseStream(
             String endpoint,
             MultiAgentIdeDataDepCtx observations,

@@ -4,6 +4,7 @@ import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.docker.ctx.DockerInitBubbleCtx;
+import com.hayden.test_graph.init.selenium.ctx.SeleniumInitBubbleCtx;
 import com.hayden.test_graph.multi_agent_ide.init.nodes.MultiAgentIdeInitBubbleNode;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.EqualsAndHashCode;
@@ -37,6 +38,6 @@ public class MultiAgentIdeBubble implements InitBubble {
     @Override
     public List<Class<? extends TestGraphContext<InitBubble>>> dependsOn() {
         // Multi-agent-ide initialization depends on Docker being ready
-        return List.of(DockerInitBubbleCtx.class);
+        return List.of(DockerInitBubbleCtx.class, SeleniumInitBubbleCtx.class);
     }
 }

@@ -29,17 +29,18 @@ dependencies {
     implementation(project(":libs-resolver"))
     implementation("software.amazon.awssdk:s3:2.38.2")
     implementation("io.kubernetes:client-java:24.0.0")
-    testImplementation("org.seleniumhq.selenium:selenium-java:4.25.0")
+    implementation("org.seleniumhq.selenium:selenium-java:4.25.0")
 }
 
 
 
 tasks.compileJava {
 //    TODO: add depends on docker task for each profile - so as to build the docker images for the workflow.
-    dependsOn("copyPromAgent")
-    dependsOn(project(":runner_code").tasks.getByName("runnerTask"))
-    dependsOn(project(":commit-diff-context-mcp").tasks.getByName("commitDiffContextMcpTask"))
-    dependsOn(project(":mcp-tool-gateway").tasks.getByName("mcpToolGatewayTask"))
+//    dependsOn("copyPromAgent")
+//    dependsOn(project(":runner_code").tasks.getByName("runnerTask"))
+//    dependsOn(project(":commit-diff-context-mcp").tasks.getByName("commitDiffContextMcpTask"))
+//    dependsOn(project(":mcp-tool-gateway").tasks.getByName("mcpToolGatewayTask"))
+//    dependsOn(project(":multi_agent_ide").tasks.getByName("bootJar"))
 //     java -javaagent:commit-diff-context/build/agent/prometheus-javaagent.jar=12345:commit-diff-context/prom-config.yaml -jar ?.jar
 }
 
@@ -70,7 +71,7 @@ tasks.test {
 }
 
 tasks.register("generateJUnitPlatformProperties") {
-    val tags = System.getenv("cucumber.filter.tags") ?: System.getProperty("cucumber.filter.tags") ?: "@all"
+    val tags = System.getenv("cucumber.filter.tags") ?: System.getProperty("cucumber.filter.tags") ?: "@ag_ui_selenium_e2e"
     val file = project.projectDir.resolve("src/test/resources/junit-platform.properties")
 
     inputs.property("tags", tags)

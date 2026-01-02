@@ -4,6 +4,7 @@ import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitCtx;
+import com.hayden.test_graph.init.selenium.ctx.SeleniumInitCtx;
 import com.hayden.test_graph.multi_agent_ide.init.nodes.MultiAgentIdeInitNode;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.Builder;
@@ -308,6 +309,7 @@ public class MultiAgentIdeInit implements InitCtx {
 
     MultiAgentIdeBubble bubble;
 
+
     @Autowired
     @ResettableThread
     public void setBubble(MultiAgentIdeBubble bubble) {
@@ -449,11 +451,6 @@ public class MultiAgentIdeInit implements InitCtx {
                 .filter(spec -> spec.reviewNodeId().equals(reviewNodeId))
                 .findFirst()
                 .orElse(null);
-    }
-
-    @Override
-    public List<Class<? extends TestGraphContext>> dependsOn() {
-        return List.of();
     }
 
     @Override

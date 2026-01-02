@@ -38,9 +38,10 @@ public class TestGraphSort {
         }));
         for (var t : toSort) {
             List dependsOnValues = t.dependsOn();
+
             if (!dependsOnValues.isEmpty()) {
                 var v = getVals(dependsOnValues.stream().map(values::get).toList());
-                List list = dependsOnValues.stream().map(v::get).toList();
+                List list = dependsOnValues.stream().map(v::get).filter(Objects::nonNull).toList();
                 out.addAll(toGraphSortable(list));
             }
 
@@ -55,7 +56,9 @@ public class TestGraphSort {
                 .flatMap(t -> {
                     System.out.println(toSort);
                     List<G> outList = Lists.newArrayList(t) ;
-                    List<G> list = (List<G>) t.dependsOn().stream().map(vals::get).collect(Collectors.toCollection(() -> outList));
+                    List<G> list = (List<G>) t.dependsOn().stream().map(vals::get)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toCollection(() -> outList));
                     return fn.apply(list).stream();
                 })
                 .toList();

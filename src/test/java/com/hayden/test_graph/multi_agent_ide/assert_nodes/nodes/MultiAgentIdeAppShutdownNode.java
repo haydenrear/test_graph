@@ -1,6 +1,7 @@
 package com.hayden.test_graph.multi_agent_ide.assert_nodes.nodes;
 
 import com.hayden.test_graph.meta.ctx.MetaCtx;
+import com.hayden.test_graph.multi_agent_ide.assert_nodes.ctx.MultiAgentIdeAssertCtx;
 import com.hayden.test_graph.multi_agent_ide.init.ctx.MultiAgentIdeInit;
 import com.hayden.test_graph.thread.ResettableThread;
 import java.util.List;
@@ -37,4 +38,5 @@ public class MultiAgentIdeAppShutdownNode implements MultiAgentIdeAssertNode {
     public List<Class<? extends MultiAgentIdeAssertNode>> dependsOn() {
         return List.of(MultiAgentIdeUiEventAssertNode.class);
     }
+
 }

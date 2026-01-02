@@ -33,8 +33,4 @@ public class MultiAgentIdeDataDepBubble implements DataDepBubble {
         return List.of(MultiAgentIdeDataDepCtx.class);
     }
 
-    @Override
-    public List<Class<? extends TestGraphContext<DataDepBubble>>> dependsOn() {
-        return List.of();
-    }
 }

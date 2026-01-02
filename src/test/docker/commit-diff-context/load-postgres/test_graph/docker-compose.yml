@@ -2,7 +2,7 @@ services:
   commit-diff-postgres:
     networks:
       - commit-diff-template-net
-    image: localhost:5001/postgres-pgvector
+    image: localhost:5005/postgres-pgvector
     container_name: commit-diff-postgres-template
     environment:
       POSTGRES_USER: postgres
@@ -16,7 +16,7 @@ services:
 #  commit-diff-context:
 #    networks:
 #      - commit-diff-template-net
-#    image: localhost:5001/commit-diff-server
+#    image: localhost:5005/commit-diff-server
 #    container_name: commit-diff-server
 #    ports:
 #      - "8080:8080"
@@ -25,7 +25,7 @@ services:
 #  model-server:
 #    networks:
 #      - commit-diff-template-net
-#    image: localhost:5001/model-server
+#    image: localhost:5005/model-server
 #    container_name: model-server-container
 #    ports:
 #      - "9991:9991"

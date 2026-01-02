@@ -3,10 +3,11 @@ Feature: Agent session isolation for multi-agent chats
 
   Background:
     Given the test configuration is:
-      | key               | value  |
-      | MODEL_TYPE        | openai |
-      | SPRING_PROFILES   | openai |
-      | SUBSCRIPTION_TYPE | sse    |
+      | key               | value                 |
+      | MODEL_TYPE        | openai                |
+      | SPRING_PROFILES   | openai                |
+      | SUBSCRIPTION_TYPE | sse                   |
+      | BASE_URL          | http://localhost:8080 |
 
   @chat_sessions_resume
   Scenario: Orchestrator resumes its prior context after sub-agent work
@@ -16,8 +17,8 @@ Feature: Agent session isolation for multi-agent chats
     And the mock response file "multi_agent_ide/chat_sessions.json"
     And the expected events for this scenario are:
       | eventType           | nodeType     | payloadFile | order |
-      | NODE_STATUS_CHANGED | ORCHESTRATOR | none        | 0     |
-      | NODE_STATUS_CHANGED | PLANNING     | none        | 1     |
+      | NODE_STATUS_CHANGED | ORCHESTRATOR | none        |     0 |
+      | NODE_STATUS_CHANGED | PLANNING     | none        |     1 |
     When the graph execution completes
     Then the expected events should have been received
     And no additional events should have been captured
@@ -31,8 +32,8 @@ Feature: Agent session isolation for multi-agent chats
     And the mock response file "multi_agent_ide/chat_sessions.json"
     And the expected events for this scenario are:
       | eventType           | nodeType     | payloadFile | order |
-      | NODE_STATUS_CHANGED | ORCHESTRATOR | none        | 0     |
-      | NODE_STATUS_CHANGED | ORCHESTRATOR | none        | 1     |
+      | NODE_STATUS_CHANGED | ORCHESTRATOR | none        |     0 |
+      | NODE_STATUS_CHANGED | ORCHESTRATOR | none        |     1 |
     When the graph execution completes
     Then the expected events should have been received
     And no additional events should have been captured
@@ -45,7 +46,7 @@ Feature: Agent session isolation for multi-agent chats
     And the mock response file "multi_agent_ide/chat_sessions.json"
     And the expected events for this scenario are:
       | eventType           | nodeType     | payloadFile | order |
-      | NODE_STATUS_CHANGED | ORCHESTRATOR | none        | 0     |
+      | NODE_STATUS_CHANGED | ORCHESTRATOR | none        |     0 |
     When the graph execution completes
     Then the expected events should have been received
     And no additional events should have been captured

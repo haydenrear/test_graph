@@ -7,10 +7,11 @@ Feature: Agent graph UI event consumption
       | MODEL_TYPE        | openai                                  |
       | SPRING_PROFILES   | openai                                  |
       | SUBSCRIPTION_TYPE | selenium                                |
+      | BASE_URL          | http://localhost:8080                   |
       | RECORD_VIDEO      | true                                    |
       | VIDEO_NAME        | ag_ui.feature.mp4                       |
       | VIDEO_OUTPUT_PATH | build/selenium/videos/ag_ui.feature.mp4 |
-      | VIDEO_SCREEN_SIZE | 1920x1080                               |
+      | VIDEO_SCREEN_SIZE |                               1920x1080 |
 
   @ag_ui_live_graph @ag_ui_event_stream
   Scenario: UI renders live node creation and status events
@@ -20,8 +21,8 @@ Feature: Agent graph UI event consumption
     And the mock response file "multi_agent_ide/ag_ui.json"
     And the expected events for this scenario are:
       | eventType           | nodeType     | payloadFile | order |
-      | NODE_ADDED          | ORCHESTRATOR | none        | 0     |
-      | NODE_STATUS_CHANGED | ORCHESTRATOR | none        | 1     |
+      | NODE_ADDED          | ORCHESTRATOR | none        |     0 |
+      | NODE_STATUS_CHANGED | ORCHESTRATOR | none        |     1 |
     When the graph execution completes
     Then the expected events should have been received
 
@@ -33,7 +34,7 @@ Feature: Agent graph UI event consumption
     And the mock response file "multi_agent_ide/ag_ui.json"
     And the expected events for this scenario are:
       | eventType        | nodeType | payloadFile | order |
-      | WORKTREE_CREATED | WORKTREE | none        | 0     |
+      | WORKTREE_CREATED | WORKTREE | none        |     0 |
     When the graph execution completes
     Then the expected events should have been received
 
@@ -45,8 +46,8 @@ Feature: Agent graph UI event consumption
     And the mock response file "multi_agent_ide/ag_ui.json"
     And the expected events for this scenario are:
       | eventType           | nodeType | payloadFile | order |
-      | ADD_MESSAGE_EVENT   | WORK     | none        | 0     |
-      | NODE_STATUS_CHANGED | WORK     | none        | 1     |
+      | ADD_MESSAGE_EVENT   | WORK     | none        |     0 |
+      | NODE_STATUS_CHANGED | WORK     | none        |     1 |
     When the graph execution completes
     Then the expected events should have been received
 
@@ -58,8 +59,8 @@ Feature: Agent graph UI event consumption
     And the mock response file "multi_agent_ide/ag_ui.json"
     And the expected events for this scenario are:
       | eventType   | nodeType | payloadFile | order |
-      | PAUSE_EVENT | WORK     | none        | 0     |
-      | STOP_AGENT  | WORK     | none        | 1     |
+      | PAUSE_EVENT | WORK     | none        |     0 |
+      | STOP_AGENT  | WORK     | none        |     1 |
     When the graph execution completes
     Then the expected events should have been received
 
@@ -71,7 +72,7 @@ Feature: Agent graph UI event consumption
     And the mock response file "multi_agent_ide/ag_ui.json"
     And the expected events for this scenario are:
       | eventType                 | nodeType     | payloadFile | order |
-      | AVAILABLE_COMMANDS_UPDATE | ORCHESTRATOR | none        | 0     |
+      | AVAILABLE_COMMANDS_UPDATE | ORCHESTRATOR | none        |     0 |
     When the graph execution completes
     Then the expected events should have been received
 
@@ -83,7 +84,7 @@ Feature: Agent graph UI event consumption
     And the mock response file "multi_agent_ide/ag_ui.json"
     And the expected events for this scenario are:
       | eventType        | nodeType | payloadFile | order |
-      | TOOL_CALL_RESULT | WORK     | none        | 0     |
+      | TOOL_CALL_RESULT | WORK     | none        |     0 |
     When the graph execution completes
     Then the expected events should have been received
 
@@ -95,7 +96,7 @@ Feature: Agent graph UI event consumption
     And the mock response file "multi_agent_ide/ag_ui.json"
     And the expected events for this scenario are:
       | eventType         | nodeType | payloadFile | order |
-      | NODE_STREAM_DELTA | WORK     | none        | 0     |
+      | NODE_STREAM_DELTA | WORK     | none        |     0 |
     When the graph execution completes
     Then the expected events should have been received
 
@@ -104,7 +105,7 @@ Feature: Agent graph UI event consumption
     Given the mock response file "multi_agent_ide/ag_ui.json"
     And the expected events for this scenario are:
       | eventType           | nodeType     | payloadFile | order |
-      | NODE_ADDED          | ORCHESTRATOR | none        | 0     |
-      | NODE_STATUS_CHANGED | ORCHESTRATOR | none        | 1     |
+      | NODE_ADDED          | ORCHESTRATOR | none        |     0 |
+      | NODE_STATUS_CHANGED | ORCHESTRATOR | none        |     1 |
     When the graph execution completes
     Then the expected events should have been received

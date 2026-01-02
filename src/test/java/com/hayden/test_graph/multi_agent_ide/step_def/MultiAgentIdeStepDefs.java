@@ -1,12 +1,13 @@
 package com.hayden.test_graph.multi_agent_ide.step_def;
 
 import com.hayden.test_graph.assertions.Assertions;
+import com.hayden.test_graph.init.selenium.ctx.SeleniumInitCtx;
 import com.hayden.test_graph.multi_agent_ide.assert_nodes.ctx.MultiAgentIdeAssertCtx;
 import com.hayden.test_graph.multi_agent_ide.data_dep.ctx.MultiAgentIdeDataDepCtx;
 import com.hayden.test_graph.multi_agent_ide.init.ctx.MultiAgentIdeInit;
 import com.hayden.test_graph.multi_agent_ide.init.mountebank.ctx.MultiAgentIdeMbInitCtx;
-import com.hayden.test_graph.meta.exec.MetaProgExec;
 import com.hayden.test_graph.steps.ExecAssertStep;
+import com.hayden.test_graph.steps.RegisterDataDep;
 import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
@@ -48,7 +49,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
 
     @Autowired
     @ResettableThread
-    private MetaProgExec metaProgExec;
+    private SeleniumInitCtx seleniumInitCtx;
 
     /**
      * Define computation graph structure from data table.
@@ -124,7 +125,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
      * Files should contain JSON payloads that represent model responses (tool calls, code, etc.)
      */
     @And("the expected events for this scenario are:")
-    @RegisterInitStep({MultiAgentIdeInit.class})
+    @RegisterDataDep(MultiAgentIdeDataDepCtx.class)
     public void expected_events_scenario(io.cucumber.datatable.DataTable table) {
         var rows = table.asMaps(String.class, String.class);
         int eventIndex = 0;
@@ -211,6 +212,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
      * Expected columns: key, value
      */
     @Given("the test configuration is:")
+    @RegisterInitStep(MultiAgentIdeInit.class)
     public void test_configuration(io.cucumber.datatable.DataTable table) {
         var rows = table.asMaps(String.class, String.class);
         String modelType = null;
@@ -221,6 +223,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
         String videoOutputPath = null;
         String videoScreenSize = null;
         String subscriptionType = null;
+        String baseUrl = null;
 
         for (var row : rows) {
             String key = row.get("key");
@@ -244,16 +247,18 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
                 videoOutputPath = value;
             } else if ("VIDEO_SCREEN_SIZE".equalsIgnoreCase(key)) {
                 videoScreenSize = value;
+            } else if ("BASE_URL".equalsIgnoreCase(key)) {
+                baseUrl = value;
             }
         }
 
-        var existing = multiAgentIdeDataDep.getLangChain4jMockConfig();
+        var existing = multiAgentIdeDataDep.getAgentConfig();
         Map<String, String> mockResponses = existing != null ? new HashMap<>(existing.mockResponses()) : new HashMap<>();
         boolean resolvedStreaming = useStreamingModel != null ? useStreamingModel : existing == null || existing.useStreamingModel();
         String resolvedModelType = modelType != null ? modelType : (existing != null ? existing.modelType() : "http");
 
-        multiAgentIdeDataDep.setLangChain4jMockConfig(
-                MultiAgentIdeDataDepCtx.LangChain4jMockConfig.builder()
+        multiAgentIdeDataDep.setAgentConfig(
+                MultiAgentIdeDataDepCtx.AgentConfig.builder()
                         .useStreamingModel(resolvedStreaming)
                         .modelType(resolvedModelType)
                         .mockResponses(mockResponses)
@@ -264,8 +269,8 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
                 ? explicitProfiles
                 : resolveAppProfiles(modelType);
         if (appProfiles != null) {
-            MultiAgentIdeInit.AppLaunchConfig existing = multiAgentIdeInit.getAppLaunchConfig();
-            if (existing == null) {
+            var existingAppLaunchConfig = multiAgentIdeInit.getAppLaunchConfig();
+            if (existingAppLaunchConfig == null) {
                 multiAgentIdeInit.setAppLaunchConfig(
                         new MultiAgentIdeInit.AppLaunchConfig(
                                 null,
@@ -281,13 +286,13 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
             } else {
                 multiAgentIdeInit.setAppLaunchConfig(
                         new MultiAgentIdeInit.AppLaunchConfig(
-                                existing.jarPath(),
-                                existing.port(),
-                                existing.baseUrl(),
-                                existing.worktreesBasePath(),
-                                existing.jvmArgs(),
-                                existing.appArgs(),
-                                existing.skipIfHealthy(),
+                                existingAppLaunchConfig.jarPath(),
+                                existingAppLaunchConfig.port(),
+                                existingAppLaunchConfig.baseUrl(),
+                                existingAppLaunchConfig.worktreesBasePath(),
+                                existingAppLaunchConfig.jvmArgs(),
+                                existingAppLaunchConfig.appArgs(),
+                                existingAppLaunchConfig.skipIfHealthy(),
                                 appProfiles
                         )
                 );
@@ -296,9 +301,9 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
 
         if (subscriptionType != null) {
             if ("sse".equalsIgnoreCase(subscriptionType)) {
-                configureSseSubscription();
+                configureSseSubscription(baseUrl);
             } else if ("selenium".equalsIgnoreCase(subscriptionType)) {
-                configureSeleniumSubscription(recordVideo, videoName, videoOutputPath, videoScreenSize);
+                configureSeleniumSubscription(recordVideo, videoName, videoOutputPath, videoScreenSize, baseUrl, 30000);
             } else {
                 throw new IllegalArgumentException("Unsupported subscription type: " + subscriptionType);
             }
@@ -318,29 +323,6 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
      */
     @When("the graph execution completes")
     public void graph_execution_completes() {
-        if (multiAgentIdeInit.getAppLaunchConfig() == null) {
-            multiAgentIdeInit.setAppLaunchConfig(new MultiAgentIdeInit.AppLaunchConfig((String) null));
-        }
-        if (multiAgentIdeDataDep.getEventSubscriptionConfig() == null
-                && multiAgentIdeDataDep.getSeleniumUiConfig() == null) {
-            String baseUrl = resolveBaseUrl();
-            String endpoint = baseUrl.endsWith("/")
-                    ? baseUrl + "api/events/stream"
-                    : baseUrl + "/api/events/stream";
-            multiAgentIdeDataDep.setEventSubscriptionConfig(
-                    MultiAgentIdeDataDepCtx.EventSubscriptionConfig.builder()
-                            .subscriptionProtocol("sse")
-                            .eventEndpoint(endpoint)
-                            .pollIntervalMs(100)
-                            .subscriptionTimeoutMs(30000L)
-                            .autoStart(true)
-                            .build()
-            );
-        }
-        int expectedCount = multiAgentIdeAssert.getPendingAssertionCount();
-        if (expectedCount > 0) {
-            multiAgentIdeDataDep.setExpectedEventCount(expectedCount);
-        }
     }
 
     /**
@@ -511,33 +493,6 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
         multiAgentIdeAssert.addPendingAssertion(assertion);
     }
 
-    /**
-     * Validate events received in specified order.
-     */
-    @Then("the expected events should have been received in the specified order")
-    @ExecAssertStep(MultiAgentIdeAssertCtx.class)
-    public void events_in_specified_order() {
-        multiAgentIdeAssert.putAssertionResult("event_order_validated", true);
-    }
-
-    /**
-     * Validate no out of sequence events.
-     */
-    @And("no events should be out of sequence")
-    @ExecAssertStep(MultiAgentIdeAssertCtx.class)
-    public void no_out_of_sequence_events() {
-        multiAgentIdeAssert.putAssertionResult("sequence_check_passed", true);
-    }
-
-    /**
-     * Validate all WorkNodes persisted with final status.
-     */
-    @And("all WorkNodes should be persisted with their final status")
-    @ExecAssertStep(MultiAgentIdeAssertCtx.class)
-    public void all_work_nodes_persisted() {
-        multiAgentIdeAssert.putAssertionResult("work_nodes_persisted_check", true);
-    }
-
 
     /**
      * Validate events received in order.
@@ -545,21 +500,16 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
     @Then("the expected events should have been received in order")
     @ExecAssertStep(MultiAgentIdeAssertCtx.class)
     public void expected_events_in_order() {
-        events_in_specified_order();
     }
 
     @And("the mock response file {string}")
-    @RegisterInitStep({MultiAgentIdeMbInitCtx.class})
+    @RegisterInitStep(MultiAgentIdeMbInitCtx.class)
     public void theMockResponseFile(String imposterFile) {
         this.multiAgentIdeMbInit.registerImposterFile(imposterFile);
     }
 
     private String resolveBaseUrl() {
-        String configured = System.getProperty("multiagentide.baseUrl");
-        if (configured != null && !configured.isBlank()) {
-            return configured;
-        }
-        return "http://localhost:8080";
+        return multiAgentIdeDataDep.getEventSubscriptionConfig().eventEndpoint();
     }
 
     private String resolveRepositoryUrl() {
@@ -570,8 +520,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
         return repoRoot;
     }
 
-    private void configureSseSubscription() {
-        String baseUrl = resolveBaseUrl();
+    private void configureSseSubscription(String baseUrl) {
         String endpoint = baseUrl.endsWith("/")
                 ? baseUrl + "api/events/stream"
                 : baseUrl + "/api/events/stream";
@@ -590,34 +539,20 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
             Boolean recordVideo,
             String videoName,
             String videoOutputPath,
-            String videoScreenSize) {
-        MultiAgentIdeDataDepCtx.SeleniumUiConfig existingSelenium = multiAgentIdeDataDep.getSeleniumUiConfig();
-        if (existingSelenium == null) {
-            multiAgentIdeDataDep.setSeleniumUiConfig(
-                    MultiAgentIdeDataDepCtx.SeleniumUiConfig.builder()
-                            .recordVideo(recordVideo)
-                            .videoName(videoName)
-                            .videoOutputPath(videoOutputPath)
-                            .videoScreenSize(videoScreenSize)
-                            .build()
-            );
-            return;
-        }
-        multiAgentIdeDataDep.setSeleniumUiConfig(
-                MultiAgentIdeDataDepCtx.SeleniumUiConfig.builder()
-                        .baseUrl(existingSelenium.baseUrl())
-                        .goal(existingSelenium.goal())
-                        .repositoryUrl(existingSelenium.repositoryUrl())
-                        .baseBranch(existingSelenium.baseBranch())
-                        .waitTimeoutMs(existingSelenium.waitTimeoutMs())
-                        .expectedEventCount(existingSelenium.expectedEventCount())
-                        .driver(existingSelenium.driver())
-                        .recordVideo(recordVideo != null ? recordVideo : existingSelenium.recordVideo())
-                        .videoName(videoName != null ? videoName : existingSelenium.videoName())
-                        .videoOutputPath(videoOutputPath != null ? videoOutputPath : existingSelenium.videoOutputPath())
-                        .videoScreenSize(videoScreenSize != null ? videoScreenSize : existingSelenium.videoScreenSize())
-                        .build()
-        );
+            String videoScreenSize,
+            String baseUrl,
+            long waitTimeoutMs) {
+
+        this.seleniumInitCtx.setConfig(
+                SeleniumInitCtx.SeleniumUiConfig.builder()
+                        .baseUrl(baseUrl)
+                        .waitTimeoutMs(waitTimeoutMs)
+                        .driver("chrome")
+                        .recordVideo(recordVideo)
+                        .videoName(videoName)
+                        .videoOutputPath(videoOutputPath)
+                        .videoScreenSize(videoScreenSize)
+                        .build());
     }
 
     private String resolveAppProfiles(String modelType) {

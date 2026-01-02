@@ -3,10 +3,11 @@ Feature: Collector routing and review gating
 
   Background:
     Given the test configuration is:
-      | key               | value  |
-      | MODEL_TYPE        | openai |
-      | SPRING_PROFILES   | openai |
-      | SUBSCRIPTION_TYPE | sse    |
+      | key               | value                 |
+      | MODEL_TYPE        | openai                |
+      | SPRING_PROFILES   | openai                |
+      | SUBSCRIPTION_TYPE | sse                   |
+      | BASE_URL          | http://localhost:8080 |
 
   @collector_orchestrator_reentry
   Scenario: Collector results trigger another planning pass
@@ -16,9 +17,9 @@ Feature: Collector routing and review gating
     And the mock response file "multi_agent_ide/collector_orchestrator_routing.json"
     And the expected events for this scenario are:
       | eventType           | nodeType     | payloadFile | order |
-      | NODE_STATUS_CHANGED | PLANNING     | none        | 0     |
-      | NODE_ADDED          | PLANNING     | none        | 1     |
-      | NODE_STATUS_CHANGED | ORCHESTRATOR | none        | 2     |
+      | NODE_STATUS_CHANGED | PLANNING     | none        |     0 |
+      | NODE_ADDED          | PLANNING     | none        |     1 |
+      | NODE_STATUS_CHANGED | ORCHESTRATOR | none        |     2 |
     When the graph execution completes
     Then the expected events should have been received
     And no additional events should have been captured
@@ -31,8 +32,8 @@ Feature: Collector routing and review gating
     And the mock response file "multi_agent_ide/collector_orchestrator_routing.json"
     And the expected events for this scenario are:
       | eventType             | nodeType | payloadFile | order |
-      | NODE_REVIEW_REQUESTED | PLANNING | none        | 0     |
-      | NODE_STATUS_CHANGED   | PLANNING | none        | 1     |
+      | NODE_REVIEW_REQUESTED | PLANNING | none        |     0 |
+      | NODE_STATUS_CHANGED   | PLANNING | none        |     1 |
     When the graph execution completes
     Then the expected events should have been received
     And no additional events should have been captured

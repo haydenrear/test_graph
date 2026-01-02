@@ -90,7 +90,4 @@ public class LazyMetaGraphDelegate {
         return autoDetect.parseSubGraph(hg, clazz);
     }
 
-    public HyperGraphExec getMatchingContext(Class<? extends TestGraphContext> clazz) {
-        return autoDetect.getMatchingContext(clazz);
-    }
 }

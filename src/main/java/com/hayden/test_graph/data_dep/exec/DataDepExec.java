@@ -1,10 +1,10 @@
 package com.hayden.test_graph.data_dep.exec;
 
+import com.hayden.test_graph.assert_g.ctx.AssertCtx;
 import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
 import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
 import com.hayden.test_graph.data_dep.graph.DataDepGraph;
 import com.hayden.test_graph.exec.single.GraphExec;
-import com.hayden.test_graph.graph.edge.EdgeExec;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.RequiredArgsConstructor;
@@ -53,9 +53,6 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
     List<DataDepExec.DataDepPostMapper> postMappers;
 
     @Autowired
-    EdgeExec edgeExec;
-
-    @Autowired
     @ResettableThread
     DataDepGraph dataDepGraph;
 
@@ -74,9 +71,7 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
     }
 
     private DataDepExec retrieveToExec(DataDepCtx initCtx, DataDepBubble prev, MetaCtx metaCtx) {
-        return Optional.ofNullable(prev)
-                .map(ib -> edgeExec.edges(this, initCtx, ib, metaCtx))
-                .orElseGet(() -> edgeExec.edges(this, initCtx, metaCtx));
+        return this;
     }
 
 
@@ -100,7 +95,6 @@ public class DataDepExec implements GraphExec.ExecNode<DataDepCtx, DataDepBubble
     public DataDepBubble collectCtx(Class<? extends DataDepCtx> toCollect, MetaCtx metaCtx) {
         List<? extends DataDepCtx> intCtx = this.dataDepGraph.sortedCtx(toCollect)
                 .stream()
-                .map(ac -> this.edgeExec.preExecTestGraphEdges(ac, metaCtx))
                 .toList();
         if (intCtx.isEmpty()) {
             logBubbleError();

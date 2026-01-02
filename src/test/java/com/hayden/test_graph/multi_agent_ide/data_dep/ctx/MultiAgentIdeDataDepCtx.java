@@ -6,7 +6,7 @@ import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
 import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
 import com.hayden.test_graph.exec.single.GraphExec;
-import com.hayden.test_graph.multi_agent_ide.assert_nodes.ctx.MultiAgentIdeAssertBubble;
+import com.hayden.test_graph.init.selenium.ctx.SeleniumInitCtx;
 import com.hayden.test_graph.multi_agent_ide.data_dep.nodes.MultiAgentIdeDataDepNode;
 import com.hayden.test_graph.multi_agent_ide.init.ctx.MultiAgentIdeInit;
 import com.hayden.test_graph.thread.ResettableThread;
@@ -14,6 +14,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -50,12 +51,12 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
     }
 
     @Builder
-    public record LangChain4jMockConfig(
+    public record AgentConfig(
             boolean useStreamingModel,
             String modelType,
             Map<String, String> mockResponses
     ) {
-        public LangChain4jMockConfig() {
+        public AgentConfig() {
             this(true, "claude-haiku", new HashMap<>());
         }
     }
@@ -82,25 +83,6 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
     ) {
         public EventSubscriptionConfig(String subscriptionProtocol, String eventEndpoint) {
             this(subscriptionProtocol, eventEndpoint, 100, 30000L, true);
-        }
-    }
-
-    @Builder
-    public record SeleniumUiConfig(
-            String baseUrl,
-            String goal,
-            String repositoryUrl,
-            String baseBranch,
-            Long waitTimeoutMs,
-            Integer expectedEventCount,
-            String driver,
-            Boolean recordVideo,
-            String videoName,
-            String videoOutputPath,
-            String videoScreenSize
-    ) {
-        public SeleniumUiConfig(String baseUrl, String goal, String repositoryUrl) {
-            this(baseUrl, goal, repositoryUrl, "main", 30000L, null, null, null, null, null, null);
         }
     }
 
@@ -187,11 +169,12 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
 
     }
 
+
     private final ContextValue<TestEventListenerConfig> eventListenerConfig = ContextValue.empty();
-    private final ContextValue<LangChain4jMockConfig> langChain4jMockConfig = ContextValue.empty();
+    private final ContextValue<AgentConfig> agentConfig = ContextValue.empty();
     private final ContextValue<SubmoduleConfig> submoduleConfig = ContextValue.empty();
     private final ContextValue<EventSubscriptionConfig> eventSubscriptionConfig = ContextValue.empty();
-    private final ContextValue<SeleniumUiConfig> seleniumUiConfig = ContextValue.empty();
+    private final ContextValue<SeleniumInitCtx.SeleniumData> seleniumUiConfig = ContextValue.empty();
     private final ContextValue<Integer> expectedEventCount = ContextValue.empty();
     private final ContextValue<MultiAgentIdeInit> initCtx = ContextValue.empty();
     @Getter
@@ -238,12 +221,12 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
         return eventListenerConfig.get();
     }
 
-    public void setLangChain4jMockConfig(LangChain4jMockConfig config) {
-        langChain4jMockConfig.set(config);
+    public void setAgentConfig(AgentConfig config) {
+        agentConfig.set(config);
     }
 
-    public LangChain4jMockConfig getLangChain4jMockConfig() {
-        return langChain4jMockConfig.get();
+    public AgentConfig getAgentConfig() {
+        return agentConfig.get();
     }
 
     public void setSubmoduleConfig(SubmoduleConfig config) {
@@ -254,11 +237,11 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
         return submoduleConfig.get();
     }
 
-    public void setSeleniumUiConfig(SeleniumUiConfig config) {
+    public void setSeleniumUiConfig(SeleniumInitCtx.SeleniumData config) {
         seleniumUiConfig.set(config);
     }
 
-    public SeleniumUiConfig getSeleniumUiConfig() {
+    public SeleniumInitCtx.SeleniumData getSeleniumUiConfig() {
         return seleniumUiConfig.res().orElse(null);
     }
 
@@ -299,11 +282,6 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
     @Override
     public Class<MultiAgentIdeDataDepBubble> bubbleClazz() {
         return MultiAgentIdeDataDepBubble.class;
-    }
-
-    @Override
-    public List<Class<? extends TestGraphContext>> dependsOn() {
-        return List.of(MultiAgentIdeInit.class);
     }
 
 }

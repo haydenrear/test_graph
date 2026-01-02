@@ -7,6 +7,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 @CucumberContextConfiguration
 @SpringBootTest(classes = CucumberTestConfig.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@EnableAspectJAutoProxy
+@EnableAspectJAutoProxy(proxyTargetClass = false)
 public class TestConfig {
 }

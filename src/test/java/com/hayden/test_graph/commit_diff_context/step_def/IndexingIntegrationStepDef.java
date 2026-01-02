@@ -17,8 +17,6 @@ import io.cucumber.java.en.When;
 import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 
 /**
@@ -27,26 +25,26 @@ import java.util.Arrays;
  */
 public class IndexingIntegrationStepDef implements ResettableStep {
 
-    @Autowired
+    @Autowired(required = false)
     @ResettableThread
     private IndexingK3sInit indexingK3SInit;
 
-    @Autowired
+    @Autowired(required = false)
     @ResettableThread
     private CommitDiffContextIndexingDataDepCtx indexingDataDepCtx;
 
-    @Autowired
+    @Autowired(required = false)
     @ResettableThread
     private CommitDiffContextIndexingAssertCtx indexingAssertCtx;
 
-    @Autowired
+    @Autowired(required = false)
     @ResettableThread
     private IndexingMbInitCtx indexingMbInitCtx;
 
-    @Autowired
+    @Autowired(required = false)
     private CodeIndexRepository codeIndexRepository;
 
-    @Autowired
+    @Autowired(required = false)
     private Assertions assertions;
 
     @When("the K3s cluster is initialized")
@@ -92,11 +90,11 @@ public class IndexingIntegrationStepDef implements ResettableStep {
 
     @And("the sources are uploaded to MinIO")
     public void sourcesUploadedToMinIO() {
-        sourcesUploadedToMinIO("default-sources");
+        sourcesUploadedToMinIOWithBucket("default-sources");
     }
 
     @And("the sources are uploaded to MinIO with bucket {string}")
-    public void sourcesUploadedToMinIO(String bucket) {
+    public void sourcesUploadedToMinIOWithBucket(String bucket) {
         // Simulate sources being available in MinIO
         indexingDataDepCtx.deployment().res().ifPresent(dep -> {
             if (dep.minioConfig().isPresent()) {
@@ -300,7 +298,7 @@ public class IndexingIntegrationStepDef implements ResettableStep {
         // which verifies Kafka StatefulSet and namespace are ready
     }
 
-    @Then("the sources are uploaded to MinIO")
+    @Then("the sources are uploaded to MinIO for indexing")
     @ExecAssertStep({CommitDiffContextIndexingAssertCtx.class})
     public void verifySourcesUploadedToMinIO() {
         // This step is handled by VerifySourcesUploadedToMinIO assert node

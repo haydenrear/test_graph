@@ -52,7 +52,7 @@ public class MultiAgentIdeUiEventAssertNode implements MultiAgentIdeAssertNode {
 
     @Override
     public List<Class<? extends MultiAgentIdeAssertNode>> dependsOn() {
-        return List.of(MultiAgentGoalRequestNode.class);
+        return List.of(MultiAgentSseGoalRequestNode.class, MultiAgentSeleniumGoalRequestNode.class);
     }
 
     private boolean matchesEventAssertion(

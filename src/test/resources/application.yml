@@ -1,3 +1,5 @@
+spring.session.schema-provided: false
+
 commit-diff-context-server-props:
   port: 8080
   model-server-base-url: http://localhost:9991
@@ -62,11 +64,12 @@ spring:
       password: postgres
       jdbc-url: jdbc:postgresql://localhost:5450/postgres
       url: jdbc:postgresql://localhost:5450/postgres
-
   liquibase:
     enabled: false
   main:
     allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude: org.springframework.modulith.runtime.autoconfigure.SpringModulithRuntimeAutoConfiguration,org.springframework.modulith.actuator.autoconfigure.ApplicationModulesEndpointConfiguration
 commit-diff-context:
   diffs-include-pattern:
     - "*.java"

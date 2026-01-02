@@ -3,6 +3,7 @@ package com.hayden.test_graph.meta.ctx;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
 import com.hayden.test_graph.meta.exec.prog_bubble.MetaProgNode;
@@ -13,7 +14,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.Stack;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -24,33 +27,17 @@ public class MetaProgCtx implements MetaCtx {
     @Delegate
     Stack<HyperGraphContext> delegates = new Stack<>();
 
-    public <T extends HyperGraphContext> Stream<T> retrieveBubbled(Class<T> clazz) {
-        return delegates.stream()
-                .map(HyperGraphContext::bubble)
-                .filter(Objects::nonNull)
-                .distinct()
-                .filter(b -> b.getClass().equals(clazz))
-                .flatMap(hgc -> {
-                    try {
-                        return Stream.of((T) hgc) ;
-                    } catch (ClassCastException c) {
-                        log.error("{}, {}", c.getMessage(), c.getStackTrace());
-                        return Stream.empty();
-                    }
-                });
+    Queue<TestGraphContext> executed = new ConcurrentLinkedDeque<>();
+
+    @Override
+    public void ran(TestGraphContext check) {
+        executed.add(check);
     }
 
-    public <T extends MetaCtx> Stream<T> retrieve(Class<T> clazz) {
-        return delegates.stream()
-                .filter(Objects::nonNull)
-                .filter(m -> clazz.equals(m.getClass()))
-                .flatMap(m -> {
-                    try {
-                        return Stream.of((T) m);
-                    } catch (ClassCastException e) {
-                        return Stream.empty();
-                    }
-                });
+    @Override
+    public boolean didRun(Class<? extends TestGraphContext> check) {
+        return executed.stream()
+                .anyMatch(t -> Objects.equals(t.getClass(), check));
     }
 
     @Override

@@ -3,10 +3,11 @@ Feature: Interrupt handling and continuation routing
 
   Background:
     Given the test configuration is:
-      | key               | value  |
-      | MODEL_TYPE        | openai |
-      | SPRING_PROFILES   | openai |
-      | SUBSCRIPTION_TYPE | sse    |
+      | key               | value                 |
+      | MODEL_TYPE        | openai                |
+      | SPRING_PROFILES   | openai                |
+      | SUBSCRIPTION_TYPE | sse                   |
+      | BASE_URL          | http://localhost:8080 |
 
   @interrupt_review_resume
   Scenario: Review interrupt pauses and returns to the originating work
@@ -16,9 +17,9 @@ Feature: Interrupt handling and continuation routing
     And the mock response file "multi_agent_ide/interrupt_handling.json"
     And the expected events for this scenario are:
       | eventType             | nodeType     | payloadFile | order |
-      | NODE_REVIEW_REQUESTED | WORK         | none        | 0     |
-      | NODE_ADDED            | HUMAN_REVIEW | none        | 1     |
-      | NODE_STATUS_CHANGED   | WORK         | none        | 2     |
+      | NODE_REVIEW_REQUESTED | WORK         | none        |     0 |
+      | NODE_ADDED            | HUMAN_REVIEW | none        |     1 |
+      | NODE_STATUS_CHANGED   | WORK         | none        |     2 |
     When the graph execution completes
     Then the expected events should have been received
     And no additional events should have been captured
@@ -31,9 +32,9 @@ Feature: Interrupt handling and continuation routing
     And the mock response file "multi_agent_ide/interrupt_handling.json"
     And the expected events for this scenario are:
       | eventType           | nodeType  | payloadFile | order |
-      | PAUSE_EVENT         | WORK      | none        | 0     |
-      | NODE_STATUS_CHANGED | WORK      | none        | 1     |
-      | NODE_ADDED          | INTERRUPT | none        | 2     |
+      | PAUSE_EVENT         | WORK      | none        |     0 |
+      | NODE_STATUS_CHANGED | WORK      | none        |     1 |
+      | NODE_ADDED          | INTERRUPT | none        |     2 |
     When the graph execution completes
     Then the expected events should have been received
     And no additional events should have been captured
@@ -46,9 +47,9 @@ Feature: Interrupt handling and continuation routing
     And the mock response file "multi_agent_ide/interrupt_handling.json"
     And the expected events for this scenario are:
       | eventType           | nodeType  | payloadFile | order |
-      | STOP_AGENT          | WORK      | none        | 0     |
-      | NODE_STATUS_CHANGED | WORK      | none        | 1     |
-      | NODE_ADDED          | INTERRUPT | none        | 2     |
+      | STOP_AGENT          | WORK      | none        |     0 |
+      | NODE_STATUS_CHANGED | WORK      | none        |     1 |
+      | NODE_ADDED          | INTERRUPT | none        |     2 |
     When the graph execution completes
     Then the expected events should have been received
     And no additional events should have been captured

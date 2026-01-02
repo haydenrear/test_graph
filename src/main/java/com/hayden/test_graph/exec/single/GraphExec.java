@@ -25,6 +25,10 @@ public interface GraphExec<CTX extends TestGraphContext> {
 
     interface ExecNode<CTX extends TestGraphContext<H>, H extends HyperGraphContext> extends GraphExec<CTX> {
 
+        default List<Class<? extends HyperGraphContext>> dependencies(Class<? extends TestGraphContext> ctx) {
+            return new ArrayList<>();
+        }
+
         default H exec(CTX initCtx, MetaCtx metaCtx) {
             return this.exec(initCtx, null, metaCtx);
         }
@@ -34,6 +38,10 @@ public interface GraphExec<CTX extends TestGraphContext> {
         }
 
         default H exec(CTX c, H prev, MetaCtx metaCtx) {
+            if (metaCtx.didRun(c.getClass())) {
+                return c.bubble();
+            }
+            metaCtx.ran(c);
             if (c.skip()) {
                 log.info("Skipping exec {}", c.getClass().getName());
                 return c.bubble();

@@ -32,7 +32,7 @@ public class InitializeRepo implements RepoOpInitNode {
 
 
     @Override
-    @Idempotent
+    //@Idempotent
     public RepoOpInit exec(RepoOpInit c, MetaCtx h) {
         // clone repo, add to context
         return c.repoData().res()

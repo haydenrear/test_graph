@@ -3,14 +3,11 @@ package com.hayden.test_graph.exec.bubble;
 import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
-import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
 import com.hayden.test_graph.graph.node.HyperGraphTestNode;
-import com.hayden.test_graph.init.ctx.InitBubble;
-import com.hayden.test_graph.init.exec.bubble.InitBubbleNode;
+import com.hayden.test_graph.init.ctx.InitCtx;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 
-import java.util.ArrayList;
 import java.util.List;
 
 // TODO: abstract base class for the fields?
@@ -27,6 +24,10 @@ public interface HyperGraphExec<SG extends TestGraphContext<CTX>, CTX extends Hy
      */
     @Idempotent
     CTX exec(Class<? extends SG> ctx, MetaCtx prev);
+
+    default boolean is(Class<? extends TestGraphContext> isThis) {
+        return true;
+    }
 
     @Idempotent
     default MetaCtx execBubble(Class<? extends SG> ctx, MetaCtx prev) {
