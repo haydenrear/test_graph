@@ -21,9 +21,11 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Slf4j
+import static com.hayden.test_graph.multi_agent_ide.MultiAgentTestTimeout.REQUEST_TIMEOUT;
+
 @Component
 @ResettableThread
+@Slf4j
 public class SeleniumUiDataDepNode implements MultiAgentIdeDataDepNode {
 
     @Autowired
@@ -47,7 +49,7 @@ public class SeleniumUiDataDepNode implements MultiAgentIdeDataDepNode {
         var config = configOpt.get().config();
 
         String baseUrl = resolveBaseUrl(config.baseUrl());
-        long waitTimeout = config.waitTimeoutMs() != null ? config.waitTimeoutMs() : 30000L;
+        long waitTimeout = config.waitTimeoutMs() != null ? config.waitTimeoutMs() : REQUEST_TIMEOUT * 1000L;
 
         var driver = configOpt.get().driver();
 
@@ -56,7 +58,7 @@ public class SeleniumUiDataDepNode implements MultiAgentIdeDataDepNode {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofMillis(waitTimeout));
 
             wait.pollingEvery(Duration.ofSeconds(3))
-                    .withTimeout(Duration.ofSeconds(30))
+                    .withTimeout(Duration.ofMillis(waitTimeout))
                     .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("[data-testid='goal-input']")));
 
             ctx.registerClose(() -> {
@@ -131,6 +133,11 @@ public class SeleniumUiDataDepNode implements MultiAgentIdeDataDepNode {
                     .payload(payload)
                     .build());
         }
+
+        if (!observations.isEmpty()) {
+            log.info("Read {} UI events", observations.size());
+        }
+
         return observations;
     }
 

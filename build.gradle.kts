@@ -9,6 +9,7 @@ plugins {
     id("com.hayden.cucumber")
     id("com.hayden.ai")
     id("com.hayden.jpa-persistence")
+    id("com.hayden.paths")
     id("org.hibernate.orm") version "6.4.4.Final"
 }
 
@@ -40,7 +41,7 @@ tasks.compileJava {
 //    dependsOn(project(":runner_code").tasks.getByName("runnerTask"))
 //    dependsOn(project(":commit-diff-context-mcp").tasks.getByName("commitDiffContextMcpTask"))
 //    dependsOn(project(":mcp-tool-gateway").tasks.getByName("mcpToolGatewayTask"))
-//    dependsOn(project(":multi_agent_ide").tasks.getByName("bootJar"))
+    dependsOn(project(":multi_agent_ide").tasks.getByName("bootJar"))
 //     java -javaagent:commit-diff-context/build/agent/prometheus-javaagent.jar=12345:commit-diff-context/prom-config.yaml -jar ?.jar
 }
 
@@ -59,15 +60,23 @@ tasks.startMountebank {
     project.logger.info("Starting mountebank!")
 }
 
-tasks.stopMountebank {
-    mustRunAfter(tasks.test, tasks.startMountebank)
-    project.logger.info("Stopping mountebank!")
+
+// We may want to keep mountebank up to do things like save the proxied imposters, view the results, etc
+val keepMountebankUp = project.property("keep-mountebank-up")?.toString()?.toBoolean()?.or(false) ?: false
+
+if (!keepMountebankUp) {
+    tasks.stopMountebank {
+        mustRunAfter(tasks.test, tasks.startMountebank)
+        project.logger.info("Stopping mountebank!")
+    }
 }
 
 tasks.test {
     dependsOn(tasks.acquireMountebank, tasks.startMountebank)
     useJUnitPlatform()
-    finalizedBy(tasks.stopMountebank)
+    if (!keepMountebankUp) {
+        finalizedBy(tasks.stopMountebank)
+    }
 }
 
 tasks.register("generateJUnitPlatformProperties") {
@@ -91,5 +100,6 @@ tasks.register("generateJUnitPlatformProperties") {
     }
 }
 
-tasks["compileJava"].dependsOn("generateJUnitPlatformProperties")
+tasks["compileTestJava"].dependsOn("processYmlFiles")
+tasks["compileJava"].dependsOn("generateJUnitPlatformProperties", "processYmlFiles")
 tasks["processTestResources"].dependsOn("generateJUnitPlatformProperties")

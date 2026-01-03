@@ -56,12 +56,6 @@ public class StartSeleniumNode implements SeleniumInitNode {
                 videoScreenSize
         );
 
-
-        driver.get(config.baseUrl());
-
-
-        assertions.assertSoftly(driver.getCurrentUrl() != null && driver.getCurrentUrl().startsWith(config.baseUrl()), "Web driver failed to go to %s".formatted(config.baseUrl()));
-
         c.setDriver(driver);
         return c;
     }

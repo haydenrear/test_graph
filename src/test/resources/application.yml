@@ -12,8 +12,8 @@ graphql-client:
   url: http://localhost:8080/graphql
 env-props:
   home-dir: /Users/hayde
-  project-dir: /Users/hayde/IdeaProjects/drools/test_graph
-  error-log: file:///Users/hayde/IdeaProjects/drools/runner-logs/test-report-log.log
+  project-dir: {{PROJ_DIR}}
+  error-log: file:///{{PROJ_DIR}}/runner-logs/test-report-log.log
 
 db-init-ctx:
   skip-db-cleanup: false
@@ -29,7 +29,7 @@ docker-init-ctx:
   docker-host-uri: "unix:///Users/hayde/.docker/run/docker.sock"
   docker-response-timeout: 30
   compose-directories:
-    - ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context
+    - {{PROJ_DIR}}/src/test/docker/commit-diff-context
 
 spring:
   docker:

@@ -3,7 +3,9 @@ package com.hayden.test_graph.multi_agent_ide.init.nodes;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.multi_agent_ide.init.ctx.MultiAgentIdeInit;
 import com.hayden.test_graph.thread.ResettableThread;
-import java.io.IOException;
+import com.hayden.utilitymodule.config.EnvConfigProps;
+
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Files;
@@ -12,14 +14,22 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import static com.hayden.test_graph.multi_agent_ide.MultiAgentTestTimeout.HEALTH_TIMEOUT;
 
 @Slf4j
 @Component
 @ResettableThread
 public class MultiAgentIdeAppLaunchNode implements MultiAgentIdeInitNode {
+
+    @Autowired
+    EnvConfigProps envConfigProps;
 
     @Override
     public MultiAgentIdeInit exec(MultiAgentIdeInit ctx, MetaCtx h) {
@@ -33,10 +43,9 @@ public class MultiAgentIdeAppLaunchNode implements MultiAgentIdeInitNode {
                 ? config.baseUrl()
                 : "http://localhost:" + port;
 
-        if (config.skipIfHealthy() && isHealthy(baseUrl)) {
-            log.info("Multi-agent IDE already responding at {}", baseUrl);
-            return ctx;
-        }
+        runKillScript(port);
+
+        log.info("Starting multi agent jar...");
 
         String jarPath = resolveJarPath(config.jarPath());
         List<String> command = new ArrayList<>();
@@ -59,10 +68,22 @@ public class MultiAgentIdeAppLaunchNode implements MultiAgentIdeInitNode {
 
         try {
             ProcessBuilder builder = new ProcessBuilder(command);
+            builder.environment().put("SPRING_PROFILES_ACTIVE", config.profiles());
+            builder.environment().put("OPENAI_BASE_URL", "http://localhost:4545/v1");
             builder.redirectErrorStream(true);
             Process process = builder.start();
+            CompletableFuture.runAsync(() -> {
+                try(
+                        var i = new InputStreamReader(process.getInputStream());
+                        var br = new BufferedReader(i)
+                ) {
+                    br.lines().forEach(log::info);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
             ctx.setAppProcess(process);
-            waitForHealthy(baseUrl, 30000L);
+            waitForHealthy(baseUrl, HEALTH_TIMEOUT * 1000);
             log.info("Started multi-agent IDE from {} on {}", jarPath, baseUrl);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to start multi-agent IDE", e);
@@ -92,13 +113,45 @@ public class MultiAgentIdeAppLaunchNode implements MultiAgentIdeInitNode {
                 return;
             }
             try {
-                Thread.sleep(250);
+                Thread.sleep(3000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return;
             }
         }
         throw new IllegalStateException("Timed out waiting for multi-agent IDE at " + baseUrl);
+    }
+
+    private void runKillScript(int port) {
+        Path repoRoot = resolveProjectDir();
+        Path scriptPath = repoRoot.resolve("test_graph").resolve("kill-java-jar.sh");
+        if (!Files.exists(scriptPath)) {
+            log.warn("kill-java-jar.sh not found at {}, skipping.", scriptPath);
+            return;
+        }
+        List<String> command = List.of("zsh", scriptPath.toString(), String.valueOf(port));
+        try {
+            Process process = new ProcessBuilder(command)
+                    .redirectErrorStream(true)
+                    .start();
+            String output = new String(process.getInputStream().readAllBytes());
+            if (!process.waitFor(10, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                log.warn("Timed out waiting for kill-java-jar.sh to complete.");
+                return;
+            }
+            int exitCode = process.exitValue();
+            if (exitCode != 0) {
+                log.warn("kill-java-jar.sh exited with status {}", exitCode);
+            }
+            if (!output.isBlank()) {
+                Thread.sleep(2000);
+                log.info("kill-java-jar.sh output:\n{}", output.trim());
+            }
+        } catch (IOException | InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("Failed to run kill-java-jar.sh", e);
+        }
     }
 
     private String resolveJarPath(String configuredPath) {
@@ -114,10 +167,7 @@ public class MultiAgentIdeAppLaunchNode implements MultiAgentIdeInitNode {
             return propPath;
         }
 
-        Path repoRoot = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
-        if (repoRoot.getFileName() != null && "test_graph".equals(repoRoot.getFileName().toString())) {
-            repoRoot = repoRoot.getParent();
-        }
+        Path repoRoot = resolveProjectDir();
         Path libsDir = repoRoot.resolve("multi_agent_ide").resolve("build").resolve("libs");
         if (!Files.exists(libsDir)) {
             throw new IllegalStateException("Jar not found; build multi_agent_ide or set MULTI_AGENT_IDE_JAR");
@@ -132,5 +182,17 @@ public class MultiAgentIdeAppLaunchNode implements MultiAgentIdeInitNode {
         } catch (IOException e) {
             throw new IllegalStateException("Failed to resolve jar path", e);
         }
+    }
+
+    private Path resolveProjectDir() {
+        Path configured = envConfigProps != null ? envConfigProps.getProjectDir().getParent() : null;
+        if (configured != null) {
+            return configured;
+        }
+        Path repoRoot = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
+        if (repoRoot.getFileName() != null && "test_graph".equals(repoRoot.getFileName().toString())) {
+            repoRoot = repoRoot.getParent();
+        }
+        return repoRoot;
     }
 }

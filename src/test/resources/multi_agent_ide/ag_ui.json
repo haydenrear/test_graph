@@ -3,7 +3,68 @@
     {
       "port": 4545,
       "protocol": "http",
+      "recordRequests": "true",
       "stubs": [
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-orchestrator",
+                  "object": "chat.completion",
+                  "created": 1710000000,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"delegation\":{\"summary\":\"Discovery kickoff\",\"subAgentGoals\":{\"overview\":\"Repository overview\"}},\"interruptsRequested\":[],\"output\":\"Proceed to discovery.\"}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "predicates": [
+            { "equals": { "method": "POST", "path": "/v1/chat/completions" } }
+          ],
+          "responses": [
+            {
+              "is": {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": {
+                  "id": "chatcmpl-orchestrator",
+                  "object": "chat.completion",
+                  "created": 1710000000,
+                  "model": "gpt-4o-mini",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"delegation\":{\"summary\":\"Discovery kickoff\",\"subAgentGoals\":{\"overview\":\"Repository overview\"}},\"interruptsRequested\":[],\"output\":\"Proceed to discovery.\"}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": { "prompt_tokens": 20, "completion_tokens": 30, "total_tokens": 50 }
+                }
+              }
+            }
+          ]
+        },
         {
           "predicates": [
             { "equals": { "method": "POST", "path": "/v1/chat/completions" } },

@@ -25,6 +25,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
+import static com.hayden.test_graph.multi_agent_ide.MultiAgentTestTimeout.REQUEST_TIMEOUT;
+
 @Slf4j
 @Component
 @ResettableThread
@@ -52,7 +54,7 @@ public class MultiAgentSeleniumGoalRequestNode implements MultiAgentIdeAssertNod
             if (baseUrl == null || baseUrl.isBlank()) {
                 baseUrl = "http://localhost:8080";
             }
-            var waitTimeout = request.waitTimeoutMs() != null ? request.waitTimeoutMs() : 30000L;
+            var waitTimeout = request.waitTimeoutMs() != null ? request.waitTimeoutMs() : REQUEST_TIMEOUT * 1000L;
             var goal = request.goal();
             var repoUrl = request.repositoryUrl();
             var baseBranch = request.baseBranch() != null ? request.baseBranch() : "main";

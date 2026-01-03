@@ -34,9 +34,6 @@ public class MultiAgentIdeInit implements InitCtx {
             String brokerUrl,
             Integer reconnectDelayMs
     ) {
-        public EventSubscriptionConfig(String subscriptionType) {
-            this(subscriptionType, null, 5000);
-        }
     }
 
     @Builder

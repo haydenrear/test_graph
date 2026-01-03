@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static com.hayden.test_graph.multi_agent_ide.MultiAgentTestTimeout.TIMEOUT;
+
 /**
  * Assert context for multi-agent-ide test graph.
  * Validates execution results and manages test assertions.
@@ -57,7 +59,7 @@ public class MultiAgentIdeAssertCtx implements AssertCtx {
 
     @Setter
     @Getter
-    private IdeAssertConfigProps config = new IdeAssertConfigProps(Duration.ofSeconds(30));
+    private IdeAssertConfigProps config = new IdeAssertConfigProps(Duration.ofSeconds(TIMEOUT));
 
     /**
      * Sealed interface for all MultiAgentIde assertion types.

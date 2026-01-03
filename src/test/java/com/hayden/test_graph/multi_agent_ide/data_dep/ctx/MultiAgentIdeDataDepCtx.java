@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 
+import static com.hayden.test_graph.multi_agent_ide.MultiAgentTestTimeout.REQUEST_TIMEOUT;
+
 /**
  * Data dependency context for multi-agent-ide test graph.
  * Sets up test data, test event listeners, and prepares for execution.
@@ -45,9 +47,6 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
             Integer maxEventBufferSize,
             Long eventTimeoutMs
     ) {
-        public TestEventListenerConfig(String listenerId) {
-            this(listenerId, 1000, 30000L);
-        }
     }
 
     @Builder
@@ -81,9 +80,6 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
             Long subscriptionTimeoutMs,
             boolean autoStart
     ) {
-        public EventSubscriptionConfig(String subscriptionProtocol, String eventEndpoint) {
-            this(subscriptionProtocol, eventEndpoint, 100, 30000L, true);
-        }
     }
 
     @Builder
@@ -97,9 +93,6 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
             Long waitTimeoutMs,
             Integer expectedEventCount
     ) {
-        public OrchestrationRequestConfig(String baseUrl, String goal, String repositoryUrl) {
-            this(baseUrl, goal, repositoryUrl, "main", null, null, 30000L, null);
-        }
     }
 
     @Builder

@@ -1,0 +1,19 @@
+{
+  "port": 4562,
+  "protocol": "http",
+  "name": "ollama-proxy",
+  "recordRequests": true,
+  "stubs": [
+    {
+      "responses": [
+        {
+          "proxy": {
+            "to": "http://127.0.0.1:11434",
+            "mode": "proxyAlways",
+            "predicateGenerators": [{ "matches": { "path": true, "body": true } }]
+          }
+        }
+      ]
+    }
+  ]
+}

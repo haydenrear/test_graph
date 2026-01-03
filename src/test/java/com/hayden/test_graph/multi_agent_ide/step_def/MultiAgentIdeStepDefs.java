@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.hayden.test_graph.multi_agent_ide.MultiAgentTestTimeout.*;
+
 /**
  * Step definitions for multi-agent-ide feature files.
  * These steps map Gherkin scenarios to test graph contexts and assertions.
@@ -93,6 +95,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
                         ? prompt
                         : "Execute orchestration workflow";
                 requestConfig = MultiAgentIdeDataDepCtx.OrchestrationRequestConfig.builder()
+                        .waitTimeoutMs(REQUEST_TIMEOUT * 1000L)
                         .baseUrl(resolveBaseUrl())
                         .goal(goal)
                         .repositoryUrl(resolveRepositoryUrl())
@@ -107,6 +110,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
         } else if (fallbackGoal != null) {
             multiAgentIdeDataDep.addOrchestrationRequest(
                     MultiAgentIdeDataDepCtx.OrchestrationRequestConfig.builder()
+                            .waitTimeoutMs(REQUEST_TIMEOUT * 1000L)
                             .baseUrl(resolveBaseUrl())
                             .goal(fallbackGoal)
                             .repositoryUrl(resolveRepositoryUrl())
@@ -154,6 +158,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
         if (multiAgentIdeDataDep.getOrchestrationRequests().isEmpty()) {
             multiAgentIdeDataDep.addOrchestrationRequest(
                     MultiAgentIdeDataDepCtx.OrchestrationRequestConfig.builder()
+                            .waitTimeoutMs(REQUEST_TIMEOUT * 1000L)
                             .baseUrl(resolveBaseUrl())
                             .goal("Execute orchestration workflow")
                             .repositoryUrl(resolveRepositoryUrl())
@@ -208,6 +213,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
                         MultiAgentIdeDataDepCtx.OrchestrationRequestConfig.builder()
                                 .baseUrl(resolveBaseUrl())
                                 .goal(goal)
+                                .waitTimeoutMs(REQUEST_TIMEOUT * 1000L)
                                 .repositoryUrl(resolveRepositoryUrl())
                                 .baseBranch("main")
                                 .nodeId(nodeId)
@@ -301,9 +307,9 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
 
         if (subscriptionType != null) {
             if ("sse".equalsIgnoreCase(subscriptionType)) {
-                configureSseSubscription(baseUrl);
+                configureSseSubscription(resolvedBaseUrl);
             } else if ("selenium".equalsIgnoreCase(subscriptionType)) {
-                configureSeleniumSubscription(recordVideo, videoName, videoOutputPath, videoScreenSize, baseUrl, 30000);
+                configureSeleniumSubscription(recordVideo, videoName, videoOutputPath, videoScreenSize, resolvedBaseUrl, TIMEOUT * 1000);
             } else {
                 throw new IllegalArgumentException("Unsupported subscription type: " + subscriptionType);
             }
@@ -569,7 +575,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
                         .subscriptionProtocol("sse")
                         .eventEndpoint(endpoint)
                         .pollIntervalMs(100)
-                        .subscriptionTimeoutMs(30000L)
+                        .subscriptionTimeoutMs(SUBSCRIPTION_TIMEOUT * 1000L)
                         .autoStart(true)
                         .build()
         );
