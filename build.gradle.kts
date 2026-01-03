@@ -41,7 +41,7 @@ tasks.compileJava {
 //    dependsOn(project(":runner_code").tasks.getByName("runnerTask"))
 //    dependsOn(project(":commit-diff-context-mcp").tasks.getByName("commitDiffContextMcpTask"))
 //    dependsOn(project(":mcp-tool-gateway").tasks.getByName("mcpToolGatewayTask"))
-    dependsOn(project(":multi_agent_ide").tasks.getByName("bootJar"))
+//    dependsOn(project(":multi_agent_ide").tasks.getByName("bootJar"))
 //     java -javaagent:commit-diff-context/build/agent/prometheus-javaagent.jar=12345:commit-diff-context/prom-config.yaml -jar ?.jar
 }
 

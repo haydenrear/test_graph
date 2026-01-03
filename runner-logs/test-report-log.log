@@ -1,17 +1,1 @@
-Test Report Log for TestGraph Starting at 2026-01-02T22:08:17.719348
-Error: : Failed - java.util.concurrent.CompletionException: org.openqa.selenium.JavascriptException: javascript error: Cannot read properties of undefined (reading 'events')
-  (Session info: chrome=143.0.7499.170)
-Build info: version: '4.25.0', revision: '8a8aea2337'
-System info: os.name: 'Mac OS X', os.arch: 'aarch64', os.version: '26.2', java.version: '21'
-Driver info: org.openqa.selenium.chrome.ChromeDriver
-Command: [099fb6494dc23519f00c34a708b08f13, executeScript {script=return window.__agUiTestProbe.events;, args=[]}]
-Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 143.0.7499.170, chrome: {chromedriverVersion: 143.0.7499.169 (164b20aab62..., userDataDir: /var/folders/b7/rsz3g6wn4hg...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:55779}, goog:processID: 63116, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: mac, proxy: Proxy(), se:cdp: ws://localhost:55779/devtoo..., se:cdpVersion: 143.0.7499.170, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
-Session ID: 099fb6494dc23519f00c34a708b08f13
-Error: : Failed - java.util.concurrent.CompletionException: org.openqa.selenium.JavascriptException: javascript error: Cannot read properties of undefined (reading 'events')
-  (Session info: chrome=143.0.7499.170)
-Build info: version: '4.25.0', revision: '8a8aea2337'
-System info: os.name: 'Mac OS X', os.arch: 'aarch64', os.version: '26.2', java.version: '21'
-Driver info: org.openqa.selenium.chrome.ChromeDriver
-Command: [099fb6494dc23519f00c34a708b08f13, executeScript {script=return window.__agUiTestProbe.events;, args=[]}]
-Capabilities {acceptInsecureCerts: false, browserName: chrome, browserVersion: 143.0.7499.170, chrome: {chromedriverVersion: 143.0.7499.169 (164b20aab62..., userDataDir: /var/folders/b7/rsz3g6wn4hg...}, fedcm:accounts: true, goog:chromeOptions: {debuggerAddress: localhost:55779}, goog:processID: 63116, networkConnectionEnabled: false, pageLoadStrategy: normal, platformName: mac, proxy: Proxy(), se:cdp: ws://localhost:55779/devtoo..., se:cdpVersion: 143.0.7499.170, setWindowRect: true, strictFileInteractability: false, timeouts: {implicit: 0, pageLoad: 300000, script: 30000}, unhandledPromptBehavior: dismiss and notify, webauthn:extension:credBlob: true, webauthn:extension:largeBlob: true, webauthn:extension:minPinLength: true, webauthn:extension:prf: true, webauthn:virtualAuthenticators: true}
-Session ID: 099fb6494dc23519f00c34a708b08f13
+Test Report Log for TestGraph Starting at 2026-01-03T14:48:16.285268

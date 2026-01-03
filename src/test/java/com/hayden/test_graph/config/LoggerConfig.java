@@ -1,4 +1,4 @@
-package com.hayden.test_graph.commit_diff_context.config;
+package com.hayden.test_graph.config;
 
 import org.springframework.context.annotation.Configuration;
 

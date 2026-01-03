@@ -2,7 +2,6 @@ package com.hayden.test_graph.multi_agent_ide.data_dep.ctx;
 
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.ctx.ContextValue;
-import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
 import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
 import com.hayden.test_graph.exec.single.GraphExec;
@@ -14,7 +13,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,8 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Callable;
-
-import static com.hayden.test_graph.multi_agent_ide.MultiAgentTestTimeout.REQUEST_TIMEOUT;
 
 /**
  * Data dependency context for multi-agent-ide test graph.
@@ -174,7 +170,6 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
     private final EventQueue eventQueue = new EventQueue();
     @Getter
     private final List<OrchestrationRequestConfig> orchestrationRequests = new ArrayList<>();
-
     @Getter
     private final ContextValue<MultiAgentIdeInit> initContext = ContextValue.empty();
 
