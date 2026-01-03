@@ -3,6 +3,8 @@ package com.hayden.test_graph.commit_diff_context.config;
 import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.db.DbDataSourceTrigger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -19,12 +21,14 @@ public class DbConfig {
 
     @Bean
     @ConfigurationProperties("spring.datasource.validation")
+    @ConditionalOnProperty(name = "spring.datasource.validation.enabled", havingValue = "true")
     public DataSource validationDataSource() {
         return DataSourceBuilder.create().build();
     }
 
     @Bean
     @ConfigurationProperties("spring.datasource.app")
+    @ConditionalOnProperty(name = "spring.datasource.app.enabled", havingValue = "true")
     public DataSource appDataSource() {
         return DataSourceBuilder.create().build();
     }
@@ -32,22 +36,31 @@ public class DbConfig {
     @Bean
     @Primary
     public DataSource dataSource(@ResettableThread DockerInitCtx dockerInitCtx,
-                                 DbDataSourceTrigger dbDataSourceTrigger) {
+                                 DbDataSourceTrigger dbDataSourceTrigger,
+                                 @Value("${spring.datasource.validation.enabled:false}") Boolean validationEnabled,
+                                 @Value("${spring.datasource.app.enabled:false}") Boolean appEnabled) {
         AbstractRoutingDataSource routingDataSource = new AbstractRoutingDataSource() {
             @Override
             protected Object determineCurrentLookupKey() {
                 String s = dockerInitCtx.getStarted()
                         .optional()
                         .filter(Boolean::booleanValue)
-                        .map(b -> dbDataSourceTrigger.initializeKeyTo(DbDataSourceTrigger.APP_DB_KEY))
+                        .map(b -> {
+                            if (appEnabled)
+                                return dbDataSourceTrigger.initializeKeyTo(DbDataSourceTrigger.APP_DB_KEY);
+
+                            return dbDataSourceTrigger.initializeKeyTo(DbDataSourceTrigger.VALIDATION_DB_KEY);
+                        })
                         .orElse(DbDataSourceTrigger.VALIDATION_DB_KEY);
                 return s;
             }
         };
 
         Map<Object, Object> resolvedDataSources = new HashMap<>();
-        resolvedDataSources.put(DbDataSourceTrigger.APP_DB_KEY, appDataSource());
-        resolvedDataSources.put(DbDataSourceTrigger.VALIDATION_DB_KEY, validationDataSource());
+        if (appEnabled)
+            resolvedDataSources.put(DbDataSourceTrigger.APP_DB_KEY, appDataSource());
+        if (validationEnabled)
+            resolvedDataSources.put(DbDataSourceTrigger.VALIDATION_DB_KEY, validationDataSource());
 
         routingDataSource.setTargetDataSources(resolvedDataSources);
         routingDataSource.setDefaultTargetDataSource(validationDataSource());

@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    validation:
+      enabled: true
+      driver-class-name: org.postgresql.Driver
+      username: postgres
+      password: postgres
+      jdbc-url: jdbc:postgresql://localhost:5411/postgres
+      url: jdbc:postgresql://localhost:5411/postgres
+    app:
+      enabled: true
+      driver-class-name: org.postgresql.Driver
+      username: postgres
+      password: postgres
+      jdbc-url: jdbc:postgresql://localhost:5450/postgres
+      url: jdbc:postgresql://localhost:5450/postgres

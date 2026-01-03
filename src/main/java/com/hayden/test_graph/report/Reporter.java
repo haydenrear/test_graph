@@ -38,6 +38,11 @@ public class Reporter {
         Optional.ofNullable(props.getErrorLog())
                 .ifPresent(errLog -> {
                     try {
+                        if (!Files.exists(errLog.getParent()))
+                            errLog.getParent().toFile().mkdirs();
+
+                        if (!Files.exists(errLog))
+                            errLog.toFile().createNewFile();
                         Files.write(errLog, "%s: %s".formatted(prepend, toLog).getBytes(), StandardOpenOption.APPEND);
                     } catch (IOException e) {
                         log.error("Could not write error log", e);
