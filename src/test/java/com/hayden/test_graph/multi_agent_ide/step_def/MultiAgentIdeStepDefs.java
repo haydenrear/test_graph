@@ -11,6 +11,7 @@ import com.hayden.test_graph.steps.RegisterDataDep;
 import com.hayden.test_graph.steps.RegisterInitStep;
 import com.hayden.test_graph.steps.ResettableStep;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.config.EnvConfigProps;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -36,6 +37,9 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
     @Autowired
     @ResettableThread
     private Assertions assertions;
+
+    @Autowired
+    private EnvConfigProps envConfigProps;
 
     @Autowired
     @ResettableThread
@@ -559,11 +563,7 @@ public class MultiAgentIdeStepDefs implements ResettableStep {
     }
 
     private String resolveRepositoryUrl() {
-        String repoRoot = System.getProperty("user.dir");
-        if (repoRoot != null && repoRoot.endsWith("test_graph")) {
-            return java.nio.file.Paths.get(repoRoot).getParent().toString();
-        }
-        return repoRoot;
+        return envConfigProps.getProjectDir().toString();
     }
 
     private void configureSseSubscription(String baseUrl) {

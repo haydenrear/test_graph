@@ -20,6 +20,9 @@ env-props:
 db-init-ctx:
   skip-db-cleanup: false
 
+selenium-init-ctx:
+  headless: false
+
 docker-init-ctx:
   skip-docker: true
   skip-build-docker: true
@@ -39,11 +42,10 @@ spring:
       enabled: true
       lifecycle-management: start_only
       readiness:
-        wait: never
+        wait: NEVER
       skip:
         skip: if_running
         in-tests: false
-
       file: src/test/docker/init/docker-compose.yml
   application.name: commit-diff-context-tg
   jpa:

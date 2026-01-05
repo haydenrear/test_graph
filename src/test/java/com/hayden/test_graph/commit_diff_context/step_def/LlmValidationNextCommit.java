@@ -1,22 +1,12 @@
 package com.hayden.test_graph.commit_diff_context.step_def;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hayden.commitdiffcontext.code_apply.DiffFactory;
 import com.hayden.commitdiffcontext.context.ParseDiff;
-import com.hayden.commitdiffcontext.context.StagedFileService;
 import com.hayden.commitdiffcontext.context.validation.entity.CommitDiffContextCommitVersion;
-import com.hayden.commitdiffcontext.git.entity.GitDiffs;
-import com.hayden.commitdiffmodel.codegen.types.RelevantFileItem;
-import com.hayden.commitdiffmodel.codegen.types.RelevantFileItems;
-import com.hayden.commitdiffmodel.codegen.types.Staged;
 import com.hayden.commitdiffcontext.convert.CommitDiffContextMapper;
-import com.hayden.commitdiffmodel.err.GitErrors;
 import com.hayden.commitdiffcontext.git.GitFactory;
 import com.hayden.proto.prototyped.datasources.ai.modelserver.client.ModelServerValidationAiClient;
-import com.hayden.proto.prototyped.datasources.ai.modelserver.request.ModelServerChatRequest;
-import com.hayden.proto.prototyped.datasources.ai.modelserver.request.RetryParameters;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.next_commit.NextCommitAssert;
 import com.hayden.test_graph.commit_diff_context.assert_nodes.repo_op.RepoOpAssertCtx;
@@ -29,18 +19,13 @@ import com.hayden.test_graph.init.docker.ctx.DockerInitCtx;
 import com.hayden.test_graph.steps.*;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.io.FileUtils;
-import com.hayden.utilitymodule.result.Result;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jgit.api.ResetCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -74,13 +59,11 @@ public class LlmValidationNextCommit implements ResettableStep {
     @Autowired
     ObjectMapper objectMapper;
     @Autowired
-    com.hayden.commitdiffcontext.context.validation.repo.CommitDiffContextVersionRepo versionRepo;
+    com.hayden.commitdiffcontext.context.chat_validation.repo.CommitDiffContextVersionRepo versionRepo;
     @Autowired
     DbDataSourceTrigger dbDataSourceTrigger;
     @Autowired
     ParseDiff parseDiff;
-    @Autowired
-    StagedFileService stagedFileService;
     @Autowired
     GitFactory gitArgsFactory;
 
@@ -198,36 +181,6 @@ public class LlmValidationNextCommit implements ResettableStep {
     @ExecInitStep({RepoOpInit.class})
     public void postgresDatabaseShouldBeStarted() {
 
-    }
-
-    @And("the staged commit information is retrieved from the repository")
-    public void theStagedCommitInformationIsRetrievedFromTheRepository() {
-        var gitRepoPromptingRequest = repoOpInit.getCommitDiffContextValue();
-        RepoOpInit.RepositoryData repositoryData = repoOpInit.repoDataOrThrow();
-        try{
-            var rh = gitArgsFactory.stripedRepoHolder(GitFactory.parseRepoArgs(repositoryData.url(), repositoryData.branchName(), repositoryData.clonedUri()));
-            stagedFileService.getStagedChanges(rh)
-                    .ifPresent(staged -> {
-                        var s = Staged.newBuilder()
-                                .diffs(staged.staged().getDiffs())
-                                .files(staged.diffFiles().stream()
-                                        .map(r -> {
-                                            List<String> before = r.fileBeforeDiffApply().relevantChosenLinesWithLineNumbers();
-                                            List<String> after = r.fileAfterDiffApply().relevantChosenLinesWithLineNumbers();
-                                            return new RelevantFileItems(
-                                                    new RelevantFileItem(r.fileBeforeDiffApply().fileName().toAbsolutePath().toString(), before.isEmpty() ? "": before.getFirst()),
-                                                    new RelevantFileItem(r.fileAfterDiffApply().fileName().toAbsolutePath().toString(), after.isEmpty() ? "": after.getFirst()));
-                                        })
-                                        .toList()
-                                )
-                                .build();
-                        gitRepoPromptingRequest.nextCommitRequest()
-                                .setLastRequestStagedApplied(s);
-                    });
-            rh.reset().setMode(ResetCommand.ResetType.HARD).setRef("HEAD").call();
-        } catch (GitAPIException | IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
 }

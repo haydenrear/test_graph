@@ -155,14 +155,10 @@ public class RepoOpInit implements InitCtx {
                     .orElse(new ArrayList<>());
         }
 
-        public void setMaxTimeBlameTree(int millis) {
-            this.nextCommitRequest.getRagOptions().getBlameTreeOptions().setMaxTimeBlameTree(millis);
-            this.doGitOperationRequest.getRagOptions().getBlameTreeOptions().setMaxTimeBlameTree(millis);
+        public void setMaxTimeEpisodicMemory(int millis) {
         }
 
-        public void setMaxCommitDiffsBlameTree(int maxCommitDiffs) {
-            this.nextCommitRequest.getRagOptions().getBlameTreeOptions().setMaxCommitDiffs(maxCommitDiffs);
-            this.doGitOperationRequest.getRagOptions().getBlameTreeOptions().setMaxCommitDiffs(maxCommitDiffs);
+        public void setMaxCommitDiffsEpisodicMemory(int maxCommitDiffs) {
         }
 
     }
@@ -207,7 +203,6 @@ public class RepoOpInit implements InitCtx {
                             .sessionKey(new SessionKey())
                             .ragOptions(RagOptions.newBuilder()
                                     .parseGitOptions(ParseGitOptions.newBuilder().build())
-                                    .blameTreeOptions(BlameTreeOptions.newBuilder().build())
                                     .build())
                             .gitRepoRequestOptions(GitRepoRequestOptions.newBuilder()
                                     .promptingOptions(PromptingOptions.newBuilder()
@@ -219,7 +214,6 @@ public class RepoOpInit implements InitCtx {
                             .sessionKey(new SessionKey())
                             .ragOptions(RagOptions.newBuilder()
                                     .parseGitOptions(ParseGitOptions.newBuilder().build())
-                                    .blameTreeOptions(BlameTreeOptions.newBuilder().build())
                                     .build())
                             .gitRepoRequestOptions(GitRepoRequestOptions.newBuilder()
                                     .promptingOptions(PromptingOptions.newBuilder()
@@ -295,23 +289,6 @@ public class RepoOpInit implements InitCtx {
         this.commitDiffContextValue.nextCommitRequest()
                 .setCommitMessage(commitMessage);
         this.userCodeData.swap(new UserCodeData(commitMessage.getValue()));
-    }
-
-    public CallGraphQlQueryArgs.CodeContextQueryArgs toCodeContextRequestArgs() {
-        initializeCommitDiffContextValue();
-        RepositoryData repoArgs = repoDataOrThrow();
-        addSessionKeyToRequests();
-        return CallGraphQlQueryArgs.CodeContextQueryArgs.builder()
-                .commitDiffContextValue(this.commitDiffContextValue)
-                .commitMessage(
-                        userCodeData.optional()
-                                .or(() -> Optional.of(UserCodeData.builder()
-                                        .build()))
-                                .map(UserCodeData::commitMessage)
-                                .orElse(null))
-                .gitRepoPath(repoArgs.url)
-                .branchName(repoArgs.branchName)
-                .build();
     }
 
     public UserCodeData userCodeDataOrThrow() {

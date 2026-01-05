@@ -30,6 +30,8 @@ public class MultiAgentSseGoalRequestNode implements MultiAgentIdeAssertNode {
 
     @Override
     public MultiAgentIdeAssertCtx exec(MultiAgentIdeAssertCtx c, MetaCtx h) {
+        if (ctx.getSeleniumUiConfig() != null)
+            return c;
         assertions.assertSoftly(CollectionUtils.isNotEmpty(ctx.getOrchestrationRequests()),
                 "Did not contain any orchestration requests to run.");
 

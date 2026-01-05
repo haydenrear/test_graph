@@ -19,17 +19,17 @@ There exist three test graph node types that we extend. The node types each have
 The test graph uses cucumber and gherkin for execution. There are special annotations that we add to the step definitions to define the associated contexts. For example, in this code:
 
 ```java
-@And("add blame nodes is called")
+@And("add episodic memory is called")
 @RegisterInitStep(RepoOpInit.class)
-public void add_commit_diff_context_blame_node() {
+public void add_commit_diff_context_episodic_memory() {
     commitDiffInit.getRepoInitializations().initItems()
             .add(new RepoInitItem.AddBlameNodes());
 }
 
-@Then("the blame node embeddings are validated to be added to the database")
+@Then("the episodic memory embeddings are validated to be added to the database")
 @RegisterAssertStep(RepoOpAssertCtx.class)
-public void initial_commit_diff_context_blame_node() {
-    assertBlameTrees();
+public void initial_commit_diff_context_episodic_memory() {
+    assertEpisodicMemorys();
     assertCommitDiffClusters();
     assertCommitDiffs();
     assertCommitDiffItems();

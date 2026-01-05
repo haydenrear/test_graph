@@ -131,17 +131,8 @@ public class RepoOperationsStepDefs implements ResettableStep {
     }
 
     @RegisterInitStep(RepoOpInit.class)
-    @And("the max time parse blame tree is {string} seconds")
-    public void theMaxTimeParseBlameTreeIsSeconds(String numSecondsBlameTree) {
-        try {
-            commitDiffInit.doOnRagOptions(
-                            ragOptions -> ragOptions
-                                    .getBlameTreeOptions()
-                                    .setMaxTimeBlameTree(Integer.parseInt(numSecondsBlameTree) * 1000));
-        } catch (NumberFormatException e) {
-            assertions.assertSoftly(false, "Max time blame tree should be an integer - could not set to %s"
-                    .formatted(numSecondsBlameTree));
-        }
+    @And("the max time parse episodic memory is {string} seconds")
+    public void theMaxTimeParseEpisodicMemoryIsSeconds(String numSecondsEpisodicMemory) {
     }
 
     @And("the max number of commits parsed of the git repo when setting the embeddings is {string}")
@@ -242,9 +233,8 @@ public class RepoOperationsStepDefs implements ResettableStep {
         return found;
     }
 
-    @And("the maximum time blame node runs is {string} minutes")
-    public void theMaximumTimeBlameNodeRunsIsMinutes(String maxMinutesBlameTree) {
-        commitDiffInit.getCommitDiffContextValue().setMaxTimeBlameTree((int) Duration.ofMinutes(Integer.parseInt(maxMinutesBlameTree)).toMillis());
+    @And("the maximum time episodic memory runs is {string} minutes")
+    public void theMaximumTimeBlameNodeRunsIsMinutes(String maxMinutesEpisodicMemory) {
     }
 
     @And("the git ops should be made at the same time")

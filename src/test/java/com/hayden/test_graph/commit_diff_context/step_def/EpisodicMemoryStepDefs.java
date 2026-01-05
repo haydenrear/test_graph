@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class BlameNodeStepDefs implements ResettableStep {
+public class EpisodicMemoryStepDefs implements ResettableStep {
 
     @Autowired
     @ResettableThread
@@ -41,17 +41,17 @@ public class BlameNodeStepDefs implements ResettableStep {
     @Autowired
     private EmbeddedGitDiffRepository embeddedGitDiffRepository;
 
-    @And("add blame nodes is called")
+    @And("add episodic memory is called")
     @RegisterInitStep(RepoOpInit.class)
-    public void add_commit_diff_context_blame_node() {
+    public void add_commit_diff_context_episodic_memory() {
         commitDiffInit.getRepoInitializations().initItems()
-                .add(new RepoInitItem.AddBlameNodes());
+                .add(new RepoInitItem.AddEpisodicMemory());
     }
 
-    @Then("the blame node embeddings are validated to be added to the database")
+    @Then("the episodic memory embeddings are validated to be added to the database")
     @RegisterAssertStep(RepoOpAssertCtx.class)
-    public void initial_commit_diff_context_blame_node() {
-        assertBlameTrees();
+    public void initial_commit_diff_context_episodic_memory() {
+        assertEpisodicMemorys();
         assertCommitDiffClusters();
         assertCommitDiffs();
         assertCommitDiffItems();
@@ -77,7 +77,7 @@ public class BlameNodeStepDefs implements ResettableStep {
         return all.stream().anyMatch(this::isInitializedEmbedding);
     }
 
-    private void assertBlameTrees() {
+    private void assertEpisodicMemorys() {
         var cd = commitDiffRepository.findAll()
                 .stream()
                 .map(CommitDiff::getId)

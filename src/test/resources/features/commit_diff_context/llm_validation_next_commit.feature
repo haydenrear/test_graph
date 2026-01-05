@@ -18,16 +18,16 @@ Feature: Perform next commit
       | /Users/hayde/IdeaProjects/drools_test/commit-diff-context | ~/test_dbs/test_graph_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
       | /Users/hayde/IdeaProjects/drools_test/commit-diff-client  | ~/test_dbs/test_graph_postgres | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |
 
-  @do_embedding_blame_tree_only
+  @do_embedding_episodic_mem_only
   Scenario Outline:
     Given a postgres database to be loaded from "<postgresPath>" for docker-compose "<composePath>"
     And docker-compose is started from "<composePath>"
     And there is a repository at the url "<repoUrl>"
     And a branch should be added "<branchName>"
     And the embeddings for the branch should be added
-    And add blame nodes is called
+    And add episodic memory is called
     Then the branches embeddings will be added to the database
-    Then the blame node embeddings are validated to be added to the database
+    Then the episodic memory embeddings are validated to be added to the database
     Examples:
       | repoUrl                                                   | postgresPath                   | branchName | composePath                                                                        | validationEndpoint                      |
 #      | https://github.com/kiegroup/drools.git                    | ~/test_dbs/drools_postgres     | main       | ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context/load-postgres | /ai_suite_gemini_flash_model_validation |

@@ -34,6 +34,9 @@ dependencies {
 }
 
 
+// We may want to keep mountebank up to do things like save the proxied imposters, view the results, etc
+val keepMountebankUp = project.property("keep-mountebank-up")?.toString()?.toBoolean()?.or(false) ?: false
+val multiAgentIde = project.property("multi-agent-ide")?.toString()?.toBoolean()?.or(false) ?: false
 
 tasks.compileJava {
 //    TODO: add depends on docker task for each profile - so as to build the docker images for the workflow.
@@ -41,7 +44,8 @@ tasks.compileJava {
 //    dependsOn(project(":runner_code").tasks.getByName("runnerTask"))
 //    dependsOn(project(":commit-diff-context-mcp").tasks.getByName("commitDiffContextMcpTask"))
 //    dependsOn(project(":mcp-tool-gateway").tasks.getByName("mcpToolGatewayTask"))
-//    dependsOn(project(":multi_agent_ide").tasks.getByName("bootJar"))
+    if (multiAgentIde)
+        dependsOn(project(":multi_agent_ide").tasks.getByName("bootJar"))
 //     java -javaagent:commit-diff-context/build/agent/prometheus-javaagent.jar=12345:commit-diff-context/prom-config.yaml -jar ?.jar
 }
 
@@ -61,8 +65,6 @@ tasks.startMountebank {
 }
 
 
-// We may want to keep mountebank up to do things like save the proxied imposters, view the results, etc
-val keepMountebankUp = project.property("keep-mountebank-up")?.toString()?.toBoolean()?.or(false) ?: false
 
 if (!keepMountebankUp) {
     tasks.stopMountebank {
