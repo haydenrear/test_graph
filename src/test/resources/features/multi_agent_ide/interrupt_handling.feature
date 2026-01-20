@@ -1,14 +1,19 @@
 @multi_agent_ide @integration
 Feature: Interrupt handling and continuation routing
 
+  Background:
+    Given the test configuration is:
+      | key               | value                 |
+      | MODEL_TYPE        | openai                |
+      | SPRING_PROFILES   | openai                |
+      | SUBSCRIPTION_TYPE | sse                   |
+      | BASE_URL          | http://localhost:8080 |
+
   @interrupt_review_resume
   Scenario: Review interrupt pauses and returns to the originating work
     Given a computation graph with the following structure:
       | nodeId           | nodeType     | status | parentId | children | prompt                            |
       | interrupt-orch-1 | ORCHESTRATOR | READY  |          |          | Orchestrate review interrupt flow |
-    And the test configuration is:
-      | key        | value |
-      | MODEL_TYPE | acp   |
     And the mock response file "multi_agent_ide/interrupt_handling.json"
     And the expected events for this scenario are:
       | eventType             | nodeType     | payloadFile | order |
@@ -24,9 +29,6 @@ Feature: Interrupt handling and continuation routing
     Given a computation graph with the following structure:
       | nodeId           | nodeType     | status | parentId | children | prompt                           |
       | interrupt-orch-2 | ORCHESTRATOR | READY  |          |          | Orchestrate pause interrupt flow |
-    And the test configuration is:
-      | key        | value |
-      | MODEL_TYPE | acp   |
     And the mock response file "multi_agent_ide/interrupt_handling.json"
     And the expected events for this scenario are:
       | eventType           | nodeType  | payloadFile | order |
@@ -42,9 +44,6 @@ Feature: Interrupt handling and continuation routing
     Given a computation graph with the following structure:
       | nodeId           | nodeType     | status | parentId | children | prompt                      |
       | interrupt-orch-3 | ORCHESTRATOR | READY  |          |          | Orchestrate stop/prune flow |
-    And the test configuration is:
-      | key        | value |
-      | MODEL_TYPE | acp   |
     And the mock response file "multi_agent_ide/interrupt_handling.json"
     And the expected events for this scenario are:
       | eventType           | nodeType  | payloadFile | order |

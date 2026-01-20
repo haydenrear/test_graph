@@ -1,5 +1,6 @@
 package com.hayden.test_graph.multi_agent_ide.data_dep.nodes;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.multi_agent_ide.data_dep.ctx.MultiAgentIdeDataDepCtx;
 import com.hayden.test_graph.thread.ResettableThread;
@@ -13,7 +14,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -32,78 +32,44 @@ public class EventPollingDataDepNode implements MultiAgentIdeDataDepNode {
 
     @Override
     public MultiAgentIdeDataDepCtx exec(MultiAgentIdeDataDepCtx ctx, MetaCtx h) {
-        try {
-            MultiAgentIdeDataDepCtx.EventSubscriptionConfig config = ctx.getEventSubscriptionConfig();
-            MultiAgentIdeDataDepCtx.EventQueue eventQueue = ctx.getEventQueue();
+        MultiAgentIdeDataDepCtx.EventSubscriptionConfig config = ctx.getEventSubscriptionConfig();
 
-            if (config == null) {
-                log.info("No event subscription configuration found, skipping event polling");
-                return ctx;
-            }
-
-            if (!eventQueue.isSubscriptionActive()) {
-                log.warn("Subscription is not active, cannot poll events");
-                return ctx;
-            }
-
-            if (!"sse".equalsIgnoreCase(config.subscriptionProtocol())) {
-                log.info("Subscription protocol {} is not supported for polling", config.subscriptionProtocol());
-                return ctx;
-            }
-
-            if (ctx.getOrchestrationRequests().isEmpty()) {
-                log.warn("No orchestration requests configured, skipping SSE polling");
-                return ctx;
-            }
-
-            log.info(
-                    "Starting SSE polling: endpoint={}, timeout={}ms",
-                    config.eventEndpoint(),
-                    config.subscriptionTimeoutMs()
-            );
-
-            List<MultiAgentIdeDataDepCtx.UiEventObservation> observations = new CopyOnWriteArrayList<>();
-            AtomicBoolean stop = new AtomicBoolean(false);
-            AtomicReference<HttpURLConnection> connectionRef = new AtomicReference<>();
-            Thread reader = new Thread(
-                    () -> readSseStream(config.eventEndpoint(), observations, stop, connectionRef),
-                    "multi-agent-ide-sse-reader"
-            );
-            reader.setDaemon(true);
-            reader.start();
-
-            for (MultiAgentIdeDataDepCtx.OrchestrationRequestConfig request : ctx.getOrchestrationRequests()) {
-                submitOrchestrationRequest(request);
-            }
-
-            int expectedCount = resolveExpectedCount(ctx);
-            waitForEvents(observations, expectedCount, config.subscriptionTimeoutMs());
-            stop.set(true);
-            closeConnection(connectionRef.get());
-            reader.join(1000);
-
-            ctx.addUiEvents(new ArrayList<>(observations));
-            log.info("SSE polling completed. Total events received: {}", observations.size());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("Event polling was interrupted", e);
-            throw new RuntimeException("Event polling interrupted", e);
-        } catch (Exception e) {
-            log.error("Error during event polling", e);
-            throw new RuntimeException("Failed to poll events", e);
+        if (config == null) {
+            log.info("No event subscription configuration found, skipping event polling");
+            return ctx;
         }
-        
-        return ctx;
-    }
 
-    @Override
-    public List<Class<? extends MultiAgentIdeDataDepNode>> dependsOn() {
-        return List.of(EventSubscriptionDataDepNode.class);
+        if (!"sse".equalsIgnoreCase(config.subscriptionProtocol())) {
+            log.info("Subscription protocol {} is not supported for polling", config.subscriptionProtocol());
+            return ctx;
+        }
+
+        if (ctx.getOrchestrationRequests().isEmpty()) {
+            log.warn("No orchestration requests configured, skipping SSE polling");
+            return ctx;
+        }
+
+        log.info(
+                "Starting SSE polling: endpoint={}, timeout={}ms",
+                config.eventEndpoint(),
+                config.subscriptionTimeoutMs()
+        );
+
+        AtomicBoolean stop = new AtomicBoolean(false);
+        AtomicReference<HttpURLConnection> connectionRef = new AtomicReference<>();
+        Thread reader = new Thread(
+                () -> readSseStream(config.eventEndpoint(), ctx, stop, connectionRef),
+                "multi-agent-ide-sse-reader"
+        );
+        reader.setDaemon(true);
+        reader.start();
+
+        return ctx;
     }
 
     private void readSseStream(
             String endpoint,
-            List<MultiAgentIdeDataDepCtx.UiEventObservation> observations,
+            MultiAgentIdeDataDepCtx observations,
             AtomicBoolean stop,
             AtomicReference<HttpURLConnection> connectionRef) {
         if (endpoint == null || endpoint.isBlank()) {
@@ -143,8 +109,8 @@ public class EventPollingDataDepNode implements MultiAgentIdeDataDepNode {
         }
     }
 
-    private void flushSseData(StringBuilder data, List<MultiAgentIdeDataDepCtx.UiEventObservation> observations) {
-        if (data == null || data.length() == 0) {
+    private void flushSseData(StringBuilder data, MultiAgentIdeDataDepCtx observations) {
+        if (data == null || data.isEmpty()) {
             return;
         }
         String payload = data.toString();
@@ -158,14 +124,14 @@ public class EventPollingDataDepNode implements MultiAgentIdeDataDepNode {
         }
         MultiAgentIdeDataDepCtx.UiEventObservation observation = toObservation(envelope);
         if (observation != null) {
-            observations.add(observation);
+            observations.getEventQueue().enqueue(observation);
         }
     }
 
     private Map<String, Object> parseEnvelope(String payload) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(payload, Map.class);
+            return mapper.readValue(payload, new TypeReference<>() {});
         } catch (Exception e) {
             log.debug("Failed to parse SSE event payload", e);
             return null;
@@ -271,79 +237,6 @@ public class EventPollingDataDepNode implements MultiAgentIdeDataDepNode {
         return null;
     }
 
-    private void submitOrchestrationRequest(MultiAgentIdeDataDepCtx.OrchestrationRequestConfig request) {
-        if (request.goal() == null || request.goal().isBlank()) {
-            throw new IllegalArgumentException("Goal is required for orchestration request");
-        }
-        if (request.repositoryUrl() == null || request.repositoryUrl().isBlank()) {
-            throw new IllegalArgumentException("Repository URL is required for orchestration request");
-        }
-        String baseUrl = request.baseUrl();
-        if (baseUrl == null || baseUrl.isBlank()) {
-            baseUrl = "http://localhost:8080";
-        }
-        String endpoint = baseUrl.endsWith("/")
-                ? baseUrl + "api/orchestrator/start"
-                : baseUrl + "/api/orchestrator/start";
-
-        Map<String, Object> payload = new java.util.LinkedHashMap<>();
-        payload.put("goal", request.goal());
-        payload.put("repositoryUrl", request.repositoryUrl());
-        if (request.baseBranch() != null) {
-            payload.put("baseBranch", request.baseBranch());
-        }
-        if (request.title() != null) {
-            payload.put("title", request.title());
-        }
-        if (request.nodeId() != null) {
-            payload.put("nodeId", request.nodeId());
-        }
-
-        try {
-            HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
-            connection.setRequestProperty("Content-Type", "application/json");
-            ObjectMapper mapper = new ObjectMapper();
-            byte[] body = mapper.writeValueAsBytes(payload);
-            connection.getOutputStream().write(body);
-            int status = connection.getResponseCode();
-            if (status < 200 || status >= 300) {
-                throw new IOException("Unexpected response status " + status);
-            }
-            connection.disconnect();
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to submit orchestration request", e);
-        }
-    }
-
-    private int resolveExpectedCount(MultiAgentIdeDataDepCtx ctx) {
-        Integer expected = ctx.getExpectedEventCount();
-        if (expected != null && expected > 0) {
-            return expected;
-        }
-        Integer fromRequest = ctx.getOrchestrationRequests().stream()
-                .map(MultiAgentIdeDataDepCtx.OrchestrationRequestConfig::expectedEventCount)
-                .filter(val -> val != null && val > 0)
-                .findFirst()
-                .orElse(null);
-        return fromRequest != null ? fromRequest : 1;
-    }
-
-    private void waitForEvents(
-            List<MultiAgentIdeDataDepCtx.UiEventObservation> observations,
-            int expectedCount,
-            long timeoutMs) throws InterruptedException {
-        long startTime = System.currentTimeMillis();
-        while (observations.size() < expectedCount
-                && System.currentTimeMillis() - startTime < timeoutMs) {
-            Thread.sleep(50);
-        }
-        if (observations.size() < expectedCount) {
-            log.warn("Expected {} events but got {}", expectedCount, observations.size());
-        }
-    }
-
     private void closeConnection(HttpURLConnection connection) {
         if (connection != null) {
             try {
@@ -354,24 +247,4 @@ public class EventPollingDataDepNode implements MultiAgentIdeDataDepNode {
         }
     }
 
-    /**
-     * Wait for a specific number of events to be received.
-     * Used by tests to ensure events have been collected before assertions.
-     */
-    public static void waitForEventsInQueue(
-            MultiAgentIdeDataDepCtx.EventQueue eventQueue,
-            int expectedEventCount,
-            long timeoutMs) throws InterruptedException {
-        
-        long startTime = System.currentTimeMillis();
-        
-        while (eventQueue.size() < expectedEventCount && 
-               System.currentTimeMillis() - startTime < timeoutMs) {
-            Thread.sleep(50);  // Poll every 50ms
-        }
-        
-        if (eventQueue.size() < expectedEventCount) {
-            log.warn("Expected {} events but got {}", expectedEventCount, eventQueue.size());
-        }
-    }
 }

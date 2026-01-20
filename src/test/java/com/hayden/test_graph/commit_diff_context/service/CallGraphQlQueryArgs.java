@@ -18,20 +18,6 @@ public sealed interface CallGraphQlQueryArgs<T> {
     String key();
 
     @Builder
-    record CodeContextQueryArgs(String branchName, String gitRepoPath, String commitMessage,
-                             RepoOpInit.CommitDiffContextGraphQlModel commitDiffContextValue) implements CallGraphQlQueryArgs<CommitDiffFileResult> {
-        @Override
-        public Class<CommitDiffFileResult> clazz() {
-            return CommitDiffFileResult.class;
-        }
-
-        @Override
-        public String key() {
-            return "buildCommitDiffContext";
-        }
-    }
-
-    @Builder
     record ValidateBranchAdded(String branchName, String gitRepoPath) implements CallGraphQlQueryArgs<GitRepoResult> {
         @Override
         public Class<GitRepoResult> clazz() {

@@ -2,11 +2,10 @@ package com.hayden.test_graph.multi_agent_ide.data_dep.ctx;
 
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.ctx.ContextValue;
-import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.data_dep.ctx.DataDepBubble;
 import com.hayden.test_graph.data_dep.ctx.DataDepCtx;
 import com.hayden.test_graph.exec.single.GraphExec;
-import com.hayden.test_graph.multi_agent_ide.assert_nodes.ctx.MultiAgentIdeAssertBubble;
+import com.hayden.test_graph.init.selenium.ctx.SeleniumInitCtx;
 import com.hayden.test_graph.multi_agent_ide.data_dep.nodes.MultiAgentIdeDataDepNode;
 import com.hayden.test_graph.multi_agent_ide.init.ctx.MultiAgentIdeInit;
 import com.hayden.test_graph.thread.ResettableThread;
@@ -23,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.Callable;
 
 /**
  * Data dependency context for multi-agent-ide test graph.
@@ -43,18 +43,15 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
             Integer maxEventBufferSize,
             Long eventTimeoutMs
     ) {
-        public TestEventListenerConfig(String listenerId) {
-            this(listenerId, 1000, 30000L);
-        }
     }
 
     @Builder
-    public record LangChain4jMockConfig(
+    public record AgentConfig(
             boolean useStreamingModel,
             String modelType,
             Map<String, String> mockResponses
     ) {
-        public LangChain4jMockConfig() {
+        public AgentConfig() {
             this(true, "claude-haiku", new HashMap<>());
         }
     }
@@ -79,24 +76,6 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
             Long subscriptionTimeoutMs,
             boolean autoStart
     ) {
-        public EventSubscriptionConfig(String subscriptionProtocol, String eventEndpoint) {
-            this(subscriptionProtocol, eventEndpoint, 100, 30000L, true);
-        }
-    }
-
-    @Builder
-    public record SeleniumUiConfig(
-            String baseUrl,
-            String goal,
-            String repositoryUrl,
-            String baseBranch,
-            Long waitTimeoutMs,
-            Integer expectedEventCount,
-            String driver
-    ) {
-        public SeleniumUiConfig(String baseUrl, String goal, String repositoryUrl) {
-            this(baseUrl, goal, repositoryUrl, "main", 30000L, null, null);
-        }
     }
 
     @Builder
@@ -110,9 +89,6 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
             Long waitTimeoutMs,
             Integer expectedEventCount
     ) {
-        public OrchestrationRequestConfig(String baseUrl, String goal, String repositoryUrl) {
-            this(baseUrl, goal, repositoryUrl, "main", null, null, 30000L, null);
-        }
     }
 
     @Builder
@@ -133,6 +109,14 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
         @Setter
         @Getter
         private volatile boolean subscriptionActive = false;
+
+        @Setter
+        Callable<Void> closeConnection;
+
+        public void close() throws Exception {
+            if (closeConnection != null)
+                closeConnection.call();
+        }
 
         public void enqueue(Object event) {
             synchronized (events) {
@@ -174,25 +158,27 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
 
     }
 
+
     private final ContextValue<TestEventListenerConfig> eventListenerConfig = ContextValue.empty();
-    private final ContextValue<LangChain4jMockConfig> langChain4jMockConfig = ContextValue.empty();
+    private final ContextValue<AgentConfig> agentConfig = ContextValue.empty();
     private final ContextValue<SubmoduleConfig> submoduleConfig = ContextValue.empty();
     private final ContextValue<EventSubscriptionConfig> eventSubscriptionConfig = ContextValue.empty();
-    private final ContextValue<SeleniumUiConfig> seleniumUiConfig = ContextValue.empty();
+    private final ContextValue<SeleniumInitCtx.SeleniumData> seleniumUiConfig = ContextValue.empty();
     private final ContextValue<Integer> expectedEventCount = ContextValue.empty();
     private final ContextValue<MultiAgentIdeInit> initCtx = ContextValue.empty();
     @Getter
     private final EventQueue eventQueue = new EventQueue();
     @Getter
-    private final List<UiEventObservation> uiEvents = new ArrayList<>();
-    @Getter
     private final List<OrchestrationRequestConfig> orchestrationRequests = new ArrayList<>();
-
     @Getter
     private final ContextValue<MultiAgentIdeInit> initContext = ContextValue.empty();
 
     public EventSubscriptionConfig getEventSubscriptionConfig() {
-        return eventSubscriptionConfig.get();
+        return eventSubscriptionConfig.optional().orElse(null);
+    }
+
+    public void setEventSubscriptionConfig(EventSubscriptionConfig eventSubscriptionConfig) {
+        this.eventSubscriptionConfig.set(eventSubscriptionConfig);
     }
 
     @Autowired
@@ -223,12 +209,12 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
         return eventListenerConfig.get();
     }
 
-    public void setLangChain4jMockConfig(LangChain4jMockConfig config) {
-        langChain4jMockConfig.set(config);
+    public void setAgentConfig(AgentConfig config) {
+        agentConfig.set(config);
     }
 
-    public LangChain4jMockConfig getLangChain4jMockConfig() {
-        return langChain4jMockConfig.get();
+    public AgentConfig getAgentConfig() {
+        return agentConfig.get();
     }
 
     public void setSubmoduleConfig(SubmoduleConfig config) {
@@ -239,12 +225,12 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
         return submoduleConfig.get();
     }
 
-    public void setSeleniumUiConfig(SeleniumUiConfig config) {
+    public void setSeleniumUiConfig(SeleniumInitCtx.SeleniumData config) {
         seleniumUiConfig.set(config);
     }
 
-    public SeleniumUiConfig getSeleniumUiConfig() {
-        return seleniumUiConfig.get();
+    public SeleniumInitCtx.SeleniumData getSeleniumUiConfig() {
+        return seleniumUiConfig.res().orElse(null);
     }
 
     public void setExpectedEventCount(Integer count) {
@@ -256,8 +242,12 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
     }
 
     public void addUiEvents(List<UiEventObservation> events) {
-        uiEvents.clear();
-        uiEvents.addAll(events);
+        for (var e : events)
+            this.getEventQueue().enqueue(e);
+    }
+
+    public void registerClose(Callable<Void> toCall) {
+        this.getEventQueue().setCloseConnection(toCall);
     }
 
     public void addOrchestrationRequest(OrchestrationRequestConfig config) {
@@ -280,11 +270,6 @@ public class MultiAgentIdeDataDepCtx implements DataDepCtx {
     @Override
     public Class<MultiAgentIdeDataDepBubble> bubbleClazz() {
         return MultiAgentIdeDataDepBubble.class;
-    }
-
-    @Override
-    public List<Class<? extends TestGraphContext>> dependsOn() {
-        return List.of(MultiAgentIdeInit.class);
     }
 
 }

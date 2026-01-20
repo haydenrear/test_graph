@@ -1,6 +1,6 @@
 package com.hayden.test_graph.init.exec;
 
-import com.hayden.test_graph.graph.edge.EdgeExec;
+import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitBubble;
 import com.hayden.test_graph.init.ctx.InitCtx;
@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
 @Component
 @RequiredArgsConstructor
@@ -33,9 +34,6 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
     List<InitPreMapper> preMappers;
     @Autowired(required = false)
     List<InitPostMapper> postMappers;
-
-    @Autowired
-    EdgeExec edgeExec;
 
     @Autowired
     @ResettableThread
@@ -56,9 +54,7 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
     }
 
     private InitExec retrieveToExec(InitCtx initCtx, InitBubble prev, MetaCtx metaCtx) {
-        return Optional.ofNullable(prev)
-                .map(ib -> edgeExec.edges(this, initCtx, ib, metaCtx))
-                .orElseGet(() -> edgeExec.edges(this, initCtx, metaCtx));
+        return this;
     }
 
     @Override
@@ -80,7 +76,6 @@ public class InitExec implements GraphExec.ExecNode<InitCtx, InitBubble> {
     public InitBubble collectCtx(Class<? extends InitCtx> toCollect, MetaCtx metaCtx) {
         List<? extends InitCtx> intCtx = this.initGraph.sortedCtx(toCollect)
                 .stream()
-                .map(ac -> this.edgeExec.preExecTestGraphEdges(ac, metaCtx))
                 .toList();
 
         if (intCtx.isEmpty()) {

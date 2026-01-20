@@ -4,6 +4,7 @@ import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.init.ctx.InitCtx;
+import com.hayden.test_graph.init.selenium.ctx.SeleniumInitCtx;
 import com.hayden.test_graph.multi_agent_ide.init.nodes.MultiAgentIdeInitNode;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.Builder;
@@ -33,9 +34,6 @@ public class MultiAgentIdeInit implements InitCtx {
             String brokerUrl,
             Integer reconnectDelayMs
     ) {
-        public EventSubscriptionConfig(String subscriptionType) {
-            this(subscriptionType, null, 5000);
-        }
     }
 
     @Builder
@@ -46,10 +44,11 @@ public class MultiAgentIdeInit implements InitCtx {
             String worktreesBasePath,
             List<String> jvmArgs,
             List<String> appArgs,
-            boolean skipIfHealthy
+            boolean skipIfHealthy,
+            String profiles
     ) {
         public AppLaunchConfig(String jarPath) {
-            this(jarPath, 8080, null, null, List.of(), List.of(), true);
+            this(jarPath, 8080, null, null, List.of(), List.of(), true, null);
         }
     }
 
@@ -307,6 +306,7 @@ public class MultiAgentIdeInit implements InitCtx {
 
     MultiAgentIdeBubble bubble;
 
+
     @Autowired
     @ResettableThread
     public void setBubble(MultiAgentIdeBubble bubble) {
@@ -448,11 +448,6 @@ public class MultiAgentIdeInit implements InitCtx {
                 .filter(spec -> spec.reviewNodeId().equals(reviewNodeId))
                 .findFirst()
                 .orElse(null);
-    }
-
-    @Override
-    public List<Class<? extends TestGraphContext>> dependsOn() {
-        return List.of();
     }
 
     @Override

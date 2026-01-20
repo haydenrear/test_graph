@@ -1,6 +1,6 @@
 services:
   commit-diff-postgres:
-    image: localhost:5001/postgres-pgvector
+    image: localhost:5005/postgres-pgvector
     container_name: commit-diff-postgres-ctx-test
     networks:
       - commit-diff-network
@@ -14,7 +14,7 @@ services:
 #  commit-diff-context:
 #    networks:
 #      - commit-diff-network
-#    image: localhost:5001/commit-diff-server
+#    image: localhost:5005/commit-diff-server
 #    container_name: commit-diff-server
 #    ports:
 #      - "8080:8080"

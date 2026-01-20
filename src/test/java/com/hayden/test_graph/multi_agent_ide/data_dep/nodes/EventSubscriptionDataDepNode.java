@@ -4,8 +4,11 @@ import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.multi_agent_ide.data_dep.ctx.MultiAgentIdeDataDepCtx;
 import com.hayden.test_graph.thread.ResettableThread;
+import com.hayden.utilitymodule.sort.GraphSort;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Data dependency node for setting up event subscriptions.
@@ -48,6 +51,11 @@ public class EventSubscriptionDataDepNode implements MultiAgentIdeDataDepNode {
         }
         
         return ctx;
+    }
+
+    @Override
+    public List<Class<? extends MultiAgentIdeDataDepNode>> dependsOn() {
+        return List.of(SeleniumUiDataDepNode.class, EventPollingDataDepNode.class);
     }
 
     /**

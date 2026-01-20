@@ -4,14 +4,15 @@ import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.multi_agent_ide.assert_nodes.ctx.MultiAgentIdeAssertCtx;
 import com.hayden.test_graph.multi_agent_ide.data_dep.ctx.MultiAgentIdeDataDepCtx;
-import com.hayden.test_graph.multi_agent_ide.edges.DataDepToAssertEdge;
-import com.hayden.test_graph.multi_agent_ide.edges.InitToAssertEdge;
 import com.hayden.test_graph.thread.ResettableThread;
+
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import static org.awaitility.Awaitility.await;
 
 @Slf4j
 @Component
@@ -23,26 +24,27 @@ public class MultiAgentIdeUiEventAssertNode implements MultiAgentIdeAssertNode {
 
     @Override
     public MultiAgentIdeAssertCtx exec(MultiAgentIdeAssertCtx c, MetaCtx h) {
-        List<MultiAgentIdeDataDepCtx.UiEventObservation> uiEvents = c.getUiEvents();
-        if (uiEvents.isEmpty()) {
-            assertions.assertSoftly(false, "No UI events captured for assertions");
-            return c;
-        }
 
-        List<MultiAgentIdeDataDepCtx.UiEventObservation> allEvents = c.getUiEvents();
-        for (MultiAgentIdeAssertCtx.MultiAgentIdeAssertion assertion : c.getPendingAssertions()) {
-            if (assertion instanceof MultiAgentIdeAssertCtx.EventAssertion eventAssertion) {
+        await().atMost(c.getConfig().maxWait()).until(() -> {
+            List<MultiAgentIdeDataDepCtx.UiEventObservation> allEvents = c.getUiEvents();
+            for (MultiAgentIdeAssertCtx.MultiAgentIdeAssertion toAssert : c.getPendingAssertions()) {
                 boolean matched = allEvents.stream().anyMatch(event ->
-                        matchesEventAssertion(eventAssertion, event, allEvents));
-                String message = "Expected UI event %s for nodeType=%s"
-                        .formatted(eventAssertion.eventType(), eventAssertion.nodeType());
-                assertions.assertSoftly(matched, message);
+                        matchesEventAssertion(toAssert, event, allEvents));
+                String message = "Expected UI event %s"
+                        .formatted(toAssert);
                 if (matched) {
-                    c.markAssertionExecuted(assertion);
-                } else {
-                    c.markAssertionFailed(assertion);
+                    assertions.assertSoftly(true, message);
+                    c.markAssertionExecuted(toAssert);
                 }
             }
+
+            return c.getPendingAssertions().isEmpty();
+        });
+
+
+        for (MultiAgentIdeAssertCtx.MultiAgentIdeAssertion assertion : c.getPendingAssertions()) {
+            assertions.assertSoftly(false, "%s failed".formatted(assertion));
+            c.markAssertionFailed(assertion);
         }
 
         return c;
@@ -50,27 +52,32 @@ public class MultiAgentIdeUiEventAssertNode implements MultiAgentIdeAssertNode {
 
     @Override
     public List<Class<? extends MultiAgentIdeAssertNode>> dependsOn() {
-        return List.of(DataDepToAssertEdge.class, InitToAssertEdge.class);
+        return List.of(MultiAgentSseGoalRequestNode.class, MultiAgentSeleniumGoalRequestNode.class);
     }
 
     private boolean matchesEventAssertion(
-            MultiAgentIdeAssertCtx.EventAssertion expected,
+            MultiAgentIdeAssertCtx.MultiAgentIdeAssertion toAssert,
             MultiAgentIdeDataDepCtx.UiEventObservation actual,
             List<MultiAgentIdeDataDepCtx.UiEventObservation> allEvents
     ) {
-        if (!expected.eventType().equals(actual.type())) {
-            return false;
-        }
-        if (expected.nodeId() != null && !expected.nodeId().isBlank()) {
-            if (actual.nodeId() == null || !expected.nodeId().equals(actual.nodeId())) {
-                return false;
+        return switch (toAssert) {
+            case MultiAgentIdeAssertCtx.EventAssertion  expected -> {
+                if (!expected.eventType().equals(actual.type())) {
+                    yield false;
+                }
+                if (expected.nodeId() != null && !expected.nodeId().isBlank()) {
+                    if (actual.nodeId() == null || !expected.nodeId().equals(actual.nodeId())) {
+                        yield false;
+                    }
+                }
+                if (expected.nodeType() != null && !expected.nodeType().isBlank()) {
+                    String nodeType = extractNodeType(actual, allEvents);
+                    yield expected.nodeType().equals(nodeType);
+                }
+                yield true;
             }
-        }
-        if (expected.nodeType() != null && !expected.nodeType().isBlank()) {
-            String nodeType = extractNodeType(actual, allEvents);
-            return expected.nodeType().equals(nodeType);
-        }
-        return true;
+            default -> false;
+        };
     }
 
     private String extractNodeType(

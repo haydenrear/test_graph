@@ -3,6 +3,7 @@ package com.hayden.test_graph.meta.ctx;
 import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
+import com.hayden.test_graph.exec.bubble.HyperGraphExec;
 import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.graph.node.HyperGraphBubbleNode;
 import com.hayden.test_graph.meta.exec.prog_bubble.MetaProgNode;
@@ -34,5 +35,10 @@ public interface MetaCtx extends HyperGraphContext<MetaCtx> {
         return ContextValue.empty();
     }
 
+    default boolean didRun(Class<? extends TestGraphContext> check) {
+        return false;
+    }
+
+    void ran(TestGraphContext check);
 
 }

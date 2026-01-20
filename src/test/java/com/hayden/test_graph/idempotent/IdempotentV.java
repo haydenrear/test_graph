@@ -16,18 +16,18 @@ public class IdempotentV {
     public void didIf() {}
 
 
-    @Idempotent
+    //@Idempotent
     public String doI() {
         did();
         return "hello";
     }
 
-    @Idempotent
+    //@Idempotent
     public void doIAgain() {
         didAgain();
     }
 
-    @Idempotent(runAgain = DoRunAgainIf.class)
+    //@Idempotent(runAgain = DoRunAgainIf.class)
     public void doIAgainVIf() {
         didIf();
     }
@@ -58,7 +58,7 @@ public class IdempotentV {
         }
     }
 
-    @Idempotent(runAgain = DoRunAgainIfTwo.class)
+    //@Idempotent(runAgain = DoRunAgainIfTwo.class)
     public String doIAgainIf(String inValue) {
         return inValue;
     }
@@ -71,12 +71,12 @@ public class IdempotentV {
         return argAgain;
     }
 
-    @Idempotent(returnArg = 0)
+    //@Idempotent(returnArg = 0)
     public String doIWArg(String in) {
         return didWArg("goodbye");
     }
 
-    @Idempotent(returnArg = 0)
+    //@Idempotent(returnArg = 0)
     public String doIAgainWArg(String in) {
         return didAgainWArg("goodbye");
     }

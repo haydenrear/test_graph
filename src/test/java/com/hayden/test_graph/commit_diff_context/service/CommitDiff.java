@@ -59,8 +59,6 @@ public class CommitDiff implements ResettableThreadLike {
                     yield this.doWithGraphQl(client -> doGitOp(graphQlQueryArgs, client, buildRepoReq(branchName, gitRepoPath, sessionKey, doGitOp, ctx)));
                 }
             }
-            case CallGraphQlQueryArgs.CodeContextQueryArgs codeContextQueryArgs ->
-                    this.doWithGraphQl(client -> createGraphQlQueryResponse(doCodeContextOp(codeContextQueryArgs, client).executeSync(), graphQlQueryArgs));
         };
     }
 
@@ -80,20 +78,6 @@ public class CommitDiff implements ResettableThreadLike {
         return createGraphQlQueryResponse(requestSpec.executeSync(), graphQlQueryArgs);
     }
 
-    private DgsGraphQlClient.RequestSpec doCodeContextOp(CallGraphQlQueryArgs.CodeContextQueryArgs commitRequestArgs,
-                                                         DgsGraphQlClient client) {
-        return doCodeContextOpInner(client, BuildCommitDiffContextGraphQLQuery.newRequest()
-                .commitDiffContextRequest(buildGitRepoPromptingRequest(commitRequestArgs))
-                .queryName(commitRequestArgs.key())
-                .build());
-    }
-
-    private DgsGraphQlClient.@NotNull RequestSpec doCodeContextOpInner(DgsGraphQlClient client, BuildCommitDiffContextGraphQLQuery build) {
-        BuildCommitDiffContextGraphQLQuery query = build;
-        var projection = GitGraphQlProjections.codeContextProjectionRoot();
-        var rs = doCreateRequestSpec(client, query, projection);
-        return rs;
-    }
 
     private <T> @NotNull Result<T, CallGraphQlQueryArgs.CommitDiffContextGraphQlError> doGitOp(CallGraphQlQueryArgs<T> graphQlQueryArgs,
                                                                                                DgsGraphQlClient client,
@@ -126,11 +110,6 @@ public class CommitDiff implements ResettableThreadLike {
         assertions.reportAssert("GraphQl query to be executed: %s".formatted(serializedQuery));
         var rs = client.request(query).projection(projection);
         return rs;
-    }
-
-    private GitRepoPromptingRequest buildGitRepoPromptingRequest(CallGraphQlQueryArgs.CodeContextQueryArgs commitRequestArgs) {
-        return buildGitRepoPromptingRequestInner(null,
-                commitRequestArgs.commitDiffContextValue(), commitRequestArgs.branchName(), commitRequestArgs.gitRepoPath());
     }
 
     private GitRepoPromptingRequest buildGitRepoPromptingRequestInner(String commitMessage,

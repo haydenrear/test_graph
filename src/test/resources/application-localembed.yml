@@ -12,7 +12,7 @@ docker-init-ctx:
   docker-host-uri: "unix:///Users/hayde/.docker/run/docker.sock"
   docker-response-timeout: 30
   compose-directories:
-    - ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context
+    - {{PROJ_DIR}}/src/test/docker/commit-diff-context
 
 spring:
   docker:

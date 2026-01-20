@@ -18,11 +18,11 @@ import java.nio.file.Paths;
  */
 public class K3sDeploymentStepDef implements ResettableStep {
 
-    @Autowired
+    @Autowired(required = false)
     @ResettableThread
     private IndexingK3sInit indexingK3SInit;
 
-    @Autowired
+    @Autowired(required = false)
     @ResettableThread
     private Assertions assertions;
 

@@ -1,14 +1,19 @@
 @multi_agent_ide @integration
 Feature: Agent session isolation for multi-agent chats
 
+  Background:
+    Given the test configuration is:
+      | key               | value                 |
+      | MODEL_TYPE        | openai                |
+      | SPRING_PROFILES   | openai                |
+      | SUBSCRIPTION_TYPE | sse                   |
+      | BASE_URL          | http://localhost:8080 |
+
   @chat_sessions_resume
   Scenario: Orchestrator resumes its prior context after sub-agent work
     Given a computation graph with the following structure:
       | nodeId         | nodeType     | status | parentId | children | prompt                        |
       | orchestrator-1 | ORCHESTRATOR | READY  |          |          | Orchestrate planning workflow |
-    And the test configuration is:
-      | key        | value |
-      | MODEL_TYPE | acp   |
     And the mock response file "multi_agent_ide/chat_sessions.json"
     And the expected events for this scenario are:
       | eventType           | nodeType     | payloadFile | order |
@@ -21,12 +26,9 @@ Feature: Agent session isolation for multi-agent chats
   @chat_sessions_isolation
   Scenario: Multiple agents keep isolated sessions
     Given multiple computation graphs with the following structure:
-      | graphId | nodeId         | nodeType     | status | parentId | prompt                         |
-      | graph-A | orchestrator-2 | ORCHESTRATOR | READY  |          | Orchestrate goal execution A   |
-      | graph-B | orchestrator-3 | ORCHESTRATOR | READY  |          | Orchestrate goal execution B   |
-    And the test configuration is:
-      | key        | value |
-      | MODEL_TYPE | acp   |
+      | graphId | nodeId         | nodeType     | status | parentId | prompt                       |
+      | graph-A | orchestrator-2 | ORCHESTRATOR | READY  |          | Orchestrate goal execution A |
+      | graph-B | orchestrator-3 | ORCHESTRATOR | READY  |          | Orchestrate goal execution B |
     And the mock response file "multi_agent_ide/chat_sessions.json"
     And the expected events for this scenario are:
       | eventType           | nodeType     | payloadFile | order |
@@ -39,11 +41,8 @@ Feature: Agent session isolation for multi-agent chats
   @chat_sessions_recovery
   Scenario: New agent starts with a fresh session
     Given a computation graph with the following structure:
-      | nodeId         | nodeType     | status | parentId | children | prompt                       |
+      | nodeId         | nodeType     | status | parentId | children | prompt                      |
       | orchestrator-4 | ORCHESTRATOR | READY  |          |          | Orchestrate discovery setup |
-    And the test configuration is:
-      | key        | value |
-      | MODEL_TYPE | acp   |
     And the mock response file "multi_agent_ide/chat_sessions.json"
     And the expected events for this scenario are:
       | eventType           | nodeType     | payloadFile | order |

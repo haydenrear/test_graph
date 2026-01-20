@@ -5,8 +5,8 @@ import com.hayden.test_graph.ctx.ContextValue;
 import com.hayden.test_graph.ctx.HyperGraphContext;
 import com.hayden.test_graph.ctx.TestGraphContext;
 import com.hayden.test_graph.exec.bubble.HyperGraphExec;
-import com.hayden.test_graph.graph.edge.EdgeExec;
 import com.hayden.test_graph.exec.prog_bubble.ProgExec;
+import com.hayden.test_graph.exec.single.GraphExec;
 import com.hayden.test_graph.meta.LazyMetaGraphDelegate;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.meta.ctx.MetaProgCtx;
@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @Component
@@ -27,9 +28,6 @@ public class MetaProgExec implements ProgExec {
     @Autowired
     @ResettableThread
     private MetaProgCtx metaProgCtx;
-
-    @Autowired
-    private EdgeExec edgeExec;
 
     @Autowired
     @Lazy
@@ -54,32 +52,38 @@ public class MetaProgExec implements ProgExec {
 
     @Override
     public MetaCtx exec(Class<? extends TestGraphContext> ctx, MetaCtx metaCtx) {
-//        assertDeps(ctx);
         for (var hgNode : lazyMetaGraphDelegate.parseHyperGraph(ctx)) {
             MetaCtx finalMetaCtx = metaCtx;
-            Stream<Class<? extends TestGraphContext>> contextsRetrieved = lazyMetaGraphDelegate.parseSubGraph(hgNode, ctx);
-            contextsRetrieved.map(c -> {
-                        HyperGraphExec<TestGraphContext<HyperGraphContext>, HyperGraphContext> hgGraphExec
-                                = edgeExec.preExecHgExecEdges(hgNode, finalMetaCtx);
+            Class<? extends TestGraphContext<HyperGraphContext>> context = (Class<? extends TestGraphContext<HyperGraphContext>>) ctx;
+            Stream<Class<? extends TestGraphContext>> contextsRetrieved = contextsPlanned(ctx, hgNode);
+            HyperGraphExec<TestGraphContext<HyperGraphContext>, HyperGraphContext> hgGraphExec = hgNode;
+            var done = contextsRetrieved
+                    .map(c -> {
                         String msg = "Executing %s".formatted(c.getName());
                         assertions.assertSoftly(Objects.nonNull(c), msg, msg);
                         var ctxCreated = hgGraphExec.exec((Class<? extends TestGraphContext<HyperGraphContext>>) c, finalMetaCtx);
-                        MetaCtx m = edgeExec.postExecMetaCtxEdges(ctxCreated.bubbleMeta(finalMetaCtx), finalMetaCtx);
+                        MetaCtx m = ctxCreated.bubbleMeta(finalMetaCtx);
                         executed.add(c);
                         executed.add(ctxCreated.getClass());
                         return Map.entry(m, ctxCreated);
                     })
-                    .forEach(mc -> {
+                    .toList();
+
+
+            done.forEach(mc -> {
                         if (mc.getKey() instanceof MetaProgCtx m) {
                             m.push(mc.getKey());
                             m.push(mc.getValue());
                         }
                     });
-
-            return finalMetaCtx;
         }
 
         return metaCtx;
+    }
+
+    private Stream<Class<? extends TestGraphContext>> contextsPlanned(Class<? extends TestGraphContext> ctx, HyperGraphExec hgNode) {
+        Stream<Class<? extends TestGraphContext>> contextsRetrieved = lazyMetaGraphDelegate.parseSubGraph(hgNode, ctx);
+        return contextsRetrieved;
     }
 
     @Override

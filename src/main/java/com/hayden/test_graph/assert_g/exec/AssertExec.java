@@ -4,7 +4,6 @@ import com.hayden.test_graph.assert_g.ctx.AssertBubble;
 import com.hayden.test_graph.assert_g.ctx.AssertCtx;
 import com.hayden.test_graph.assert_g.graph.AssertGraph;
 import com.hayden.test_graph.exec.single.GraphExec;
-import com.hayden.test_graph.graph.edge.EdgeExec;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.test_graph.thread.ResettableThread;
 import lombok.RequiredArgsConstructor;
@@ -35,9 +34,6 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
     List<InitPostMapper> postMappers;
 
     @Autowired
-    EdgeExec edgeExec;
-
-    @Autowired
     @ResettableThread
     AssertGraph initGraph;
 
@@ -56,9 +52,7 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
     }
 
     private AssertExec retrieveToExec(AssertCtx initCtx, AssertBubble prev, MetaCtx metaCtx) {
-        return Optional.ofNullable(prev)
-                .map(ib -> edgeExec.edges(this, initCtx, ib, metaCtx))
-                .orElseGet(() -> edgeExec.edges(this, initCtx, metaCtx));
+        return this;
     }
 
     @Override
@@ -80,7 +74,6 @@ public class AssertExec implements GraphExec.ExecNode<AssertCtx, AssertBubble> {
     public AssertBubble collectCtx(Class<? extends AssertCtx> toCollect, MetaCtx metaCtx) {
         List<? extends AssertCtx> intCtx = this.initGraph.sortedCtx(toCollect)
                 .stream()
-                .map(ac -> this.edgeExec.preExecTestGraphEdges(ac, metaCtx))
                 .toList();
 
         if (intCtx.isEmpty()) {

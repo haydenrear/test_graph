@@ -51,8 +51,7 @@ public class MultiAgentImposterNode implements MultiAgentIdeMbInitNode {
                         }
                         return imposters.stream()
                                 .filter(JSONObject.class::isInstance)
-                                .map(JSONObject.class::cast)
-                                .map(Imposter::fromJSON);
+                                .map(entry -> Imposter.fromJSON((JSONObject) entry));
                     } catch (Exception ex) {
                         log.error(ex.getMessage(), ex);
                         assertions.assertSoftly(false, "Was not able to read %s, %s, %s".formatted(e.getKey(), e.getValue(), ex));

@@ -8,6 +8,8 @@ import com.hayden.test_graph.graph.Graph;
 import com.hayden.test_graph.graph.SubGraph;
 import com.hayden.test_graph.graph.node.TestGraphNode;
 import com.hayden.test_graph.graph.service.TestGraphSort;
+import com.hayden.test_graph.init.ctx.InitBubble;
+import com.hayden.test_graph.init.exec.InitBubbleExec;
 import com.hayden.test_graph.meta.graph.MetaGraph;
 import com.hayden.test_graph.thread.ResettableThread;
 import com.hayden.utilitymodule.MapFunctions;
@@ -91,7 +93,8 @@ public class MetaGraphDelegate {
     }
 
     public List<HyperGraphExec> retrieve(HyperGraphExec hyperGraphExec) {
-        return graphSort.sort(hyperGraphExec.parseAllDeps(this.hyperGraphExec));
+        List<HyperGraphExec> toSort = hyperGraphExec.parseAllDeps(this.hyperGraphExec);
+        return graphSort.sort(toSort);
     }
 
     /**
@@ -104,7 +107,11 @@ public class MetaGraphDelegate {
      */
     public Stream<Class<? extends TestGraphContext>> parseSubGraph(HyperGraphExec<TestGraphContext<HyperGraphContext>, HyperGraphContext> hg,
                                                                    Class<? extends TestGraphContext> clazz) {
+        if (!hg.is(clazz))
+            return Stream.empty();
+
         TestGraphContext testGraphContext = this.graphCtxt.get(clazz);
+
         List<TestGraphContext> matching =
                 subGraphs.stream()
                         .filter(sub -> sub.clazz().equals(testGraphContext.bubbleClazz())
@@ -114,9 +121,11 @@ public class MetaGraphDelegate {
                         .distinct()
                         .collect(Collectors.toCollection(ArrayList::new));
 
+
         matching.add(testGraphContext.bubble());
 
-        Stream<Class<? extends TestGraphContext>> sorted = GraphSort.sort(matching)
+        List<TestGraphContext> sort = GraphSort.sort(matching);
+        Stream<Class<? extends TestGraphContext>> sorted = sort
                 .stream()
                 .flatMap(tgc -> tgc instanceof HyperGraphContext<?> hgc
                                 ? Stream.of(hgc)
@@ -136,7 +145,7 @@ public class MetaGraphDelegate {
     }
 
     public HyperGraphExec getMatchingContext(Class<? extends TestGraphContext> clazz) {
-        return metaGraph.sortedNodes().stream()
+        var matching = metaGraph.sortedNodes().stream()
                 .flatMap(m -> m.t().optional().stream())
                 .flatMap(h -> h instanceof HyperGraphExec hyper
                               ? Stream.of(hyper)
@@ -146,9 +155,13 @@ public class MetaGraphDelegate {
                                     && Objects.equals(sub.dependsOn(s), clazz))
                         .filter(Boolean::booleanValue)
                         .findAny().orElse(false)
-                )
-                .findAny()
-                .orElse(null);
+                ).toList();
+
+        if (matching.size() > 1) {
+            log.error("Found multiple matching!");
+        }
+
+        return matching.stream().findAny().orElse(null);
     }
 
     private <T> void initializeMapNotProxy(List<T> graphNodes, Consumer<Map<Class<? extends T>, T>> n) {

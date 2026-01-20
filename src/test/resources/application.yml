@@ -1,20 +1,27 @@
+spring.session:
+  enabled: false
+  schema-provided: false
+
 commit-diff-context-server-props:
   port: 8080
   model-server-base-url: http://localhost:9991
   model-server-port: 9991
   model-server-rerank-port: 9992
-  home-dir: /Users/hayde
+  home-dir: {{HOME_DIR}}
   test-embedding-max-side: 10000
 
 graphql-client:
   url: http://localhost:8080/graphql
 env-props:
-  home-dir: /Users/hayde
-  project-dir: /Users/hayde/IdeaProjects/drools/test_graph
-  error-log: file:///Users/hayde/IdeaProjects/drools/runner-logs/test-report-log.log
+  home-dir: {{HOME_DIR}}
+  project-dir: {{PROJ_DIR}}
+  error-log: file:///{{PROJ_DIR}}/runner-logs/test-report-log.log
 
 db-init-ctx:
   skip-db-cleanup: false
+
+selenium-init-ctx:
+  headless: false
 
 docker-init-ctx:
   skip-docker: true
@@ -24,10 +31,10 @@ docker-init-ctx:
   containers:
     - container-name: "commit-diff-server"
       log: "Tomcat started on port"
-  docker-host-uri: "unix:///Users/hayde/.docker/run/docker.sock"
+  docker-host-uri: "unix:///{{HOME_DIR}}/.docker/run/docker.sock"
   docker-response-timeout: 30
   compose-directories:
-    - ~/IdeaProjects/drools/test_graph/src/test/docker/commit-diff-context
+    - {{PROJ_DIR}}/src/test/docker/commit-diff-context
 
 spring:
   docker:
@@ -35,8 +42,9 @@ spring:
       enabled: true
       lifecycle-management: start_only
       readiness:
-        wait: never
+        wait: NEVER
       skip:
+        skip: if_running
         in-tests: false
       file: src/test/docker/init/docker-compose.yml
   application.name: commit-diff-context-tg
@@ -51,22 +59,20 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   datasource:
     validation:
+      enabled: true
       driver-class-name: org.postgresql.Driver
       username: postgres
       password: postgres
       jdbc-url: jdbc:postgresql://localhost:5411/postgres
       url: jdbc:postgresql://localhost:5411/postgres
-    app:
-      driver-class-name: org.postgresql.Driver
-      username: postgres
-      password: postgres
-      jdbc-url: jdbc:postgresql://localhost:5450/postgres
-      url: jdbc:postgresql://localhost:5450/postgres
-
   liquibase:
     enabled: false
   main:
     allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude: [org.springframework.modulith.runtime.autoconfigure.SpringModulithRuntimeAutoConfiguration,
+              org.springframework.modulith.actuator.autoconfigure.ApplicationModulesEndpointConfiguration,
+              org.springframework.boot.autoconfigure.session.SessionAutoConfiguration]
 commit-diff-context:
   diffs-include-pattern:
     - "*.java"
@@ -88,3 +94,30 @@ commit-diff-context:
     - "**/gradle.properties"
     - "*/gradle.properties"
     - "*.puml"
+
+otel:
+  instrumentation:
+    spring-web:
+      enabled: false
+    spring-webmvc:
+      enabled: false
+    spring-webflux:
+      enabled: false
+    jdbc:
+      enabled: false
+    kafka:
+      enabled: false
+    mongo:
+      enabled: false
+  sdk:
+    disabled: true
+
+management:
+  otlp:
+    metrics:
+      export:
+        enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,info

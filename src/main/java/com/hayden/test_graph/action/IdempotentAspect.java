@@ -28,8 +28,8 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-@Aspect
-@Component
+//@Aspect
+//@Component
 @Slf4j
 public class IdempotentAspect implements ApplicationContextAware, ResettableThreadLike {
 

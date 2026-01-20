@@ -1,9 +1,7 @@
 package com.hayden.test_graph.commit_diff_context.init.repo_op.ctx;
 
 import com.hayden.commitdiffmodel.codegen.types.GitOperation;
-import com.hayden.commitdiffmodel.codegen.types.RagOptions;
 import com.hayden.commitdiffmodel.codegen.types.UpdateHeadCtx;
-import com.hayden.test_graph.ctx.ContextValue;
 
 import java.util.Comparator;
 import java.util.List;
@@ -11,7 +9,7 @@ import java.util.List;
 public sealed interface RepoInitItem {
 
     Comparator<RepoInitItem> c = new Comparator<>() {
-        static final List<Class<? extends RepoInitItem>> REPO_INIT_ORDERING = List.of(AddCodeBranch.class, AddEmbeddings.class, AddBlameNodes.class);
+        static final List<Class<? extends RepoInitItem>> REPO_INIT_ORDERING = List.of(AddCodeBranch.class, AddEmbeddings.class, AddEpisodicMemory.class);
 
         @Override
         public int compare(RepoInitItem o1, RepoInitItem o2) {
@@ -39,10 +37,10 @@ public sealed interface RepoInitItem {
         }
     }
 
-    record AddBlameNodes() implements RepoInitItem {
+    record AddEpisodicMemory() implements RepoInitItem {
         @Override
         public GitOperation op() {
-            return GitOperation.PARSE_BLAME_TREE;
+            return GitOperation.EPISODIC_MEMORY;
         }
     }
 

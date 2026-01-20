@@ -1,9 +1,7 @@
 package com.hayden.test_graph.commit_diff_context.init.repo_op;
 
 import com.hayden.commitdiffmodel.codegen.types.GitOperation;
-import com.hayden.commitdiffmodel.codegen.types.RagOptions;
 import com.hayden.commitdiffmodel.codegen.types.SessionKey;
-import com.hayden.test_graph.action.Idempotent;
 import com.hayden.test_graph.assertions.Assertions;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoInitItem;
 import com.hayden.test_graph.commit_diff_context.init.repo_op.ctx.RepoOpInit;
@@ -11,15 +9,10 @@ import com.hayden.test_graph.commit_diff_context.service.CallGraphQlQueryArgs;
 import com.hayden.test_graph.commit_diff_context.service.CommitDiff;
 import com.hayden.test_graph.meta.ctx.MetaCtx;
 import com.hayden.utilitymodule.git.RepoUtil;
-import com.hayden.utilitymodule.io.ArchiveUtils;
-import org.assertj.core.util.Files;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 @Component
@@ -32,7 +25,7 @@ public class InitializeRepo implements RepoOpInitNode {
 
 
     @Override
-    @Idempotent
+    //@Idempotent
     public RepoOpInit exec(RepoOpInit c, MetaCtx h) {
         // clone repo, add to context
         return c.repoData().res()
@@ -73,8 +66,8 @@ public class InitializeRepo implements RepoOpInitNode {
                                 doAddGitOp(c, GitOperation.ADD_BRANCH);
                         case RepoInitItem.AddEmbeddings() ->
                                 doAddGitOp(c, GitOperation.SET_EMBEDDINGS);
-                        case RepoInitItem.AddBlameNodes ignored ->
-                                doAddGitOp(c, GitOperation.PARSE_BLAME_TREE);
+                        case RepoInitItem.AddEpisodicMemory ignored ->
+                                doAddGitOp(c, GitOperation.EPISODIC_MEMORY);
                         case RepoInitItem.UpdateHeadNode updateHeadNode ->
                                 doAddGitOp(c, GitOperation.UPDATE_HEAD, updateHeadNode.ctx());
                     }

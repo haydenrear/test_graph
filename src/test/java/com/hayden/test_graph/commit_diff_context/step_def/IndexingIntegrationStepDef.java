@@ -17,8 +17,6 @@ import io.cucumber.java.en.When;
 import org.assertj.core.util.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 
 /**
@@ -27,26 +25,26 @@ import java.util.Arrays;
  */
 public class IndexingIntegrationStepDef implements ResettableStep {
 
-    @Autowired
+    @Autowired(required = false)
     @ResettableThread
     private IndexingK3sInit indexingK3SInit;
 
-    @Autowired
+    @Autowired(required = false)
     @ResettableThread
     private CommitDiffContextIndexingDataDepCtx indexingDataDepCtx;
 
-    @Autowired
+    @Autowired(required = false)
     @ResettableThread
     private CommitDiffContextIndexingAssertCtx indexingAssertCtx;
 
-    @Autowired
+    @Autowired(required = false)
     @ResettableThread
     private IndexingMbInitCtx indexingMbInitCtx;
 
-    @Autowired
+    @Autowired(required = false)
     private CodeIndexRepository codeIndexRepository;
 
-    @Autowired
+    @Autowired(required = false)
     private Assertions assertions;
 
     @When("the K3s cluster is initialized")
@@ -83,20 +81,20 @@ public class IndexingIntegrationStepDef implements ResettableStep {
                                 .formatted(splitArtifact))
                         .isEqualTo(3);
             }
-            
+
             // Register the Maven artifact for mocking
-            indexingMbInitCtx.registerArtifactPath(groupId, artifactId, version, 
+            indexingMbInitCtx.registerArtifactPath(groupId, artifactId, version,
                     java.nio.file.Paths.get("/tmp/maven-mock/" + groupId + "/" + artifactId + "/" + version));
         }
     }
 
     @And("the sources are uploaded to MinIO")
     public void sourcesUploadedToMinIO() {
-        sourcesUploadedToMinIO("default-sources");
+        sourcesUploadedToMinIOWithBucket("default-sources");
     }
 
     @And("the sources are uploaded to MinIO with bucket {string}")
-    public void sourcesUploadedToMinIO(String bucket) {
+    public void sourcesUploadedToMinIOWithBucket(String bucket) {
         // Simulate sources being available in MinIO
         indexingDataDepCtx.deployment().res().ifPresent(dep -> {
             if (dep.minioConfig().isPresent()) {
@@ -152,11 +150,11 @@ public class IndexingIntegrationStepDef implements ResettableStep {
             // Verify in database that Java indexes were created
             long indexCount = codeIndexRepository.countByCodeRepo_Url(result.repoUrl());
             assertions.assertSoftly(indexCount >= minCount,
-                    "Database contains " + indexCount + " indexes for repo " + result.repoUrl() + 
+                    "Database contains " + indexCount + " indexes for repo " + result.repoUrl() +
                     ", expected at least " + minCount);
-            
+
             if (result.indexedFileCount() <= minCount) {
-                throw new AssertionError("Indexed file count " + result.indexedFileCount() + 
+                throw new AssertionError("Indexed file count " + result.indexedFileCount() +
                     " is not greater than " + minCount);
             }
         });
@@ -170,9 +168,9 @@ public class IndexingIntegrationStepDef implements ResettableStep {
             long indexCount = codeIndexRepository.countByCodeRepo_Url(result.repoUrl());
             assertions.assertSoftly(indexCount > 0,
                     "No code indexes found in database for repo: " + result.repoUrl());
-            
+
             if (result.symbolCount() <= minCount) {
-                throw new AssertionError("Symbol count " + result.symbolCount() + 
+                throw new AssertionError("Symbol count " + result.symbolCount() +
                     " is not greater than " + minCount);
             }
         });
@@ -199,11 +197,11 @@ public class IndexingIntegrationStepDef implements ResettableStep {
                     // Verify against database
                     long dbIndexCount = codeIndexRepository.countByCodeRepo_Url(result.repoUrl());
                     assertions.assertSoftly(dbIndexCount >= expected,
-                            "Repository " + repoName + " has " + dbIndexCount + 
+                            "Repository " + repoName + " has " + dbIndexCount +
                             " indexes in database, expected at least " + expected);
-                    
+
                     if (result.indexedFileCount() < expected) {
-                        throw new AssertionError("Repository " + repoName + 
+                        throw new AssertionError("Repository " + repoName +
                             " has " + result.indexedFileCount() + " files, expected " + expected);
                     }
                 });
@@ -221,9 +219,9 @@ public class IndexingIntegrationStepDef implements ResettableStep {
                     long dbIndexCount = codeIndexRepository.countByCodeRepo_Url(result.repoUrl());
                     assertions.assertSoftly(dbIndexCount > 0,
                             "No indexes found in database for repository: " + repoName);
-                    
+
                     if (result.symbolCount() < expected) {
-                        throw new AssertionError("Repository " + repoName + 
+                        throw new AssertionError("Repository " + repoName +
                             " has " + result.symbolCount() + " symbols, expected " + expected);
                     }
                 });
@@ -265,14 +263,14 @@ public class IndexingIntegrationStepDef implements ResettableStep {
     public void verifyAllIndexesPersisted() {
         indexingAssertCtx.assertIndexingSuccessful();
         indexingAssertCtx.assertSymbolsIndexed();
-        
+
         // Verify all results have corresponding database entries
         indexingAssertCtx.results().forEach(result -> {
             long dbCount = codeIndexRepository.countByCodeRepo_Url(result.repoUrl());
             assertions.assertSoftly(dbCount > 0,
                     "No persisted indexes found in database for repo: " + result.repoUrl());
             assertions.assertSoftly(dbCount == result.indexedFileCount(),
-                    "Mismatch: database has " + dbCount + " indexes but result shows " + 
+                    "Mismatch: database has " + dbCount + " indexes but result shows " +
                     result.indexedFileCount() + " files for repo: " + result.repoUrl());
         });
     }
@@ -300,7 +298,7 @@ public class IndexingIntegrationStepDef implements ResettableStep {
         // which verifies Kafka StatefulSet and namespace are ready
     }
 
-    @Then("the sources are uploaded to MinIO")
+    @Then("the sources are uploaded to MinIO for indexing")
     @ExecAssertStep({CommitDiffContextIndexingAssertCtx.class})
     public void verifySourcesUploadedToMinIO() {
         // This step is handled by VerifySourcesUploadedToMinIO assert node
