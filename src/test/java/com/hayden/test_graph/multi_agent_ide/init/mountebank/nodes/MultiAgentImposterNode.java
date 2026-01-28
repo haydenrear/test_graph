@@ -33,7 +33,7 @@ public class MultiAgentImposterNode implements MultiAgentIdeMbInitNode {
     @Override
     public Stream<Imposter> createGetImposters(MultiAgentIdeMbInitCtx ctx) {
         return StreamUtil.toStream(ctx.getMockResponses().impostorsByName())
-                .flatMap(e -> StreamUtil.toStream(e.entrySet()))
+                .flatMap(e -> StreamUtil.toStream(e))
                 .flatMap(e -> {
                     try {
                         Path resolved = resolvePath(e.getValue());
