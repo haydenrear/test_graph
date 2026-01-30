@@ -17,8 +17,17 @@ plugins {
 group = "com.hayden"
 version = "1.0.0"
 
+var utilLib = ""
+
+if (project.parent?.name?.contains("multi_agent_ide_parent") ?: false) {
+    utilLib = ":multi_agent_ide_java_parent"
+} else {
+    utilLib = ""
+}
+
+
 dependencies {
-    implementation(project(":utilitymodule"))
+    implementation(project("${utilLib}:utilitymodule"))
     implementation(project(":commit-diff-model"))
     implementation(project(":commit-diff-context"))
 //    implementation(project(":commit-diff-context-mcp"))
@@ -45,7 +54,7 @@ tasks.compileJava {
 //    dependsOn(project(":commit-diff-context-mcp").tasks.getByName("commitDiffContextMcpTask"))
 //    dependsOn(project(":mcp-tool-gateway").tasks.getByName("mcpToolGatewayTask"))
     if (multiAgentIde)
-        dependsOn(project(":multi_agent_ide").tasks.getByName("bootJar"))
+        dependsOn(project("${utilLib}:multi_agent_ide").tasks.getByName("bootJar"))
 //     java -javaagent:commit-diff-context/build/agent/prometheus-javaagent.jar=12345:commit-diff-context/prom-config.yaml -jar ?.jar
 }
 
