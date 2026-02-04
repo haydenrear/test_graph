@@ -114,3 +114,9 @@ tasks.register("generateJUnitPlatformProperties") {
 tasks["compileTestJava"].dependsOn("processYmlFiles")
 tasks["compileJava"].dependsOn("generateJUnitPlatformProperties", "processYmlFiles")
 tasks["processTestResources"].dependsOn("generateJUnitPlatformProperties")
+
+tasks.test {
+    if (project.findProperty("profile") != "test-graph") {
+        exclude("**")
+    }
+}
