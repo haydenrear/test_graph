@@ -24,7 +24,7 @@ while [[ $attempt -le $max_attempts ]]; do
     kill "$pid" 2>/dev/null || true
   done
 
-  sleep 0.5
+  sleep 3
   ((attempt++))
 done
 
