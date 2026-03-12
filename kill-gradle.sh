@@ -21,7 +21,9 @@ while [[ $attempt -le $max_attempts ]]; do
   echo "Attempt $attempt: killing -> $pids"
 
   for pid in $pids; do
+    echo "killing $pid"
     kill "$pid" 2>/dev/null || true
+    echo "killed $pid"
   done
 
   sleep 3
